@@ -1,0 +1,161 @@
+@font-face {
+  font-family: "Fira";
+  src: url(../Fira_Sans/FiraSans-Bold.ttf); /* Utiliser Bold par défaut pour un look plus "fun" */
+}
+
+/* Variables de couleurs pour un thème sombre et ludique */
+:root {
+  --primary-color: #ff9800; /* Orange vif */
+  --secondary-color: #4caf50; /* Vert pomme */
+  --bg-color: #121212; /* Fond sombre */
+  --text-color: #f5f5f5; /* Texte clair */
+  --card-bg: #1e1e1e; /* Fond des cartes légèrement plus clair que le bg */
+  --nav-bg: #1e1e1e;
+  --shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  --border-radius: 20px;
+}
+
+*, ::before, ::after {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  text-decoration: none;
+  list-style: none;
+  font-family: "Fira", "Comic Sans MS", sans-serif; /* Fallback vers une police ronde */
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden; /* Empêche absolument le scroll horizontal */
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* --- HEADER & NAVIGATION --- */
+header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  margin: 0;
+  z-index: 1000;
+  background-color: var(--nav-bg);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border-bottom: 4px solid var(--primary-color);
+}
+
+.barre-navigation {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  flex-wrap: wrap; /* Permet le retour à la ligne sur petit écran */
+}
+
+header h1 {
+  font-size: 2rem;
+}
+
+header h1 a {
+  color: var(--primary-color);
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+  letter-spacing: 1px;
+}
+
+.choix-navigation {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.choix-navigation li {
+  padding: 10px 20px;
+  border-radius: 30px; /* Boutons très ronds */
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animation "rebond" */
+  background-color: #333;
+}
+
+.choix-navigation li a {
+  color: #bbb;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  display: block;
+}
+
+.choix-navigation li:hover {
+  transform: translateY(-3px);
+  background-color: #444;
+  box-shadow: 0 4px 8px rgba(255, 152, 0, 0.2);
+}
+
+.choix-navigation li:hover a {
+  color: var(--primary-color);
+}
+
+.choix-navigation li.selected {
+  background-color: var(--primary-color);
+  box-shadow: 0 4px 10px rgba(255, 152, 0, 0.4);
+}
+
+.choix-navigation li.selected a {
+  color: white;
+}
+
+/* --- MAIN CONTAINER --- */
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  flex: 1; /* Remplit l'espace pour pousser le footer si existant */
+  width: 100%;
+}
+
+/* --- RESPONSIVE MOBILE --- */
+@media (max-width: 768px) {
+  .barre-navigation {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  header h1 {
+    font-size: 1.8rem;
+    text-align: center;
+  }
+
+  .choix-navigation {
+    gap: 10px;
+  }
+  
+  .choix-navigation li {
+    padding: 8px 15px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 400px) {
+  header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .barre-navigation {
+    padding: 10px 10px;
+  }
+}

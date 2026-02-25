@@ -1,26 +1,28 @@
 class MoteurGeometrie {
   constructor(config) {
-    this.genererQuestion = config.genererQuestion;
-    this.typeInterface = config.typeInterface || "clavier"; // "clavier" ou "boutons"
+    this.genererQuestion = config.genererQuestion.bind(config); // On bind pour garder le contexte
+    this.typeInterface = config.typeInterface || "clavier";
 
     this.score = 0;
     this.tentatives = 0;
 
-    // Elements DOM
     this.elForme = document.getElementById("forme-conteneur");
-    this.elSaisie = document.getElementById("saisieReponse");
     this.elInstructions = document.getElementById("instructions");
     this.elStatistique = document.querySelector(".cadre span");
     this.elCadre = document.querySelector(".cadre");
     this.elZoneReponse = document.getElementById("zone-reponse");
 
     this.currentReponse = null;
+    this.enAttente = false; // Sécurité pour éviter les doubles validations
 
     this.nouveauDefi();
   }
 
   nouveauDefi() {
+    this.enAttente = false;
     const defi = this.genererQuestion();
+    if (!defi) return;
+    
     this.currentReponse = defi.reponse;
 
     // Nettoyage et affichage
@@ -45,11 +47,13 @@ class MoteurGeometrie {
       });
     } else {
       const input = document.createElement("input");
-      input.type = "text";
+      input.type = "number";
       input.id = "saisieReponse";
-      input.placeholder = "Ta réponse...";
-      input.onkeypress = (e) => {
-        if (e.key === "Enter") this.validerReponse(input.value);
+      input.placeholder = "?";
+      input.onkeydown = (e) => {
+        if (e.key === "Enter") {
+          this.validerReponse(input.value);
+        }
       };
       this.elZoneReponse.appendChild(input);
       input.focus();
@@ -57,10 +61,16 @@ class MoteurGeometrie {
   }
 
   validerReponse(valeurSaisie) {
-    if (!valeurSaisie) return;
+    if (this.enAttente || valeurSaisie === "" || valeurSaisie === null || valeurSaisie === undefined) return;
+    if (this.currentReponse === null || this.currentReponse === undefined) return;
 
+    this.enAttente = true;
     this.tentatives++;
-    const estCorrect = valeurSaisie.toString().toLowerCase().trim() === this.currentReponse.toString().toLowerCase().trim();
+    
+    // Comparaison sécurisée
+    const s1 = valeurSaisie.toString().toLowerCase().trim();
+    const s2 = this.currentReponse.toString().toLowerCase().trim();
+    const estCorrect = (s1 === s2);
 
     this.elCadre.classList.remove("succes", "erreur");
     void this.elCadre.offsetWidth;

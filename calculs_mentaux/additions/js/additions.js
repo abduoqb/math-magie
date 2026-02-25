@@ -1,9 +1,19 @@
 const configAdditions = {
+  nomOperation: "additions",
   operationSign: "+",
-  genererCalcul: () => {
-    // Niveau 1 (basique) : nombres de 0 à 100
-    let a = Math.floor(Math.random() * 101);
-    let b = Math.floor(Math.random() * 101);
+  genererCalcul: (niveau) => {
+    let a, b;
+    if (niveau === 1) {
+      a = Math.floor(Math.random() * 11); // 0 à 10
+      b = Math.floor(Math.random() * 11);
+    } else if (niveau === 2) {
+      a = Math.floor(Math.random() * 101); // 0 à 100
+      b = Math.floor(Math.random() * 101);
+    } else {
+      a = Math.floor(Math.random() * 1001); // 0 à 1000
+      b = Math.floor(Math.random() * 1001);
+    }
+    
     return {
       a: a,
       b: b,
@@ -12,7 +22,6 @@ const configAdditions = {
   }
 };
 
-// On initialise le moteur une fois que la page est prête
 document.addEventListener("DOMContentLoaded", () => {
   new MoteurCalcul(configAdditions);
 });

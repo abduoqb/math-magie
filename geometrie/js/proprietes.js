@@ -63,6 +63,7 @@ const configProprietes = {
     }
 
     return {
+      id: `${fig.nom}-${typeQ}`,
       svg: `<svg viewBox="0 0 100 100">${fig.path}</svg>`,
       reponse: reponse,
       instruction: instruction,

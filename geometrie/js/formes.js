@@ -87,6 +87,7 @@ const configFormes = {
     const options = [cible.nom, ...mauvaisesReponses].sort(() => Math.random() - 0.5);
     
     return {
+      id: cible.nom,
       svg: svgFinal,
       reponse: cible.nom,
       instruction: "Quel est le nom de cette figure ?",

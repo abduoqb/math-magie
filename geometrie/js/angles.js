@@ -42,6 +42,7 @@ const configAngles = {
       </svg>`;
 
     return {
+      id: `${typeCible}-${degres}`,
       svg: svg,
       reponse: typeCible,
       instruction: "Observe bien l'angle orange :",

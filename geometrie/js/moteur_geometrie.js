@@ -2,17 +2,56 @@ class MoteurGeometrie {
   constructor(config) {
     this.genererQuestion = config.genererQuestion.bind(config);
     this.typeInterface = config.typeInterface || "clavier";
+    this.nomOperation = config.nomOperation || "geometrie-defaut";
 
     this.score = 0;
     this.tentatives = 0;
     this.limiteQuestions = 10;
     this.historiqueSession = []; // Pour garantir l'unicité
 
+    // Chargement simple du niveau pour la session
+    const savedData = JSON.parse(localStorage.getItem(`math-magie-${this.nomOperation}`)) || { niveau: 1 };
+    this.niveau = savedData.niveau;
+
     this.elForme = document.getElementById("forme-conteneur");
     this.elInstructions = document.getElementById("instructions");
     this.elStatistique = document.querySelector(".cadre span");
     this.elCadre = document.querySelector(".cadre");
     this.elZoneReponse = document.getElementById("zone-reponse");
+
+    // Ajout d'un sélecteur de niveau si la config le supporte (ex: formes.js)
+    if (config.nomOperation) {
+        this.elNiveauConteneur = document.getElementById("niveau-selection");
+        if (!this.elNiveauConteneur) {
+            this.elNiveauConteneur = document.createElement("div");
+            this.elNiveauConteneur.id = "niveau-selection";
+            this.elNiveauConteneur.style = "margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold;";
+            this.elNiveauConteneur.innerHTML = `
+                <label for="selectNiveau" style="color: var(--primary-color);">Niveau :</label>
+                <select id="selectNiveau" aria-label="Sélection du niveau de difficulté" style="padding: 5px 10px; border-radius: 10px; border: 2px solid var(--primary-color); background: #1a1a1a; color: white; font-weight: bold; cursor: pointer;">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
+            `;
+            this.elCadre.insertBefore(this.elNiveauConteneur, this.elForme);
+        }
+        
+        this.elSelectNiveau = document.getElementById("selectNiveau");
+        if (this.elSelectNiveau) {
+            this.elSelectNiveau.value = this.niveau;
+            this.elSelectNiveau.addEventListener("change", (e) => {
+              this.niveau = parseInt(e.target.value);
+              localStorage.setItem(`math-magie-${this.nomOperation}`, JSON.stringify({ niveau: this.niveau }));
+              // Reset la session en cours
+              this.score = 0;
+              this.tentatives = 0;
+              this.historiqueSession = [];
+              this.majStatistiques();
+              this.nouveauDefi();
+            });
+        }
+    }
 
     this.currentReponse = null;
     this.enAttente = false;
@@ -32,10 +71,15 @@ class MoteurGeometrie {
     let defi;
     let securite = 0;
     do {
-      defi = this.genererQuestion();
+      defi = this.genererQuestion(this.niveau);
       securite++;
       // Si on a fait trop de tentatives (cas où il n'y a pas assez de questions uniques), on accepte le doublon
     } while (this.historiqueSession.includes(defi.id) && securite < 30);
+
+    // Si on a atteint la limite de sécurité, on vide l'historique pour éviter que ça ne ralentisse les prochains tours
+    if (securite >= 30) {
+      this.historiqueSession = [];
+    }
 
     this.historiqueSession.push(defi.id);
     this.currentReponse = defi.reponse;
@@ -57,27 +101,58 @@ class MoteurGeometrie {
         const btn = document.createElement("button");
         btn.innerText = opt;
         btn.className = "bouton-option";
+        btn.setAttribute("aria-label", `Réponse : ${opt}`);
         btn.onclick = () => this.validerReponse(opt);
         this.elZoneReponse.appendChild(btn);
       });
     } else {
+      const conteneurInput = document.createElement("div");
+      conteneurInput.style.display = "flex";
+      conteneurInput.style.flexDirection = "column";
+      conteneurInput.style.alignItems = "center";
+      conteneurInput.style.gap = "15px";
+
       const input = document.createElement("input");
       input.type = "number";
       input.id = "saisieReponse";
       input.placeholder = "?";
-      input.onkeydown = (e) => {
+      input.setAttribute("aria-label", "Saisis ta réponse ici");
+      input.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           this.validerReponse(input.value);
         }
-      };
-      this.elZoneReponse.appendChild(input);
-      input.focus();
+      });
+      
+      const btnValider = document.createElement("button");
+      btnValider.innerText = "Valider";
+      btnValider.className = "bouton-option";
+      btnValider.setAttribute("aria-label", "Valider la réponse");
+      btnValider.style.width = "auto";
+      btnValider.style.minWidth = "150px";
+      btnValider.onclick = () => this.validerReponse(input.value);
+
+      conteneurInput.appendChild(input);
+      conteneurInput.appendChild(btnValider);
+      this.elZoneReponse.appendChild(conteneurInput);
+      
+      setTimeout(() => input.focus(), 100);
     }
   }
 
   validerReponse(valeurSaisie) {
     if (this.enAttente || valeurSaisie === "" || valeurSaisie === null || valeurSaisie === undefined) return;
     if (this.currentReponse === null || this.currentReponse === undefined) return;
+
+    if (this.typeInterface === "clavier") {
+      const num = Number(valeurSaisie);
+      if (isNaN(num)) {
+        this.elInstructions.innerHTML = "Saisie invalide ! Utilise uniquement des chiffres.";
+        this.elInstructions.className = "texte-erreur";
+        this.elCadre.classList.add("erreur");
+        setTimeout(() => this.elCadre.classList.remove("erreur"), 400);
+        return;
+      }
+    }
 
     this.enAttente = true;
     this.tentatives++;

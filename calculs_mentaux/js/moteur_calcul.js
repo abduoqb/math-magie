@@ -21,20 +21,33 @@ class MoteurCalcul {
     this.elStatistique = document.querySelector(".cadre span");
     this.elCadre = document.querySelector(".cadre");
     
-    // Ajout d'un indicateur de niveau s'il n'existe pas
-    this.elNiveau = document.getElementById("niveau-display");
-    if (!this.elNiveau) {
-        this.elNiveau = document.createElement("div");
-        this.elNiveau.id = "niveau-display";
-        this.elNiveau.style = "position: absolute; top: 10px; right: 20px; font-weight: bold; color: var(--primary-color);";
-        this.elCadre.style.position = "relative";
-        this.elCadre.appendChild(this.elNiveau);
+    // Ajout d'un sélecteur de niveau
+    this.elNiveauConteneur = document.getElementById("niveau-selection");
+    if (!this.elNiveauConteneur) {
+        this.elNiveauConteneur = document.createElement("div");
+        this.elNiveauConteneur.id = "niveau-selection";
+        this.elNiveauConteneur.style = "margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold;";
+        this.elNiveauConteneur.innerHTML = `
+            <label for="selectNiveau" style="color: var(--primary-color);">Niveau :</label>
+            <select id="selectNiveau" aria-label="Sélection du niveau de difficulté" style="padding: 5px 10px; border-radius: 10px; border: 2px solid var(--primary-color); background: #1a1a1a; color: white; font-weight: bold; cursor: pointer;">
+                ${[1,2,3,4,5,6,7,8,9,10].map(n => `<option value="${n}">${n}</option>`).join("")}
+            </select>
+        `;
+        // On l'insère avant le calcul
+        this.elCadre.insertBefore(this.elNiveauConteneur, this.elCalcul);
     }
+    this.elSelectNiveau = document.getElementById("selectNiveau");
+    this.elSelectNiveau.value = this.niveau;
 
     this.currentResultat = null;
 
     this.initEvents();
-    this.majAffichageNiveau();
+    
+    // Add ARIA label to existing input field if present
+    if (this.elSaisie) {
+        this.elSaisie.setAttribute('aria-label', 'Saisis ta réponse ici');
+    }
+
     this.nouveauCalcul();
   }
 
@@ -47,10 +60,19 @@ class MoteurCalcul {
     this.elBoutonChanger?.addEventListener("click", () => {
       this.nouveauCalcul();
     });
+    this.elSelectNiveau?.addEventListener("change", (e) => {
+      this.niveau = parseInt(e.target.value);
+      this.consecutifs = 0;
+      this.erreursConsecutives = 0;
+      this.sauvegarderProgression();
+      this.nouveauCalcul();
+    });
   }
 
   majAffichageNiveau() {
-    this.elNiveau.innerText = `Niveau ${this.niveau}`;
+    if (this.elSelectNiveau) {
+        this.elSelectNiveau.value = this.niveau;
+    }
   }
 
   sauvegarderProgression() {
@@ -71,9 +93,18 @@ class MoteurCalcul {
   }
 
   validerReponse() {
-    if (this.elSaisie.value === "") return;
+    const inputValue = this.elSaisie.value.trim();
+    if (inputValue === "") return;
 
-    const saisiResultat = Number(this.elSaisie.value);
+    const saisiResultat = Number(inputValue);
+    if (isNaN(saisiResultat)) {
+      this.elInstructions.innerText = "Saisie invalide ! Utilise uniquement des chiffres.";
+      this.elInstructions.className = "texte-erreur";
+      this.elCadre.classList.add("erreur");
+      setTimeout(() => this.elCadre.classList.remove("erreur"), 400);
+      return; // Ne compte pas comme une tentative/erreur
+    }
+
     this.tentatives++;
 
     this.elCadre.classList.remove("succes", "erreur");
@@ -88,7 +119,7 @@ class MoteurCalcul {
       this.elCadre.classList.add("succes");
 
       // Evolution : 5 bonnes réponses de suite = niveau supérieur
-      if (this.consecutifs >= 5) {
+      if (this.consecutifs >= 5 && this.niveau < 10) {
         this.niveau++;
         this.consecutifs = 0;
         this.elInstructions.innerText = "Super ! Tu passes au niveau supérieur !";
@@ -106,7 +137,6 @@ class MoteurCalcul {
       if (this.erreursConsecutives >= 3 && this.niveau > 1) {
         this.niveau--;
         this.erreursConsecutives = 0;
-        this.elInstructions.innerText = `On redescend au niveau ${this.niveau} pour s'entraîner !`;
         this.majAffichageNiveau();
         this.sauvegarderProgression();
       }

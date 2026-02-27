@@ -2,31 +2,22 @@ const configDivisions = {
   nomOperation: "divisions",
   operationSign: "÷",
   genererCalcul: (niveau) => {
-    let diviseur, quotient, a, b;
+    let diviseur, quotient;
+    if (niveau === 1) { diviseur = 2; quotient = Math.floor(Math.random() * 6) + 1; } // Div par 2 (R: 1-5)
+    else if (niveau === 2) { diviseur = 2; quotient = Math.floor(Math.random() * 10) + 1; } // Div par 2 (R: 1-10)
+    else if (niveau === 3) { diviseur = 10; quotient = Math.floor(Math.random() * 10) + 1; } // Div par 10
+    else if (niveau === 4) { diviseur = 5; quotient = Math.floor(Math.random() * 10) + 1; } // Div par 5
+    else if (niveau === 5) { diviseur = Math.floor(Math.random() * 3) + 2; quotient = Math.floor(Math.random() * 10) + 1; } // Div par 2, 3, 4
+    else if (niveau === 6) { diviseur = Math.floor(Math.random() * 4) + 2; quotient = Math.floor(Math.random() * 10) + 1; } // Div par 2 à 5
+    else if (niveau === 7) { diviseur = Math.floor(Math.random() * 9) + 2; quotient = Math.floor(Math.random() * 6) + 1; } // Div par 2 à 10 (R: 1-5)
+    else if (niveau === 8) { diviseur = Math.floor(Math.random() * 9) + 2; quotient = Math.floor(Math.random() * 10) + 1; } // Div par 2 à 10 (R: 1-10)
+    else if (niveau === 9) { diviseur = Math.floor(Math.random() * 11) + 2; quotient = Math.floor(Math.random() * 16) + 1; } // Div par 2 à 12 (R: 1-15)
+    else { diviseur = Math.floor(Math.random() * 19) + 2; quotient = Math.floor(Math.random() * 21) + 1; } // Jusqu'à 20
     
-    if (niveau === 1) {
-      // Niveau simple : Diviseur petit (2, 5, 10), Quotient de 1 à 10
-      const diviseursSimples = [2, 5, 10];
-      diviseur = diviseursSimples[Math.floor(Math.random() * diviseursSimples.length)];
-      quotient = Math.floor(Math.random() * 10) + 1;
-    } else if (niveau === 2) {
-      // Niveau classique : Tables de division de 2 à 10, Quotient de 1 à 10
-      diviseur = Math.floor(Math.random() * 9) + 2; // 2 à 10
-      quotient = Math.floor(Math.random() * 10) + 1;
-    } else {
-      // Niveau expert : Diviseur de 2 à 20, Quotient de 1 à 20
-      diviseur = Math.floor(Math.random() * 19) + 2; // 2 à 20
-      quotient = Math.floor(Math.random() * 20) + 1;
-    }
+    let a = diviseur * quotient; 
+    let b = diviseur;
 
-    a = diviseur * quotient; 
-    b = diviseur;
-
-    return {
-      a: a,
-      b: b,
-      resultat: quotient
-    };
+    return { a, b, resultat: quotient };
   }
 };
 

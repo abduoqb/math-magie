@@ -8,20 +8,10 @@
     <link rel="stylesheet" href="style/commun.css" />
     <link rel="stylesheet" href="style/accueil.css" />
     <script src="style/bk-img.js" defer></script>
+    <script src="js/composants/header.js" defer></script>
   </head>
   <body>
-    <header>
-      <nav class="barre-navigation">
-        <h1><a href="index.html">Mathémagie</a></h1>
-        <div>
-          <ul class="choix-navigation">
-            <li class="selected"><a href="index.html">Accueil</a></li>
-            <li><a href="calculs_mentaux/index.html">Calculs mentaux</a></li>
-            <li><a href="geometrie/index.html">Géométrie</a></li>
-          </ul>
-        </div>
-      </nav>
-    </header>
+    <app-header base-path=""></app-header>
     <main>
       <section class="hero-text">
         <h2 class="titre-anime">Prêt pour l'aventure ? ✨</h2>
@@ -29,10 +19,10 @@
       </section>
 
       <section class="activites-grid">
-        <article class="carte-activite">
+        <article class="carte-activite carte-calcul">
           <div class="badge-nouveau">MISSION 1</div>
           <div class="image-conteneur">
-            <img src="images/addition.png" alt="Calcul Mental">
+            <img src="images/addition.png" alt="Illustration d'une addition représentant le calcul mental">
           </div>
           <div class="contenu-carte">
             <h3>Calcul Mental</h3>
@@ -41,10 +31,10 @@
           </div>
         </article>
 
-        <article class="carte-activite">
+        <article class="carte-activite carte-geometrie">
           <div class="badge-nouveau">MISSION 2</div>
-          <div class="image-conteneur icon-geometrie">
-            <!-- On utilisera un SVG stylisé en CSS pour l'icône car on n'a pas de PNG géométrie -->
+          <div class="image-conteneur">
+            <img src="images/géométrie.png" alt="Illustration de formes pour la géométrie">
           </div>
           <div class="contenu-carte">
             <h3>Géométrie</h3>
@@ -52,24 +42,6 @@
             <a href="geometrie/index.html" class="bouton-action">Commencer</a>
           </div>
         </article>
-      </section>
-
-      <section class="points-forts">
-        <div class="point-item">
-          <div class="picto picto-vitesse"></div>
-          <h4>Super Rapide</h4>
-          <p>Entraîne-toi pour devenir plus rapide qu'un éclair !</p>
-        </div>
-        <div class="point-item">
-          <div class="picto picto-precision"></div>
-          <h4>Zéro Erreur</h4>
-          <p>Vise le 100% de réussite pour gagner la médaille d'or.</p>
-        </div>
-        <div class="point-item">
-          <div class="picto picto-fun"></div>
-          <h4>Trop Rigolo</h4>
-          <p>Apprends en t'amusant avec des défis rien que pour toi.</p>
-        </div>
       </section>
     </main>
   </body>

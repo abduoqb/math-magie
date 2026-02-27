@@ -51,8 +51,9 @@ const configProprietes = {
     let typeQ, reponse, instruction;
 
     if (fig.type === "2d") {
-      typeQ = Math.random() > 0.5 ? "sommets" : "côtés";
-      reponse = fig[typeQ];
+      const isSommets = Math.random() > 0.5;
+      typeQ = isSommets ? "sommets" : "côtés";
+      reponse = isSommets ? fig.sommets : fig.cotes;
       instruction = `Combien de ${typeQ} possède ce ${fig.nom} ?`;
     } else {
       const r = Math.random();

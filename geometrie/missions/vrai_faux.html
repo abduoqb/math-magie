@@ -7,7 +7,8 @@
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/5090/5090482.png">
     <script src="../js/moteur_geometrie.js" defer></script>
     <script src="../js/vrai_faux.js" defer></script>
-    <link rel="stylesheet" href="../../calculs_mentaux/styles/calculs.css" />
+    <script src="../../js/composants/header.js" defer></script>
+    <link rel="stylesheet" href="../../style/exercice-commun.css" />
     <link rel="stylesheet" href="../../style/commun.css" />
     <style>
       #forme-conteneur svg { width: 100%; height: 220px; display: block; margin: 0 auto; }
@@ -20,18 +21,7 @@
     </style>
   </head>
   <body>
-    <header>
-      <nav class="barre-navigation">
-        <h1><a href="../../index.html">Mathémagie</a></h1>
-        <div>
-          <ul class="choix-navigation">
-            <li><a href="../../index.html">Accueil</a></li>
-            <li><a href="../../calculs_mentaux/index.html">Calculs mentaux</a></li>
-            <li class="selected"><a href="../index.html">Géométrie</a></li>
-          </ul>
-        </div>
-      </nav>
-    </header>
+    <app-header base-path="../../"></app-header>
     <main>
       <h1 class="titre">Défie le Grimoire !</h1>
       <section class="presentation">

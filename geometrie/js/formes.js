@@ -1,22 +1,24 @@
 const configFormes = {
   typeInterface: "boutons",
   dernierIndex: -1,
+  nomOperation: "geometrie-formes", // Ajouté pour préparer une éventuelle sauvegarde
   
-  genererQuestion: function() {
+  genererQuestion: function(niveau = 1) {
     const couleurs = ["#ff9800", "#4caf50", "#2196f3", "#e91e63", "#9c27b0", "#00bcd4", "#ffeb3b", "#f44336", "#795548"];
     const couleur = couleurs[Math.floor(Math.random() * couleurs.length)];
 
-    const toutesLesFormes = [
-      // --- FORMES PLATES ---
+    // Définition des pools de formes par niveau
+    const formesNiv1 = [
       { nom: "Carré", path: `<rect x="15" y="15" width="70" height="70" fill="${couleur}" stroke="#fff" stroke-width="2"/>` },
       { nom: "Triangle", path: `<polygon points="50,15 85,85 15,85" fill="${couleur}" stroke="#fff" stroke-width="2"/>` },
       { nom: "Rectangle", path: `<rect x="10" y="30" width="80" height="40" fill="${couleur}" stroke="#fff" stroke-width="2"/>` },
-      { nom: "Cercle", path: `<circle cx="50" cy="50" r="35" fill="${couleur}" stroke="#fff" stroke-width="2"/>` },
+      { nom: "Cercle", path: `<circle cx="50" cy="50" r="35" fill="${couleur}" stroke="#fff" stroke-width="2"/>` }
+    ];
+
+    const formesNiv2 = [
+      ...formesNiv1,
       { nom: "Losange", path: `<polygon points="50,10 85,50 50,90 15,50" fill="${couleur}" stroke="#fff" stroke-width="2"/>` },
-      { nom: "Pentagone", path: `<polygon points="50,10 90,40 75,85 25,85 10,40" fill="${couleur}" stroke="#fff" stroke-width="2"/>` },
       { nom: "Hexagone", path: `<polygon points="50,10 85,30 85,70 50,90 15,70 15,30" fill="${couleur}" stroke="#fff" stroke-width="2"/>` },
-      
-      // --- SOLIDES (avec ombres simples pour l'effet 3D) ---
       { 
         nom: "Cube", 
         path: `
@@ -26,18 +28,23 @@ const configFormes = {
           <path d="M25,45 L55,45 L55,75 L25,75 Z M25,45 L40,30 L70,30 L55,45 Z M55,45 L70,30 L70,60 L55,75 Z" fill="none" stroke="#fff" stroke-width="2"/>` 
       },
       { 
-        nom: "Pyramide", 
-        path: `
-          <polygon points="50,15 80,75 20,75" fill="${couleur}"/>
-          <polygon points="50,15 80,75 90,60" fill="${couleur}" fill-opacity="0.7"/>
-          <path d="M50,15 L80,75 L20,75 Z M50,15 L80,75 L90,60 Z" fill="none" stroke="#fff" stroke-width="2"/>` 
-      },
-      { 
         nom: "Sphère", 
         path: `
           <defs><radialGradient id="gradSphere" cx="40%" cy="40%" r="50%"><stop offset="0%" style="stop-color:#fff;stop-opacity:0.4" /><stop offset="100%" style="stop-color:#000;stop-opacity:0.2" /></radialGradient></defs>
           <circle cx="50" cy="50" r="35" fill="${couleur}" stroke="#fff" stroke-width="2"/>
           <circle cx="50" cy="50" r="35" fill="url(#gradSphere)"/>` 
+      }
+    ];
+
+    const formesNiv3 = [
+      ...formesNiv2,
+      { nom: "Pentagone", path: `<polygon points="50,10 90,40 75,85 25,85 10,40" fill="${couleur}" stroke="#fff" stroke-width="2"/>` },
+      { 
+        nom: "Pyramide", 
+        path: `
+          <polygon points="50,15 80,75 20,75" fill="${couleur}"/>
+          <polygon points="50,15 80,75 90,60" fill="${couleur}" fill-opacity="0.7"/>
+          <path d="M50,15 L80,75 L20,75 Z M50,15 L80,75 L90,60 Z" fill="none" stroke="#fff" stroke-width="2"/>` 
       },
       { 
         nom: "Cylindre", 
@@ -65,21 +72,29 @@ const configFormes = {
       }
     ];
 
+    // Déterminer quelles formes utiliser selon le niveau demandé
+    let toutesLesFormes;
+    if (niveau === 1) { toutesLesFormes = formesNiv1; }
+    else if (niveau === 2) { toutesLesFormes = formesNiv2; }
+    else { toutesLesFormes = formesNiv3; }
+
     let indexCible;
     do {
       indexCible = Math.floor(Math.random() * toutesLesFormes.length);
-    } while (indexCible === this.dernierIndex);
+    } while (indexCible === this.dernierIndex && toutesLesFormes.length > 1);
     
     this.dernierIndex = indexCible;
     const cible = toutesLesFormes[indexCible];
     const svgFinal = `<svg viewBox="0 0 100 100">${cible.path}</svg>`;
 
+    // On s'assure de ne proposer comme mauvaises réponses que des formes du niveau en cours
     const autresNoms = toutesLesFormes
       .map(f => f.nom)
       .filter(nom => nom !== cible.nom);
     
     const mauvaisesReponses = [];
-    for (let i = 0; i < 3; i++) {
+    const nbOptions = Math.min(3, autresNoms.length);
+    for (let i = 0; i < nbOptions; i++) {
       const indexAleatoire = Math.floor(Math.random() * autresNoms.length);
       mauvaisesReponses.push(autresNoms.splice(indexAleatoire, 1)[0]);
     }

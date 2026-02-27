@@ -196,4 +196,12 @@ main {
     .presentation { padding: 15px; }
     #calcul { min-width: 80%; font-size: 2rem; }
     #saisieReponse { width: 90%; height: 60px; }
+    #niveau-selection { flex-direction: column; gap: 5px; }
 }
+
+/* Styles partages pour la Geometrie */
+.bouton-option { margin: 8px; padding: 15px; background: var(--secondary-color); color: white; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; transition: all 0.2s ease; font-size: 1.1rem; box-shadow: 0 4px 0px #2e6630; min-width: 150px; }
+.bouton-option:hover { transform: scale(1.02); background: #5cb85c; }
+.bouton-option:active { transform: translateY(2px); box-shadow: 0 2px 0px #2e6630; }
+#forme-conteneur svg { width: 100%; max-height: 220px; display: block; margin: 0 auto; }
+#zone-reponse { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 15px; gap: 10px; min-height: 150px; align-items: center; }

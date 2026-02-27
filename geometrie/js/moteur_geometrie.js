@@ -50,7 +50,7 @@ class MoteurGeometrie {
           this.consecutifs = 0;
           this.erreursConsecutives = 0;
           this.majMana(0);
-          gestionnaireProfils.setProgression(this.nomOperation, { niveau: this.niveau });
+          // La progression n'est sauvegardée qu'à la fin avec un bon score
           // Reset la session en cours
           this.score = 0;
           this.tentatives = 0;
@@ -254,6 +254,15 @@ class MoteurGeometrie {
         Ton score est de <strong style="color:var(--accent-color)">${this.score} / ${this.limiteQuestions}</strong>
       </div>
     `;
+
+    if (this.score >= 8) {
+      const profilActuel = gestionnaireProfils.getProgression(this.nomOperation);
+      const nouveauNiveau = Math.max(profilActuel.niveau, this.niveau + 1);
+      gestionnaireProfils.setProgression(this.nomOperation, { niveau: nouveauNiveau });
+      this.elInstructions.innerHTML += `<div style="color: #4CAF50; font-weight: bold; margin-top: 10px;">🌟 Progression sauvegardée ! Trophée validé ! 🌟</div>`;
+    } else {
+      this.elInstructions.innerHTML += `<div style="color: var(--text-muted); margin-top: 10px; font-size: 1.1rem;">Obtiens au moins <strong style="color: #e74c3c;">8/10</strong> pour valider ce niveau !</div>`;
+    }
 
     this.elZoneReponse.innerHTML = "";
     const btnRejouer = document.createElement("button");

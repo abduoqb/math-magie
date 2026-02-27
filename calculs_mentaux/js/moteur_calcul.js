@@ -114,7 +114,7 @@ class MoteurCalcul {
       this.consecutifs = 0;
       this.erreursConsecutives = 0;
       this.majMana(0);
-      this.sauvegarderProgression();
+      // La progression est sauvegardée uniquement après 5 bonnes réponses consécutives
       // Reset complet de la partie en cours
       this.score = 0;
       this.erreurs = 0;
@@ -235,7 +235,11 @@ class MoteurCalcul {
         this.majMana(0); // Reset visuel de la barre au changement de niveau
         this.elInstructions.innerHTML = `🎉 Niveau ${this.niveau} ! <strong>+${pointsGagnes} pts</strong> <span style="color: var(--accent-color);">(combo x${this.consecutifs} 🔥)</span>`;
         this.majAffichageNiveau();
-        this.sauvegarderProgression();
+        
+        const profilActuel = gestionnaireProfils.getProgression(this.nomOperation);
+        if (this.niveau > profilActuel.niveau) {
+           this.sauvegarderProgression();
+        }
       }
     } else {
       // Pénalité : on perd (niveau × 2) points, minimum 0

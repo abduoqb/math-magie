@@ -11,10 +11,8 @@ class MoteurGeometrie {
     this.limiteQuestions = 10;
     this.historiqueSession = []; // Pour garantir l'unicité
 
-    // Chargement simple du niveau pour la session
-    const savedData = JSON.parse(
-      localStorage.getItem(`math-magie-${this.nomOperation}`),
-    ) || { niveau: 1 };
+    // Chargement de la progression du joueur actif
+    const savedData = gestionnaireProfils.getProgression(this.nomOperation);
     this.niveau = savedData.niveau;
 
     this.elForme = document.getElementById("forme-conteneur");
@@ -52,10 +50,7 @@ class MoteurGeometrie {
           this.consecutifs = 0;
           this.erreursConsecutives = 0;
           this.majMana(0);
-          localStorage.setItem(
-            `math-magie-${this.nomOperation}`,
-            JSON.stringify({ niveau: this.niveau }),
-          );
+          gestionnaireProfils.setProgression(this.nomOperation, { niveau: this.niveau });
           // Reset la session en cours
           this.score = 0;
           this.tentatives = 0;

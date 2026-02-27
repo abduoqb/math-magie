@@ -9,6 +9,9 @@ class AppHeader extends HTMLElement {
     const isTrophees = path.includes('trophees.html');
     const isAccueil = !isCalculs && !isGeometrie && !isTrophees;
 
+    // Nom du mage actif
+    const nomMage = window.gestionnaireProfils ? gestionnaireProfils.getJoueurActif() : null;
+
     this.innerHTML = `
       <header>
         <nav class="barre-navigation">
@@ -19,11 +22,22 @@ class AppHeader extends HTMLElement {
               <li class="${isCalculs ? 'selected' : ''}"><a href="${basePath}calculs_mentaux/index.html">Calculs</a></li>
               <li class="${isGeometrie ? 'selected' : ''}"><a href="${basePath}geometrie/index.html">Géométrie</a></li>
               <li class="${isTrophees ? 'selected' : ''}"><a href="${basePath}trophees.html">Trophées</a></li>
+              ${nomMage ? `<li class="mage-bouton"><a href="#" id="btn-changer-mage">🧙 ${nomMage}</a></li>` : ''}
             </ul>
           </div>
         </nav>
       </header>
     `;
+
+    // Bouton Changer de Mage
+    const btnMage = this.querySelector('#btn-changer-mage');
+    if (btnMage) {
+      btnMage.addEventListener('click', (e) => {
+        e.preventDefault();
+        gestionnaireProfils.deconnecter();
+        window.location.href = basePath + 'choix-mage.html';
+      });
+    }
   }
 }
 

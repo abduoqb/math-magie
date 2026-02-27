@@ -6,12 +6,12 @@ class MoteurCalcul {
     
     this.score = 0;
     this.erreurs = 0;
-    this.limiteErreurs = 10;
+    this.limiteErreurs = 5;
     this.consecutifs = 0; // série d'invincibilité
     this.erreursConsecutives = 0;
 
-    // Chargement de la progression
-    const progressionSauvegardee = JSON.parse(localStorage.getItem(`math-magie-${this.nomOperation}`)) || { niveau: 1 };
+    // Chargement de la progression du joueur actif
+    const progressionSauvegardee = gestionnaireProfils.getProgression(this.nomOperation);
     this.niveau = progressionSauvegardee.niveau;
 
     // Elements DOM
@@ -130,7 +130,7 @@ class MoteurCalcul {
   }
 
   sauvegarderProgression() {
-    localStorage.setItem(`math-magie-${this.nomOperation}`, JSON.stringify({ niveau: this.niveau }));
+    gestionnaireProfils.setProgression(this.nomOperation, { niveau: this.niveau });
   }
 
   nouveauCalcul() {
@@ -149,8 +149,7 @@ class MoteurCalcul {
     this.elInstructions.className = "";
     
     this.elCadre.classList.remove("succes", "erreur");
-    this.majMana(this.consecutifs);
-    this.majStatistiques();
+    this.majMana(this.consecutifs % 5);
     this.elSaisie?.focus();
   }
 
@@ -219,7 +218,7 @@ class MoteurCalcul {
       this.score += pointsGagnes;
       this.consecutifs++;
       this.erreursConsecutives = 0;
-      this.majMana(this.consecutifs);
+      this.majMana(this.consecutifs % 5 === 0 ? 5 : this.consecutifs % 5);
       
       // Afficher les points gagnés avec le détail du combo
       if (this.consecutifs > 1) {
@@ -233,6 +232,7 @@ class MoteurCalcul {
       // Evolution : 5 bonnes réponses de suite = niveau supérieur (la streak continue)
       if (this.consecutifs >= 5 && this.consecutifs % 5 === 0 && this.niveau < 10) {
         this.niveau++;
+        this.majMana(0); // Reset visuel de la barre au changement de niveau
         this.elInstructions.innerHTML = `🎉 Niveau ${this.niveau} ! <strong>+${pointsGagnes} pts</strong> <span style="color: var(--accent-color);">(combo x${this.consecutifs} 🔥)</span>`;
         this.majAffichageNiveau();
         this.sauvegarderProgression();
@@ -252,7 +252,7 @@ class MoteurCalcul {
       this.elCadre.classList.add("erreur");
 
       // Régression : 3 erreurs de suite = niveau inférieur (min 1)
-      if (this.erreursConsecutives >= 3 && this.niveau > 1) {
+      if (this.erreursConsecutives >= 2 && this.niveau > 1) {
         this.niveau--;
         this.erreursConsecutives = 0;
         this.majAffichageNiveau();

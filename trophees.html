@@ -6,6 +6,7 @@
     <title>Salle des Trophées - Mathémagie</title>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/5090/5090482.png">
     <link rel="stylesheet" href="style/commun.css">
+    <script src="js/profils.js"></script>
     <script src="js/composants/header.js" defer></script>
     <style>
         .trophees-grid {
@@ -93,11 +94,14 @@
             { id: 'geometrie-patrons', nom: 'Archimage des Solides', icone: '📦' }
         ];
 
+        // Garde d'accès
+        gestionnaireProfils.verifierAccesOuRediriger('');
+
         const conteneur = document.getElementById('trophees-conteneur');
         let debloques = 0;
 
         missions.forEach(mission => {
-            const data = JSON.parse(localStorage.getItem(`math-magie-${mission.id}`)) || { niveau: 1 };
+            const data = gestionnaireProfils.getProgression(mission.id);
             const niv = data.niveau;
             const estDebloque = niv > 1;
             if (estDebloque) debloques++;

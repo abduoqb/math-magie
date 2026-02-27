@@ -79,16 +79,30 @@ class MoteurCalcul {
     localStorage.setItem(`math-magie-${this.nomOperation}`, JSON.stringify({ niveau: this.niveau }));
   }
 
+  setInstructionText(text, typeClass = "") {
+    this.elInstructions.className = typeClass;
+    this.elInstructions.innerHTML = `
+      <span>${text}</span>
+      <button class="btn-audio" aria-label="Lire la consigne">🔊</button>
+    `;
+    const btnAudio = this.elInstructions.querySelector('.btn-audio');
+    btnAudio.onclick = () => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'fr-FR';
+      window.speechSynthesis.speak(utterance);
+    };
+  }
+
   nouveauCalcul() {
     const { a, b, resultat } = this.genererCalcul(this.niveau);
     this.currentResultat = resultat;
     
     this.elCalcul.innerText = `${a} ${this.operationSign} ${b} = `;
-    this.elSaisie.value = "";
-    this.elInstructions.innerText = "Saisis ta réponse et appuie sur Entrée";
-    this.elInstructions.className = "";
-    this.elCadre.classList.remove("succes", "erreur");
+    if(this.elSaisie) this.elSaisie.value = "";
     
+    this.setInstructionText("Combien font " + a + (this.operationSign === "x" ? " fois " : (this.operationSign === "÷" ? " divisé par " : (this.operationSign === "+" ? " plus " : " moins "))) + b + " ?");
+    
+    this.elCadre.classList.remove("succes", "erreur");
     this.elSaisie?.focus();
   }
 
@@ -98,8 +112,7 @@ class MoteurCalcul {
 
     const saisiResultat = Number(inputValue);
     if (isNaN(saisiResultat)) {
-      this.elInstructions.innerText = "Saisie invalide ! Utilise uniquement des chiffres.";
-      this.elInstructions.className = "texte-erreur";
+      this.setInstructionText("Saisie invalide ! Utilise uniquement des chiffres.", "texte-erreur");
       this.elCadre.classList.add("erreur");
       setTimeout(() => this.elCadre.classList.remove("erreur"), 400);
       return; // Ne compte pas comme une tentative/erreur
@@ -114,23 +127,21 @@ class MoteurCalcul {
       this.score++;
       this.consecutifs++;
       this.erreursConsecutives = 0;
-      this.elInstructions.innerText = "Bien joué !";
-      this.elInstructions.className = "texte-succes";
+      this.setInstructionText("Bien joué !", "texte-succes");
       this.elCadre.classList.add("succes");
 
       // Evolution : 5 bonnes réponses de suite = niveau supérieur
       if (this.consecutifs >= 5 && this.niveau < 10) {
         this.niveau++;
         this.consecutifs = 0;
-        this.elInstructions.innerText = "Super ! Tu passes au niveau supérieur !";
+        this.setInstructionText("Super ! Tu passes au niveau supérieur !", "texte-succes");
         this.majAffichageNiveau();
         this.sauvegarderProgression();
       }
     } else {
       this.consecutifs = 0;
       this.erreursConsecutives++;
-      this.elInstructions.innerText = `Oups ! C'était ${this.currentResultat}`;
-      this.elInstructions.className = "texte-erreur";
+      this.setInstructionText(`Oups ! C'était ${this.currentResultat}`, "texte-erreur");
       this.elCadre.classList.add("erreur");
 
       // Régression : 3 erreurs de suite = niveau inférieur (min 1)

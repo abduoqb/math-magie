@@ -1,18 +1,26 @@
-@font-face {
-  font-family: "Fira";
-  src: url(../Fira_Sans/FiraSans-Bold.ttf); /* Utiliser Bold par défaut pour un look plus "fun" */
-}
+/* Import des Google Fonts pour le thème Magie Moderne */
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap');
 
-/* Variables de couleurs pour un thème sombre et ludique */
+/* Variables de couleurs pour l'Académie de Magie Moderne */
 :root {
-  --primary-color: #ff9800; /* Orange vif */
-  --secondary-color: #4caf50; /* Vert pomme */
-  --bg-color: #121212; /* Fond sombre */
-  --text-color: #f5f5f5; /* Texte clair */
-  --card-bg: #1e1e1e; /* Fond des cartes légèrement plus clair que le bg */
-  --nav-bg: #1e1e1e;
-  --shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-  --border-radius: 20px;
+  /* 60% Fond : Doux et reposant */
+  --bg-color: #F0F9FF; /* Bleu ciel nébuleux très pâle */
+  --card-bg: #FFFFFF; /* Fond des cartes blanc pur pour contraster */
+  --nav-bg: #FFFFFF;
+  
+  /* 30% Structure : Couleurs magiques et calmes */
+  --primary-color: #A077EE; /* Violet Sage */
+  --secondary-color: #41B6E6; /* Bleu Calme */
+  --text-color: #334155; /* Gris ardoise pour la lisibilité (pas de noir pur) */
+  --text-muted: #64748b; /* Gris moyen pour le texte secondaire */
+  
+  /* 10% Accents : Orange stratégique et Vert de validation */
+  --accent-color: #FF8C00; /* Orange vibrant, à utiliser avec parcimonie */
+  --success-color: #6BCB77; /* Vert de réussite */
+  --error-color: #FF6B6B; /* Rouge doux pour les erreurs */
+  
+  --shadow: 0 10px 25px rgba(65, 182, 230, 0.15); /* Ombre bleutée légère */
+  --border-radius: 24px; /* Coins plus ronds et amicaux */
 }
 
 *, ::before, ::after {
@@ -21,15 +29,12 @@
   box-sizing: border-box;
   text-decoration: none;
   list-style: none;
-  font-family: "Fira", "Comic Sans MS", sans-serif; /* Fallback vers une police ronde */
 }
 
 html, body {
   width: 100%;
   min-height: 100%;
-  overflow-x: hidden; /* Empêche absolument le scroll horizontal */
-  margin: 0;
-  padding: 0;
+  overflow-x: hidden;
 }
 
 body {
@@ -37,6 +42,16 @@ body {
   color: var(--text-color);
   display: flex;
   flex-direction: column;
+  /* Police de corps accessible aux enfants (lettres simples) */
+  font-family: 'Century Gothic', 'Sassoon Primary', 'Nunito', 'Comic Sans MS', sans-serif;
+  line-height: 1.5; /* Interlignage généreux */
+}
+
+/* Les titres utilisent Lexend (police lisible et magique) */
+h1, h2, h3, h4, h5, h6, .titre {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  color: var(--primary-color);
 }
 
 img {
@@ -54,8 +69,8 @@ header {
   margin: 0;
   z-index: 1000;
   background-color: var(--nav-bg);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  border-bottom: 4px solid var(--primary-color);
+  box-shadow: 0 4px 15px rgba(160, 119, 238, 0.1);
+  border-bottom: 4px solid var(--secondary-color);
 }
 
 .barre-navigation {
@@ -65,16 +80,15 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-  flex-wrap: wrap; /* Permet le retour à la ligne sur petit écran */
+  flex-wrap: wrap;
 }
 
 header h1 {
-  font-size: 2rem;
+  font-size: 2.2rem;
 }
 
 header h1 a {
   color: var(--primary-color);
-  text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
   letter-spacing: 1px;
 }
 
@@ -86,33 +100,37 @@ header h1 a {
 }
 
 .choix-navigation li {
-  padding: 10px 20px;
-  border-radius: 30px; /* Boutons très ronds */
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animation "rebond" */
-  background-color: #333;
+  padding: 12px 25px;
+  border-radius: 30px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background-color: #F8FAFC;
+  border: 2px solid #E2E8F0;
 }
 
 .choix-navigation li a {
-  color: #bbb;
+  color: var(--text-muted);
   font-weight: bold;
   text-transform: uppercase;
-  font-size: 0.9rem;
+  font-size: 1rem;
   display: block;
+  font-family: 'Lexend', sans-serif;
 }
 
 .choix-navigation li:hover {
   transform: translateY(-3px);
-  background-color: #444;
-  box-shadow: 0 4px 8px rgba(255, 152, 0, 0.2);
+  background-color: #FFFFFF;
+  border-color: var(--secondary-color);
+  box-shadow: 0 6px 12px rgba(65, 182, 230, 0.2);
 }
 
 .choix-navigation li:hover a {
-  color: var(--primary-color);
+  color: var(--secondary-color);
 }
 
 .choix-navigation li.selected {
-  background-color: var(--primary-color);
-  box-shadow: 0 4px 10px rgba(255, 152, 0, 0.4);
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  box-shadow: 0 6px 15px rgba(65, 182, 230, 0.3);
 }
 
 .choix-navigation li.selected a {
@@ -123,8 +141,8 @@ header h1 a {
 main {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  flex: 1; /* Remplit l'espace pour pousser le footer si existant */
+  padding: 30px 20px;
+  flex: 1;
   width: 100%;
 }
 
@@ -145,17 +163,17 @@ main {
   }
   
   .choix-navigation li {
-    padding: 8px 15px;
-    font-size: 0.8rem;
+    padding: 10px 20px;
+    font-size: 0.9rem;
   }
 }
 
 @media (max-width: 400px) {
   header h1 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
   
   .barre-navigation {
-    padding: 10px 10px;
+    padding: 10px;
   }
 }

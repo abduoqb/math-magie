@@ -1,5 +1,3 @@
-/* Page d'accueil - Style global */
-
 /* --- NOUVELLES SECTIONS ACCUEIL LUDIQUES --- */
 
 .hero-text {
@@ -8,27 +6,30 @@
 }
 
 .hero-text h2 {
-  font-size: 2.8rem; /* Réduit de 3.5rem */
-  color: var(--primary-color);
+  font-size: 3rem; 
+  color: var(--primary-color); /* Violet Sage */
   margin-bottom: 15px;
   text-transform: uppercase;
-  text-shadow: 4px 4px 0px #4a2b00;
+  /* Retrait du text-shadow dur, ajout d'une lueur douce */
+  text-shadow: 0 4px 10px rgba(160, 119, 238, 0.3);
 }
 
 .titre-anime {
   display: inline-block;
-  animation: float 3s ease-in-out infinite;
+  animation: float 4s ease-in-out infinite; /* Flottaison plus lente et apaisante */
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0) rotate(-1deg); }
-  50% { transform: translateY(-15px) rotate(1deg); }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .hero-text p {
-  font-size: 1.2rem; /* Réduit de 1.4rem */
-  color: #eee;
-  font-weight: bold;
+  font-size: 1.3rem; 
+  color: var(--text-muted);
+  font-weight: normal;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 /* Grille d'activités */
@@ -37,176 +38,122 @@
   justify-content: center;
   gap: 40px;
   margin-bottom: 80px;
+  margin-top: 40px;
 }
 
 .carte-activite {
   background-color: var(--card-bg);
-  border-radius: 40px;
+  border-radius: var(--border-radius);
   overflow: visible;
-  max-width: 380px; /* Augmenté de 320px à 380px */
-  border: 5px solid #333;
+  max-width: 360px;
+  border: 4px solid #E2E8F0; /* Bordure douce */
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 12px 0px #151515;
+  box-shadow: var(--shadow);
   position: relative;
+  /* Effet 3D léger biseauté */
+  border-bottom-width: 8px;
+  border-bottom-color: #CBD5E1;
 }
 
-.carte-activite.carte-calcul:hover {
+.carte-activite:hover {
   transform: translateY(-8px);
-  border-color: #F7B531;
-  box-shadow: 0 18px 28px rgba(247, 181, 49, 0.2);
-}
-
-.carte-activite.carte-geometrie:hover {
-  transform: translateY(-8px);
-  border-color: #348DDB;
-  box-shadow: 0 18px 28px rgba(52, 141, 219, 0.2);
+  border-color: var(--secondary-color);
+  border-bottom-color: var(--secondary-color);
+  box-shadow: 0 20px 30px rgba(65, 182, 230, 0.2);
 }
 
 .badge-nouveau {
   position: absolute;
-  top: -18px;
-  left: -18px;
-  background-color: #ffeb3b;
-  color: #000;
-  padding: 10px 18px;
+  top: -20px;
+  left: -20px;
+  background-color: var(--secondary-color); /* Bleu Calme */
+  color: #FFF;
+  padding: 10px 20px;
   border-radius: 20px;
-  font-weight: 900;
-  font-size: 0.95rem;
-  transform: rotate(-12deg);
-  box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  transform: rotate(-8deg);
+  box-shadow: 0 4px 10px rgba(65, 182, 230, 0.4);
   z-index: 20;
-  border: 3px solid #000;
+  border: 3px solid #FFF;
 }
 
 .image-conteneur {
-  background: radial-gradient(circle, #3a3a3a, #1a1a1a);
-  padding: 40px; /* Augmenté de 30px à 40px */
+  background: radial-gradient(circle at top, #F8FAFC, #E2E8F0); /* Fond lumineux */
+  padding: 40px; 
   display: flex;
   justify-content: center;
-  border-radius: 35px 35px 0 0;
+  align-items: center;
+  border-radius: 20px 20px 0 0;
+  border-bottom: 2px dashed #CBD5E1;
+  min-height: 200px;
 }
 
 .image-conteneur img {
-  height: 130px; /* Augmenté de 100px à 130px */
+  height: 120px;
   width: auto;
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); /* Ombre douce sur l'image */
 }
 
 .carte-activite:hover .image-conteneur img {
-  transform: scale(1.2) rotate(8deg);
+  transform: scale(1.15) translateY(-5px);
 }
 
 .contenu-carte {
-  padding: 25px; /* Augmenté de 20px à 25px */
+  padding: 30px 25px; 
   text-align: center;
 }
 
 .contenu-carte h3 {
-  font-size: 1.8rem; /* Augmenté de 1.5rem à 1.8rem */
+  font-size: 1.8rem; 
   margin-bottom: 12px;
-  color: var(--secondary-color);
-  text-transform: uppercase;
+  color: var(--primary-color);
+  text-transform: none; /* Moins agressif que tout en majuscules */
 }
 
 .contenu-carte p {
-  color: #ccc;
-  margin-bottom: 25px;
-  line-height: 1.4;
-  font-size: 1.05rem; /* Augmenté de 0.95rem à 1.05rem */
+  color: var(--text-muted);
+  margin-bottom: 30px;
+  line-height: 1.5;
+  font-size: 1.05rem; 
 }
 
 .bouton-action {
-  display: inline-block;
-  padding: 15px 30px; /* Augmenté de 12x25 à 15x30 */
-  background-color: var(--secondary-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px; /* Accessibilité tactile */
+  padding: 12px 32px; 
+  background-color: var(--accent-color); /* Orange stratégique pour l'action principale */
   color: white;
   border-radius: 50px;
-  font-weight: 900;
-  font-size: 1.1rem; /* Augmenté de 1rem à 1.1rem */
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem; 
   text-transform: uppercase;
+  letter-spacing: 1px;
   transition: all 0.2s ease;
-  box-shadow: 0 5px 0px #2e6630;
+  /* Effet 3D du bouton */
+  box-shadow: 0 6px 0px #CC7000, 0 10px 20px rgba(255, 140, 0, 0.3);
   border: none;
   cursor: pointer;
   text-decoration: none;
 }
 
 .bouton-action:hover {
-  background-color: #5cb85c;
+  background-color: #FFA533; 
   transform: translateY(-2px);
-  box-shadow: 0 8px 0px #2e6630;
+  box-shadow: 0 8px 0px #CC7000, 0 12px 25px rgba(255, 140, 0, 0.4);
 }
 
 .bouton-action:active {
-  transform: translateY(4px);
-  box-shadow: 0 2px 0px #2e6630;
+  transform: translateY(6px);
+  box-shadow: 0 0px 0px #CC7000, 0 2px 5px rgba(255, 140, 0, 0.3);
 }
 
-/* Points forts */
-.points-forts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 40px;
-  margin: 80px 0;
-  background-color: rgba(255, 255, 255, 0.03);
-  border-radius: 50px;
-  padding: 50px;
-  border: 2px dashed #333;
-}
-
-.point-item {
-  text-align: center;
-  padding: 20px;
-  transition: transform 0.3s ease;
-}
-
-.point-item:hover {
-  transform: scale(1.1);
-}
-
-.picto {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 25px;
-  background-color: var(--primary-color);
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  -webkit-mask-size: contain;
-  filter: drop-shadow(0 0 15px var(--primary-color));
-}
-
-/* Utilisation de SVG inline via mask */
-.picto-vitesse {
-  background-color: #ff5722;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13,2.05V2h-2v.05C6.29,2.53,2.53,6.29,2.05,11H2v2h.05c.48,4.71,4.24,8.47,8.95,8.95V22h2v-.05c4.71-.48,8.47-4.24,8.95-8.95H22v-2h-.05C21.47,6.29,17.71,2.53,13,2.05M12,19c-3.87,0-7-3.13-7-7c0-3.53,2.61-6.43,6-6.92V7h2V5.08c3.39.49,6,3.39,6,6.92c0,3.87-3.13,7-7,7M13,11h4v2h-6V7h2V11Z' /%3E%3C/svg%3E");
-}
-
-.picto-precision {
-  background-color: #2196f3;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10Z' /%3E%3C/svg%3E");
-}
-
-.picto-fun {
-  background-color: #e91e63;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12,2C6.47,2 2,6.47 2,12C2,17.53 6.47,22 12,22A10,10 0 0,0 22,12C22,6.47 17.53,2 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M15.5,11A1.5,1.5 0 0,1 14,9.5A1.5,1.5 0 0,1 15.5,8A1.5,1.5 0 0,1 17,9.5A1.5,1.5 0 0,1 15.5,11M8.5,11A1.5,1.5 0 0,1 7,9.5A1.5,1.5 0 0,1 8.5,8A1.5,1.5 0 0,1 10,9.5A1.5,1.5 0 0,1 8.5,11M12,17.5C9.67,17.5 7.69,16.04 6.89,14H17.11C16.31,16.04 14.33,17.5 12,17.5Z' /%3E%3C/svg%3E");
-}
-
-.point-item h4 {
-  font-size: 1.8rem;
-  margin-bottom: 12px;
-  color: #fff;
-  text-transform: uppercase;
-}
-
-.point-item p {
-  color: #bbb;
-  font-size: 1.1rem;
-  line-height: 1.4;
-}
-
+/* RESPONSIVE */
 @media (max-width: 768px) {
   .hero-text h2 {
     font-size: 2.2rem;

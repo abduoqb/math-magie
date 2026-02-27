@@ -59,6 +59,25 @@ class MoteurGeometrie {
     this.nouveauDefi();
   }
 
+  setInstructionText(htmlContent, typeClass = "") {
+    this.elInstructions.className = typeClass;
+    this.elInstructions.innerHTML = `
+      <span>${htmlContent}</span>
+      <button class="btn-audio" aria-label="Lire la consigne">🔊</button>
+    `;
+    const btnAudio = this.elInstructions.querySelector('.btn-audio');
+    btnAudio.onclick = () => {
+      // Extract pure text for speech, removing any HTML tags
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = htmlContent;
+      const pureText = tempDiv.textContent || tempDiv.innerText || "";
+      
+      const utterance = new SpeechSynthesisUtterance(pureText);
+      utterance.lang = 'fr-FR';
+      window.speechSynthesis.speak(utterance);
+    };
+  }
+
   nouveauDefi() {
     this.enAttente = false;
     
@@ -85,8 +104,7 @@ class MoteurGeometrie {
     this.currentReponse = defi.reponse;
 
     this.elForme.innerHTML = defi.svg;
-    this.elInstructions.innerHTML = defi.instruction;
-    this.elInstructions.className = "";
+    this.setInstructionText(defi.instruction);
     this.elCadre.classList.remove("succes", "erreur");
 
     this.preparerInterface(defi.options);
@@ -146,8 +164,7 @@ class MoteurGeometrie {
     if (this.typeInterface === "clavier") {
       const num = Number(valeurSaisie);
       if (isNaN(num)) {
-        this.elInstructions.innerHTML = "Saisie invalide ! Utilise uniquement des chiffres.";
-        this.elInstructions.className = "texte-erreur";
+        this.setInstructionText("Saisie invalide ! Utilise uniquement des chiffres.", "texte-erreur");
         this.elCadre.classList.add("erreur");
         setTimeout(() => this.elCadre.classList.remove("erreur"), 400);
         return;
@@ -166,12 +183,10 @@ class MoteurGeometrie {
 
     if (estCorrect) {
       this.score++;
-      this.elInstructions.innerHTML = "Bien joué !";
-      this.elInstructions.className = "texte-succes";
+      this.setInstructionText("Bien joué !", "texte-succes");
       this.elCadre.classList.add("succes");
     } else {
-      this.elInstructions.innerHTML = `Oups ! C'était : ${this.currentReponse}`;
-      this.elInstructions.className = "texte-erreur";
+      this.setInstructionText(`Oups ! C'était : ${this.currentReponse}`, "texte-erreur");
       this.elCadre.classList.add("erreur");
     }
 

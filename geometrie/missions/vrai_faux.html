@@ -10,6 +10,7 @@
     <script src="../../js/composants/header.js" defer></script>
     <link rel="stylesheet" href="../../style/exercice-commun.css" />
     <link rel="stylesheet" href="../../style/commun.css" />
+    <script src="../../js/profils.js"></script>
     <style>
       #forme-conteneur svg { width: 100%; height: 220px; display: block; margin: 0 auto; }
       .bouton-option { margin: 8px; width: 280px; padding: 15px; background: var(--secondary-color); color: white; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; transition: all 0.2s ease; font-size: 1.1rem; box-shadow: 0 4px 0px #2e6630; }
@@ -31,6 +32,7 @@
     </style>
   </head>
   <body>
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
     <app-header base-path="../../"></app-header>
     <main>
       <h1 class="titre">Défie le Grimoire !</h1>

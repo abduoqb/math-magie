@@ -30,15 +30,20 @@
 
 .choix-calculs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Réduit de 300px à 280px */
-  gap: 30px; /* Réduit de 40px */
+  grid-template-columns: repeat(2, 1fr); /* Par défaut 2 colonnes */
+  gap: 30px;
   padding: 20px 0;
   max-width: 900px;
   margin: 0 auto;
 }
 
-@media (max-width: 700px) {
-  .choix-calculs {
+/* Version flexible pour la géométrie */
+.choix-calculs.grille-flexible {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+@media (max-width: 650px) {
+  .choix-calculs, .choix-calculs.grille-flexible {
     grid-template-columns: 1fr;
     padding: 10px;
     gap: 25px;
@@ -50,17 +55,141 @@
   border-radius: 30px;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: var(--shadow);
-  border: 4px solid #E2E8F0;
+  border: 4px solid #e2e8f0;
   border-bottom-width: 8px;
-  border-bottom-color: #CBD5E1;
+  border-bottom-color: #cbd5e1;
   position: relative;
   overflow: visible;
+  display: flex;
 }
 
 .carte-mission a {
-    text-decoration: none;
-    display: block;
-    padding: 40px 30px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 40px 30px;
+}
+
+.badge-difficulte {
+  position: absolute;
+  top: -15px;
+  right: 20px;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-family: "Lexend", sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  z-index: 10;
+  box-shadow: 0 4px 10px rgba(160, 119, 238, 0.4);
+  border: 3px solid #fff;
+}
+
+.choix-calculs figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+  margin: 0;
+  flex: 1;
+}
+
+.choix-calculs figure img {
+  height: 110px;
+  width: auto;
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+}
+
+.choix-calculs figcaption {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+}
+
+.choix-calculs h3 {
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  margin-bottom: 15px;
+  text-transform: none;
+}
+
+.choix-calculs figcaption p {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  margin-bottom: 25px;
+}
+
+.btn-lancer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 12px 30px;
+  background-color: var(--secondary-color);
+  color: white;
+  border-radius: 30px;
+  font-family: "Lexend", sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  box-shadow: 0 5px 0px #2a9bcb, 0 10px 15px rgba(65, 182, 230, 0.3);
+  transition: all 0.2s ease;
+  margin-top: auto; /* Aligne le bouton en bas sans besoin de texte supplémentaire */
+}
+
+/* --- SURVOL DES CARTES --- */
+
+.carte-mission:hover {
+  transform: translateY(-8px);
+  border-color: var(--secondary-color);
+  border-bottom-color: var(--secondary-color);
+  box-shadow: 0 20px 30px rgba(65, 182, 230, 0.2);
+}
+
+.carte-mission:hover img {
+  transform: scale(1.15) translateY(-5px);
+}
+
+.carte-mission:hover .btn-lancer {
+  background-color: #5bc3ed;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0px #2a9bcb, 0 12px 20px rgba(65, 182, 230, 0.4);
+}
+
+.carte-mission:active {
+  transform: translateY(4px);
+  border-bottom-width: 4px;
+  box-shadow: 0 5px 15px rgba(65, 182, 230, 0.2);
+}
+.carte-mission:active .btn-lancer {
+  transform: translateY(5px);
+  box-shadow: 0 0px 0px #2a9bcb;
+}
+
+/* Les picto SVG des missions géométrie sont en blanc par défaut, on les colore via la CSS Mask */
+.picto {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 15px;
+  background-color: var(--secondary-color) !important;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.carte-mission:hover .picto {
+  transform: scale(1.15) translateY(-5px);
+  background-color: var(--primary-color) !important;
 }
 
 @media (max-width: 480px) {
@@ -75,118 +204,4 @@
   .choix-calculs h3 {
     font-size: 1.5rem !important;
   }
-}
-
-.badge-difficulte {
-  position: absolute;
-  top: -15px;
-  right: 20px;
-  background-color: var(--primary-color);
-  color: white;
-  padding: 8px 18px;
-  border-radius: 20px;
-  font-family: 'Lexend', sans-serif;
-  font-weight: 800;
-  font-size: 0.9rem;
-  z-index: 10;
-  box-shadow: 0 4px 10px rgba(160, 119, 238, 0.4);
-  border: 3px solid #FFF;
-}
-
-.choix-calculs figure {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 25px;
-    margin: 0;
-}
-
-.choix-calculs figure img {
-  height: 110px;
-  width: auto;
-  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
-}
-
-.choix-calculs figcaption {
-    text-align: center;
-}
-
-.choix-calculs h3 {
-    color: var(--primary-color);
-    font-size: 1.8rem;
-    margin-bottom: 8px;
-    text-transform: none;
-}
-
-.choix-calculs figcaption p {
-    color: var(--text-muted);
-    font-size: 1.05rem;
-    margin-bottom: 20px;
-}
-
-.btn-lancer {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 44px;
-    padding: 12px 30px;
-    background-color: var(--secondary-color);
-    color: white;
-    border-radius: 30px;
-    font-family: 'Lexend', sans-serif;
-    font-weight: 800;
-    font-size: 1.1rem;
-    text-transform: uppercase;
-    box-shadow: 0 5px 0px #2A9BCB, 0 10px 15px rgba(65, 182, 230, 0.3);
-    transition: all 0.2s ease;
-}
-
-/* --- SURVOL DES CARTES --- */
-
-.carte-mission:hover {
-  transform: translateY(-8px);
-  border-color: var(--secondary-color);
-  border-bottom-color: var(--secondary-color);
-  box-shadow: 0 20px 30px rgba(65, 182, 230, 0.2);
-}
-
-.carte-mission:hover img {
-    transform: scale(1.15) translateY(-5px);
-}
-
-.carte-mission:hover .btn-lancer {
-    background-color: #5BC3ED;
-    transform: translateY(-2px);
-    box-shadow: 0 7px 0px #2A9BCB, 0 12px 20px rgba(65, 182, 230, 0.4);
-}
-
-.carte-mission:active {
-    transform: translateY(4px);
-    border-bottom-width: 4px;
-    box-shadow: 0 5px 15px rgba(65, 182, 230, 0.2);
-}
-.carte-mission:active .btn-lancer {
-    transform: translateY(5px);
-    box-shadow: 0 0px 0px #2A9BCB;
-}
-
-/* Les picto SVG des missions géométrie sont en blanc par défaut, on les colore via la CSS Mask */
-.picto {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 15px;
-  background-color: var(--secondary-color) !important; /* Remplacer les couleurs dures inline */
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  -webkit-mask-size: contain;
-  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.carte-mission:hover .picto {
-    transform: scale(1.15) translateY(-5px);
-    background-color: var(--primary-color) !important;
 }

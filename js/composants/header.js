@@ -3,8 +3,9 @@ class AppHeader extends HTMLElement {
     const basePath = this.getAttribute('base-path') || '';
     
     const path = window.location.pathname;
-    const isCalculs = path.includes('calculs_mentaux');
-    const isGeometrie = path.includes('geometrie');
+    // Détection plus robuste des sections
+    const isCalculs = path.includes('/calculs_mentaux/');
+    const isGeometrie = path.includes('/geometrie/');
     const isTrophees = path.includes('trophees.html');
     const isAccueil = !isCalculs && !isGeometrie && !isTrophees;
 

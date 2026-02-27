@@ -1,44 +1,42 @@
 # [Mathémagie](https://math-magie.vercel.app/index.html)
 
-Bienvenue dans **Mathémagie**, une application web ludique conçue pour transformer l'apprentissage des mathématiques en une véritable aventure ! Ce projet propose une expérience immersive pour les enfants, mêlant défis mathématiques, découverte de la géométrie et esthétique de jeu vidéo.
+Bienvenue dans **Mathémagie**, une application web éducative conçue pour transformer l'apprentissage des mathématiques en une véritable aventure ! Ce projet propose une immersion dans l'**Académie de Magie Moderne**, mêlant défis de calcul, découverte de la géométrie et esthétique de jeu vidéo.
 
-## 🚀 Mission : Devenir un Champion des Chiffres et des Formes !
+## 🚀 Mission : Devenir un Mage des Chiffres et des Formes !
 
-L'application a été pensée pour être **100% adaptée aux enfants** avec une interface dynamique, bienveillante et accessible.
+L'application a été entièrement repensée pour offrir une interface apaisante, bienveillante et stimulante, parfaitement adaptée aux enfants de 6 à 11 ans (Cycles 2 et 3).
 
 ### 🎮 Fonctionnalités Clés
 
-- **Système de Progression Dynamique (Calcul Mental)** :
-  - Un moteur de calcul adaptatif sur 10 niveaux de difficulté.
-  - Sauvegarde automatique de la progression (localStorage).
-  - Montée de niveau automatique après 5 bonnes réponses consécutives, et descente après 3 erreurs, assurant un apprentissage en douceur.
-  - Sélecteur manuel pour choisir son défi à tout moment.
-- **Missions de Géométrie (Nouveau !)** :
-  - Apprentissage visuel des formes 2D et solides 3D (sommets, faces, arêtes).
-  - Reconnaissance des angles (Aigu, Droit, Obtus, Plat) et initiation à la symétrie.
-  - Sélecteur de niveau de difficulté adaptant les formes affichées (de basique à complexe).
-- **Interface Gamifiée & Accessible** :
-  - Composant de navigation centralisé (Web Component `<app-header>`).
-  - Validation robuste des saisies (blocage des lettres et caractères spéciaux).
-  - Support de l'accessibilité (ARIA labels, balises alt explicites).
-  - Design "Pop & Bounce" avec feedback visuel immédiat (animations de succès/erreur).
-  - Thème sombre optimisé et design responsive pour mobile, tablette et PC.
+- **🎓 L'Académie de Magie Moderne (Design)** :
+  - Identité visuelle douce utilisant la règle du 60-30-10 (Bleu ciel apaisant, Violet Sage, Bleu Calme).
+  - **Mascotte Guide** : Une petite flamme bleue amicale accompagne l'enfant dans chaque exercice.
+  - **Typographie Accessible** : Utilisation de polices spécifiques (Lexend pour les titres, Century Gothic pour le corps) favorisant la lecture et l'apprentissage scolaire.
+
+- **📈 Système de Progression Dynamique** :
+  - **Barre de Mana** : Une jauge magique se remplit à chaque bonne réponse, montrant visuellement le chemin vers le niveau supérieur.
+  - Moteur de calcul adaptatif sur 10 niveaux de difficulté avec sauvegarde automatique.
+  - Montée et descente de niveau intelligente pour éviter toute frustration.
+
+- **🏆 Salle des Trophées** :
+  - Un espace dédié où l'enfant peut admirer ses succès et badges débloqués au fil de son entraînement.
+
+- **📐 Missions de Géométrie** :
+  - Reconnaissance des formes 2D et solides 3D (sommets, faces, arêtes).
+  - Étude des angles (Aigu, Droit, Obtus, Plat) et initiation à la symétrie.
+  - Figures haute-visibilité avec contrastes optimisés pour une lecture parfaite.
+
+- **🛡️ Interface Robuste & Accessible** :
+  - **Cibles tactiles larges** (min 48px) pour une utilisation fluide sur tablettes.
+  - Validation intelligente bloquant les saisies de texte accidentelles.
+  - Navigation simplifiée type "Carte au trésor".
 
 ## 🛠️ Technologies Utilisées
 
-- **HTML5** & **CSS3** (Animations, Flexbox & Grid, CSS Masks)
-- **JavaScript Vanilla (ES6+)** (Web Components, LocalStorage, Moteurs de jeu paramétrables)
-- **Génération SVG dynamique** pour le dessin précis des formes géométriques.
-- **Polices** : Fira Sans
-
-## 📂 Structure du Projet
-
-- `index.html` : Portail d'accueil avec accès rapide aux deux grandes sections.
-- `js/composants/header.js` : Web Component gérant la barre de navigation globale.
-- `calculs_mentaux/` : Le module de calcul mental (additions, soustractions, multiplications, divisions) géré par `moteur_calcul.js`.
-- `geometrie/` : Le module dédié aux formes et figures géré par `moteur_geometrie.js`.
-- `style/` : Fichiers CSS centralisés (`commun.css`, `exercice-commun.css`, `missions-liste.css`).
+- **HTML5** & **CSS3** (Animations fluides, Design 3D léger, CSS Masks).
+- **JavaScript Vanilla (ES6+)** (Web Components, LocalStorage, Moteurs de jeu paramétrables).
+- **Génération SVG dynamique** pour un rendu précis des figures géométriques.
 
 ---
 
-Projet développé pour rendre les mathématiques aussi amusantes qu'un jeu vidéo ! 🚀✨
+Projet développé avec passion pour rendre les mathématiques aussi captivantes qu'une quête magique ! 🪄✨

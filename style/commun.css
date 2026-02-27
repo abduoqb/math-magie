@@ -146,6 +146,12 @@ main {
   width: 100%;
 }
 
+@media (max-width: 480px) {
+  main {
+    padding: 20px 15px; /* Légère réduction pour maximiser l'espace utile */
+  }
+}
+
 /* --- RESPONSIVE MOBILE --- */
 @media (max-width: 768px) {
   .barre-navigation {

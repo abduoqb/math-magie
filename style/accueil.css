@@ -155,6 +155,10 @@
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
+  .hero-text {
+    margin: 40px 0;
+  }
+  
   .hero-text h2 {
     font-size: 2.2rem;
   }
@@ -162,11 +166,45 @@
   .activites-grid {
     flex-direction: column;
     align-items: center;
+    gap: 30px; /* Réduit de 40px */
+  }
+
+  .carte-activite {
+    max-width: 100%;
+    width: 100%;
   }
 }
 
 @media (max-width: 480px) {
+  .hero-text {
+    margin: 30px 0;
+  }
+
   .hero-text h2 {
     font-size: 1.8rem;
+  }
+
+  .hero-text p {
+    font-size: 1.1rem;
+  }
+
+  .badge-nouveau {
+    top: -15px;
+    left: 5px; /* Ramené vers l'intérieur pour éviter le débordement */
+    padding: 8px 15px;
+    font-size: 0.8rem;
+  }
+
+  .image-conteneur {
+    padding: 30px 20px;
+    min-height: 160px;
+  }
+
+  .image-conteneur img {
+    height: 100px;
+  }
+
+  .contenu-carte {
+    padding: 20px 15px;
   }
 }

@@ -216,11 +216,56 @@ main {
 }
 
 /* RESPONSIVE ADDITIONNEL POUR TRES PETITS ECRANS (ex: iPhone SE) */
+@media (max-width: 480px) {
+    .presentation { 
+      padding: 30px 15px; 
+      margin-top: 40px; /* Plus d'espace pour la mascotte */
+    }
+    
+    #calcul { 
+      min-width: 95%; 
+      font-size: clamp(1.8rem, 10vw, 2.5rem); 
+      padding: 15px 10px; 
+    }
+    
+    #saisieReponse { 
+      width: 100%; 
+      max-width: 200px;
+      height: 70px; 
+      font-size: 2.5rem;
+    }
+    
+    #niveau-selection { 
+      flex-direction: column !important; 
+      gap: 8px !important; 
+      width: 100%;
+    }
+
+    #niveau-selection select {
+      width: 100%;
+      text-align: center;
+    }
+
+    .mana-conteneur {
+      max-width: 100%;
+      height: 10px;
+    }
+
+    .mascotte-guide {
+      width: 60px;
+      height: 60px;
+      top: -50px;
+      right: 10px;
+    }
+
+    .presentation::before, .presentation::after { 
+      font-size: 30px;
+    }
+    .presentation::before { top: -15px; left: -10px; }
+    .presentation::after { bottom: -10px; right: -10px; }
+}
+
 @media (max-width: 380px) {
-    .presentation { padding: 30px 15px; }
-    #calcul { min-width: 90%; font-size: 2rem; padding: 15px; }
-    #saisieReponse { width: 90%; height: 70px; }
-    #niveau-selection { flex-direction: column !important; gap: 8px !important; }
     .presentation::before, .presentation::after { display: none; } /* Cacher les decos sur tout petit écran */
 }
 

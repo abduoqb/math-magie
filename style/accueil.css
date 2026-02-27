@@ -136,7 +136,7 @@
   letter-spacing: 1px;
   transition: all 0.2s ease;
   /* Effet 3D du bouton */
-  box-shadow: 0 6px 0px #CC7000, 0 10px 20px rgba(255, 140, 0, 0.3);
+  box-shadow: 0 6px 0px #B56800, 0 10px 20px rgba(224, 120, 0, 0.3);
   border: none;
   cursor: pointer;
   text-decoration: none;
@@ -145,12 +145,12 @@
 .bouton-action:hover {
   background-color: #FFA533; 
   transform: translateY(-2px);
-  box-shadow: 0 8px 0px #CC7000, 0 12px 25px rgba(255, 140, 0, 0.4);
+  box-shadow: 0 8px 0px #B56800, 0 12px 25px rgba(224, 120, 0, 0.4);
 }
 
 .bouton-action:active {
   transform: translateY(6px);
-  box-shadow: 0 0px 0px #CC7000, 0 2px 5px rgba(255, 140, 0, 0.3);
+  box-shadow: 0 0px 0px #B56800, 0 2px 5px rgba(224, 120, 0, 0.3);
 }
 
 /* RESPONSIVE */

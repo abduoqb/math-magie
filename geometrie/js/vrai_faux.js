@@ -1,15 +1,17 @@
 const configVraiFaux = {
   typeInterface: "boutons",
+  nomOperation: "geometrie-vraifaux",
   derniereQuestionId: "",
 
-  genererQuestion: function() {
-    const questions = [
+  genererQuestion: function(niveau = 1) {
+    // --- POOL NIVEAU 1 : Formes 2D simples ---
+    const questionsNiv1 = [
       { 
         nom: "Carré", 
         svg: '<rect x="25" y="25" width="50" height="50" fill="#ff9800" stroke="#334155" stroke-width="4"/>',
         affirmations: [
           { t: "J'ai 4 côtés de la même longueur.", r: "Vrai" },
-          { t: "J'ai 4 sommets pointus.", r: "Vrai" },
+          { t: "J'ai 4 sommets.", r: "Vrai" },
           { t: "J'ai 3 angles droits seulement.", r: "Faux" },
           { t: "Je suis un polygone.", r: "Vrai" }
         ]
@@ -19,51 +21,36 @@ const configVraiFaux = {
         svg: '<polygon points="50,20 85,80 15,80" fill="#4caf50" stroke="#334155" stroke-width="4"/>',
         affirmations: [
           { t: "J'ai 3 côtés et 3 sommets.", r: "Vrai" },
-          { t: "J'ai plus d'un sommet.", r: "Vrai" },
           { t: "J'ai 4 angles droits.", r: "Faux" },
-          { t: "Je suis une figure plate.", r: "Vrai" }
+          { t: "Je suis une figure plate.", r: "Vrai" },
+          { t: "J'ai plus de côtés qu'un carré.", r: "Faux" }
         ]
       },
       { 
         nom: "Cercle", 
         svg: '<circle cx="50" cy="50" r="35" fill="#e91e63" stroke="#334155" stroke-width="4"/>',
         affirmations: [
-          { t: "J'ai un sommet tout en haut.", r: "Faux" },
           { t: "Je n'ai aucun côté droit.", r: "Vrai" },
           { t: "Je suis un polygone.", r: "Faux" },
-          { t: "J'ai 0 angle droit.", r: "Vrai" }
+          { t: "J'ai 0 sommet.", r: "Vrai" },
+          { t: "J'ai un sommet tout en haut.", r: "Faux" }
         ]
       },
       { 
-        nom: "Cube", 
-        svg: '<path d="M30,45 L55,45 L55,70 L30,70 Z M30,45 L45,30 L70,30 L55,45 Z M55,45 L70,30 L70,55 L55,70 Z" fill="#2196f3" stroke="#334155" stroke-width="3"/>',
+        nom: "Rectangle", 
+        svg: '<rect x="15" y="30" width="70" height="40" fill="#2196f3" stroke="#334155" stroke-width="4"/>',
         affirmations: [
-          { t: "Je possède 6 faces carrées.", r: "Vrai" },
-          { t: "Je suis un solide (en 3D).", r: "Vrai" },
-          { t: "Je suis une figure plate.", r: "Faux" },
-          { t: "J'ai exactement 8 sommets.", r: "Vrai" }
+          { t: "J'ai 4 angles droits.", r: "Vrai" },
+          { t: "Tous mes côtés ont la même longueur.", r: "Faux" },
+          { t: "J'ai 4 sommets.", r: "Vrai" },
+          { t: "Je suis un polygone.", r: "Vrai" }
         ]
-      },
-      { 
-        nom: "Sphère", 
-        svg: '<circle cx="50" cy="50" r="35" fill="#9c27b0" stroke="#334155" stroke-width="4"/>',
-        affirmations: [
-          { t: "Je ressemble à une balle.", r: "Vrai" },
-          { t: "J'ai des arêtes droites.", r: "Faux" },
-          { t: "Je n'ai aucune face plate.", r: "Vrai" },
-          { t: "J'ai 0 sommet.", r: "Vrai" }
-        ]
-      },
-      { 
-        nom: "Pavé droit", 
-        svg: '<path d="M20,45 L70,45 L70,70 L20,70 Z M20,45 L35,30 L85,30 L70,45 Z M70,45 L85,30 L85,55 L70,70 Z" fill="#00bcd4" stroke="#334155" stroke-width="3"/>',
-        affirmations: [
-          { t: "Je suis un solide.", r: "Vrai" },
-          { t: "Toutes mes faces sont des cercles.", r: "Faux" },
-          { t: "J'ai 8 sommets.", r: "Vrai" },
-          { t: "Mes faces sont des rectangles ou carrés.", r: "Vrai" }
-        ]
-      },
+      }
+    ];
+
+    // --- POOL NIVEAU 2 : + Formes 2D avancées ---
+    const questionsNiv2 = [
+      ...questionsNiv1,
       { 
         nom: "Losange", 
         svg: '<polygon points="50,15 85,50 50,85 15,50" fill="#ffeb3b" stroke="#334155" stroke-width="4"/>',
@@ -93,6 +80,41 @@ const configVraiFaux = {
           { t: "J'ai autant de côtés qu'un triangle.", r: "Faux" },
           { t: "Je suis un polygone.", r: "Vrai" }
         ]
+      }
+    ];
+
+    // --- POOL NIVEAU 3 : + Solides 3D ---
+    const questionsNiv3 = [
+      ...questionsNiv2,
+      { 
+        nom: "Cube", 
+        svg: '<path d="M30,45 L55,45 L55,70 L30,70 Z M30,45 L45,30 L70,30 L55,45 Z M55,45 L70,30 L70,55 L55,70 Z" fill="#2196f3" stroke="#334155" stroke-width="3"/>',
+        affirmations: [
+          { t: "Je possède 6 faces carrées.", r: "Vrai" },
+          { t: "Je suis un solide (en 3D).", r: "Vrai" },
+          { t: "Je suis une figure plate.", r: "Faux" },
+          { t: "J'ai exactement 8 sommets.", r: "Vrai" }
+        ]
+      },
+      { 
+        nom: "Sphère", 
+        svg: '<circle cx="50" cy="50" r="35" fill="#9c27b0" stroke="#334155" stroke-width="4"/>',
+        affirmations: [
+          { t: "Je ressemble à une balle.", r: "Vrai" },
+          { t: "J'ai des arêtes droites.", r: "Faux" },
+          { t: "Je n'ai aucune face plate.", r: "Vrai" },
+          { t: "J'ai 0 sommet.", r: "Vrai" }
+        ]
+      },
+      { 
+        nom: "Pavé droit", 
+        svg: '<path d="M20,45 L70,45 L70,70 L20,70 Z M20,45 L35,30 L85,30 L70,45 Z M70,45 L85,30 L85,55 L70,70 Z" fill="#00bcd4" stroke="#334155" stroke-width="3"/>',
+        affirmations: [
+          { t: "J'ai 8 sommets.", r: "Vrai" },
+          { t: "Toutes mes faces sont des cercles.", r: "Faux" },
+          { t: "Mes faces sont des rectangles ou carrés.", r: "Vrai" },
+          { t: "Je suis un solide.", r: "Vrai" }
+        ]
       },
       { 
         nom: "Cylindre", 
@@ -115,6 +137,11 @@ const configVraiFaux = {
         ]
       }
     ];
+
+    let questions;
+    if (niveau === 1) questions = questionsNiv1;
+    else if (niveau === 2) questions = questionsNiv2;
+    else questions = questionsNiv3;
 
     let f, a, questionId;
     do {

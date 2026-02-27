@@ -53,11 +53,12 @@
             color: white;
             padding: 30px;
             border-radius: var(--border-radius);
-            margin-bottom: 40px;
+            margin-bottom: 10px;
             text-align: center;
             box-shadow: 0 10px 20px rgba(160, 119, 238, 0.3);
         }
-        .stats-globales h2 { color: white; margin-bottom: 10px; }
+        .stats-globales h3 { color: white; margin-bottom: 5px; font-size: 1.3rem; }
+        .stats-globales p { font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -67,6 +68,8 @@
             <h2>Ta Salle des Trophées 🏆</h2>
             <p>Découvre tous les badges que tu as gagnés en t'entraînant !</p>
         </section>
+
+        <div id="stats-resume" class="stats-globales"></div>
 
         <div id="trophees-conteneur" class="trophees-grid">
             <!-- Injecté par JS -->
@@ -80,6 +83,10 @@
             { id: 'multiplications', nom: 'Grand Multiplicateur', icone: '🔴' },
             { id: 'divisions', nom: 'Maître Diviseur', icone: '🟣' },
             { id: 'geometrie-formes', nom: 'Gardien des Formes', icone: '📐' },
+            { id: 'geometrie-proprietes', nom: 'Expert des Propriétés', icone: '🔍' },
+            { id: 'geometrie-angles', nom: 'Maître des Angles', icone: '📐' },
+            { id: 'geometrie-symetrie', nom: 'Gardien de la Symétrie', icone: '🪞' },
+            { id: 'geometrie-vraifaux', nom: 'Détecteur de Vérité', icone: '✅' },
             { id: 'geometrie-droites', nom: 'Maître des Droites', icone: '📏' },
             { id: 'geometrie-triangles', nom: 'Oracle des Triangles', icone: '💎' },
             { id: 'geometrie-quadrilateres', nom: 'Prince des Quadrilatères', icone: '🪁' },
@@ -87,21 +94,37 @@
         ];
 
         const conteneur = document.getElementById('trophees-conteneur');
+        let debloques = 0;
 
         missions.forEach(mission => {
             const data = JSON.parse(localStorage.getItem(`math-magie-${mission.id}`)) || { niveau: 1 };
             const niv = data.niveau;
-            
+            const estDebloque = niv > 1;
+            if (estDebloque) debloques++;
+
+            // Paliers de trophée
+            let badge = '';
+            if (niv >= 5) badge = '🥇';
+            else if (niv >= 3) badge = '🥈';
+            else if (niv >= 2) badge = '🥉';
+
             const carte = document.createElement('div');
-            carte.className = `trophee-carte ${niv > 1 ? 'debloque' : ''}`;
-            
+            carte.className = `trophee-carte ${estDebloque ? 'debloque' : ''}`;
+
             carte.innerHTML = `
                 <span class="trophee-icone">${mission.icone}</span>
                 <span class="trophee-nom">${mission.nom}</span>
-                <span class="trophee-condition">Niveau atteint : ${niv}</span>
+                <span class="trophee-condition">${estDebloque ? `Niveau ${niv} ${badge}` : 'Pas encore débloqué'}</span>
             `;
             conteneur.appendChild(carte);
         });
+
+        // Résumé de progression (point 17)
+        const statsResume = document.getElementById('stats-resume');
+        statsResume.innerHTML = `
+            <h3>Ta progression</h3>
+            <p>${debloques} / ${missions.length} missions débloquées</p>
+        `;
     </script>
 </body>
 </html>

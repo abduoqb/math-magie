@@ -1,51 +1,64 @@
 const configSymetrie = {
   typeInterface: "boutons",
-  genererQuestion: function() {
+  nomOperation: "geometrie-symetrie",
+  genererQuestion: function(niveau = 1) {
     const estSymetrique = Math.random() > 0.5;
     const couleur = "#4caf50";
-    
-    // On génère plus de points pour complexifier la forme (5 à 7 points)
-    const nbPoints = Math.floor(Math.random() * 3) + 5;
-    const pointsGauche = [];
-    
-    for(let i = 0; i < nbPoints; i++) {
-        pointsGauche.push({
-            x: 5 + Math.random() * 40, // Entre 5 et 45 (gauche de l'axe)
-            y: 10 + (i * (80 / nbPoints)) + (Math.random() * 10 - 5) // Répartis verticalement
-        });
+
+    // Niv1 : formes simples (3-4 points), erreurs grossières
+    // Niv2 : formes moyennes (5-6 points), erreurs modérées
+    // Niv3 : formes complexes (7-9 points), erreurs subtiles
+    let nbPoints, erreurAmplitude;
+    if (niveau === 1) {
+      nbPoints = Math.floor(Math.random() * 2) + 3; // 3-4 points
+      erreurAmplitude = 15;
+    } else if (niveau === 2) {
+      nbPoints = Math.floor(Math.random() * 2) + 5; // 5-6 points
+      erreurAmplitude = 10;
+    } else {
+      nbPoints = Math.floor(Math.random() * 3) + 7; // 7-9 points
+      erreurAmplitude = 6;
     }
-    
-    // Trier les points par Y pour éviter que les lignes ne se croisent trop salement
+
+    const pointsGauche = [];
+    for (let i = 0; i < nbPoints; i++) {
+      pointsGauche.push({
+        x: 5 + Math.random() * 40,
+        y: 10 + (i * (80 / nbPoints)) + (Math.random() * 10 - 5)
+      });
+    }
     pointsGauche.sort((a, b) => a.y - b.y);
 
-    // Reflet à droite (axe à x=50)
     let pointsDroite = pointsGauche.map(p => ({
       x: 100 - p.x,
       y: p.y
     }));
 
-    // Si on veut une erreur (Non symétrique)
     if (!estSymetrique) {
-        const typeErreur = Math.random();
-        const indexErreur = Math.floor(Math.random() * pointsDroite.length);
+      const indexErreur = Math.floor(Math.random() * pointsDroite.length);
 
-        if (typeErreur < 0.33) {
-            // Erreur de translation : on décale tout un côté
-            const decalage = Math.random() > 0.5 ? 8 : -8;
-            pointsDroite = pointsDroite.map(p => ({...p, y: p.y + decalage}));
-        } else if (typeErreur < 0.66) {
-            // Erreur locale : un seul point est faux
-            pointsDroite[indexErreur].x += (Math.random() > 0.5 ? 12 : -12);
-            pointsDroite[indexErreur].y += (Math.random() > 0.5 ? 10 : -10);
+      if (niveau === 1) {
+        // Niv1 : erreurs très visibles (translation ou gros décalage)
+        const typeErreur = Math.random();
+        if (typeErreur < 0.5) {
+          const decalage = Math.random() > 0.5 ? erreurAmplitude : -erreurAmplitude;
+          pointsDroite = pointsDroite.map(p => ({...p, y: p.y + decalage}));
         } else {
-            // Erreur de forme : on supprime ou on inverse un point
-            pointsDroite[indexErreur].x = 50 + Math.random() * 40;
-            pointsDroite[indexErreur].y = Math.random() * 100;
+          pointsDroite[indexErreur].x += (Math.random() > 0.5 ? erreurAmplitude : -erreurAmplitude);
+          pointsDroite[indexErreur].y += (Math.random() > 0.5 ? erreurAmplitude : -erreurAmplitude);
         }
+      } else if (niveau === 2) {
+        // Niv2 : erreurs modérées (un ou deux points décalés)
+        pointsDroite[indexErreur].x += (Math.random() > 0.5 ? erreurAmplitude : -erreurAmplitude);
+        pointsDroite[indexErreur].y += (Math.random() > 0.5 ? erreurAmplitude : -erreurAmplitude);
+      } else {
+        // Niv3 : erreurs subtiles (petit décalage sur un seul point)
+        const dir = Math.random() > 0.5 ? 1 : -1;
+        pointsDroite[indexErreur].x += dir * (erreurAmplitude + Math.random() * 3);
+        pointsDroite[indexErreur].y += dir * (erreurAmplitude * 0.5);
+      }
     }
 
-    // Construction du tracé
-    // On part du haut de l'axe, on fait la gauche, le bas, la droite, et on revient au haut.
     const pointsPath = [{x: 50, y: 5}, ...pointsGauche, {x: 50, y: 95}, ...pointsDroite.reverse()];
     const pathData = pointsPath.map((p, i) => (i === 0 ? "M" : "L") + ` ${p.x},${p.y}`).join(" ") + " Z";
 

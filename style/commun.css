@@ -12,10 +12,10 @@
   --primary-color: #A077EE; /* Violet Sage */
   --secondary-color: #41B6E6; /* Bleu Calme */
   --text-color: #334155; /* Gris ardoise pour la lisibilité (pas de noir pur) */
-  --text-muted: #64748b; /* Gris moyen pour le texte secondaire */
+  --text-muted: #475569; /* Gris foncé pour meilleur contraste (WCAG AA) */
   
   /* 10% Accents : Orange stratégique et Vert de validation */
-  --accent-color: #FF8C00; /* Orange vibrant, à utiliser avec parcimonie */
+  --accent-color: #E07800; /* Orange avec contraste suffisant pour texte blanc */
   --success-color: #6BCB77; /* Vert de réussite */
   --error-color: #FF6B6B; /* Rouge doux pour les erreurs */
   
@@ -112,7 +112,9 @@ header h1 a {
   font-weight: bold;
   text-transform: uppercase;
   font-size: 1rem;
-  display: block;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   font-family: 'Lexend', sans-serif;
 }
 

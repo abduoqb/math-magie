@@ -1,21 +1,31 @@
 const configProprietes = {
   typeInterface: "clavier",
+  nomOperation: "geometrie-proprietes",
   dernierIndex: -1,
 
-  genererQuestion: function() {
+  genererQuestion: function(niveau = 1) {
     const couleurs = ["#ff9800", "#4caf50", "#2196f3", "#e91e63", "#9c27b0", "#00bcd4", "#ffeb3b", "#f44336", "#009688"];
     const couleur = couleurs[Math.floor(Math.random() * couleurs.length)];
 
-    const figures = [
-      // --- FORMES 2D (Sommets / Côtés) ---
+    // --- POOL NIVEAU 1 : Formes 2D simples (sommets/côtés) ---
+    const figuresNiv1 = [
       { nom: "Triangle", type: "2d", sommets: 3, cotes: 3, path: `<polygon points="50,15 85,85 15,85" fill="${couleur}" stroke="#334155" stroke-width="4"/>` },
       { nom: "Carré", type: "2d", sommets: 4, cotes: 4, path: `<rect x="15" y="15" width="70" height="70" fill="${couleur}" stroke="#334155" stroke-width="4"/>` },
+      { nom: "Rectangle", type: "2d", sommets: 4, cotes: 4, path: `<rect x="10" y="25" width="80" height="50" fill="${couleur}" stroke="#334155" stroke-width="4"/>` }
+    ];
+
+    // --- POOL NIVEAU 2 : + Polygones avancés ---
+    const figuresNiv2 = [
+      ...figuresNiv1,
       { nom: "Pentagone", type: "2d", sommets: 5, cotes: 5, path: `<polygon points="50,10 90,40 75,85 25,85 10,40" fill="${couleur}" stroke="#334155" stroke-width="4"/>` },
       { nom: "Hexagone", type: "2d", sommets: 6, cotes: 6, path: `<polygon points="50,10 85,30 85,70 50,90 15,70 15,30" fill="${couleur}" stroke="#334155" stroke-width="4"/>` },
-      { nom: "Octogone", type: "2d", sommets: 8, cotes: 8, path: `<polygon points="30,10 70,10 90,30 90,70 70,90 30,90 10,70 10,30" fill="${couleur}" stroke="#334155" stroke-width="4"/>` },
+      { nom: "Octogone", type: "2d", sommets: 8, cotes: 8, path: `<polygon points="30,10 70,10 90,30 90,70 70,90 30,90 10,70 10,30" fill="${couleur}" stroke="#334155" stroke-width="4"/>` }
+    ];
+
+    // --- POOL NIVEAU 3 : + Solides 3D (sommets/faces/arêtes) ---
+    const figuresNiv3 = [
+      ...figuresNiv2,
       { nom: "Étoile", type: "2d", sommets: 10, cotes: 10, path: `<polygon points="50,5 63,38 98,38 70,59 78,95 50,75 22,95 30,59 2,38 37,38" fill="${couleur}" stroke="#334155" stroke-width="4"/>` },
-      
-      // --- FORMES 3D (Sommets / Faces / Arêtes) ---
       { 
         nom: "Cube", type: "3d", sommets: 8, faces: 6, aretes: 12,
         path: `
@@ -41,19 +51,30 @@ const configProprietes = {
       }
     ];
 
+    let figures;
+    if (niveau === 1) figures = figuresNiv1;
+    else if (niveau === 2) figures = figuresNiv2;
+    else figures = figuresNiv3;
+
     let index;
     do {
       index = Math.floor(Math.random() * figures.length);
-    } while (index === this.dernierIndex);
+    } while (index === this.dernierIndex && figures.length > 1);
     this.dernierIndex = index;
 
     const fig = figures[index];
     let typeQ, reponse, instruction;
 
     if (fig.type === "2d") {
-      const isSommets = Math.random() > 0.5;
-      typeQ = isSommets ? "sommets" : "côtés";
-      reponse = isSommets ? fig.sommets : fig.cotes;
+      // Niv1 : que sommets, Niv2+ : sommets ou côtés
+      if (niveau === 1) {
+        typeQ = "sommets";
+        reponse = fig.sommets;
+      } else {
+        const isSommets = Math.random() > 0.5;
+        typeQ = isSommets ? "sommets" : "côtés";
+        reponse = isSommets ? fig.sommets : fig.cotes;
+      }
       instruction = `Combien de ${typeQ} possède ce ${fig.nom} ?`;
     } else {
       const r = Math.random();

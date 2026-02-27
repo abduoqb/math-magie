@@ -1,0 +1,147 @@
+# Analyse complète du projet Math-Magie
+
+Audit du projet après lecture exhaustive de tous les fichiers HTML, CSS et JavaScript.
+
+---
+
+## 🐛 Bugs & Problèmes fonctionnels
+
+### 1. CSS mort : [calculs_mentaux/styles/index.css](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/calculs_mentaux/styles/index.css) jamais utilisé
+
+Le fichier [index.css](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/calculs_mentaux/styles/index.css) (151 lignes) contient un ancien thème sombre (couleurs `#fff`, `#bbb`, `#ccc`, ombres noires `#151515`…) **qui n'est importé par aucune page HTML**. Les pages de `calculs_mentaux/` utilisent [style/missions-liste.css](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/style/missions-liste.css).
+
+> [!WARNING]
+> Ce fichier est du **code mort** mais contient des classes identiques à celles de [missions-liste.css](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/style/missions-liste.css) (`.carte-mission`, `.badge-difficulte`, `.btn-lancer`…). S'il est accidentellement importé, il cassera le thème visuel.
+
+### 2. [bk-img.js](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/style/bk-img.js) est chargé inutilement sur l'accueil
+
+[bk-img.js](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/style/bk-img.js) est inclus dans [index.html](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/index.html) mais :
+- Il cherche `.bk-img`, `#suivant`, `#precedent` → **aucun de ces éléments n'existe** dans le DOM
+- Le script tourne dans le vide, sans crash grâce à l'optional chaining `?.`, mais c'est un **chargement réseau inutile**
+
+### 3. Le select de niveau a un thème incohérent (fond noir `#1a1a1a`)
+
+Dans [moteur_calcul.js:35](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/calculs_mentaux/js/moteur_calcul.js#L35) et [moteur_geometrie.js:39](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/geometrie/js/moteur_geometrie.js#L39) :
+```html
+background: #1a1a1a; color: white;
+```
+Ce fond noir pur est un **vestige d'un ancien thème sombre** et ne correspond absolument pas au thème clair/pastel actuel. L'élément est ensuite re-stylé par le CSS [exercice-commun.css](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/style/exercice-commun.css) (L378-390) qui impose `background-color: white !important; color: var(--primary-color) !important;`, **masquant le bug** — mais le style inline reste incohérent et il y a un flash visible pendant le chargement.
+
+### 4. Accès au `<select>` de niveau en géométrie limité à 3 niveaux
+
+Le [moteur_geometrie.js:40-43](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/geometrie/js/moteur_geometrie.js#L40-L43) ne propose que 3 options (1, 2, 3) alors que la plupart des missions géométrie ([vrai_faux.js](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/geometrie/js/vrai_faux.js), [droites.js](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/geometrie/js/droites.js), [symetrie.js](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/geometrie/js/symetrie.js), [angles.js](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/geometrie/js/angles.js)) **n'utilisent pas du tout le paramètre `niveau`** dans [genererQuestion()](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/geometrie/js/formes.js#6-112). Le sélecteur donne l'illusion que le niveau change la difficulté alors que ce n'est souvent **pas le cas**.
+
+### 5. Pas de `nomOperation` dans certains configs géométrie
+
+Les configs [configAngles](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/geometrie/js/angles.js) et [configSymetrie](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/geometrie/js/symetrie.js) ne déclarent pas `nomOperation`. Le moteur utilise alors `"geometrie-defaut"`, ce qui signifie que :
+- Les **progressions de ces missions sont mélangées** dans le même localStorage
+- Les **trophées ne sont pas attribués** correctement (le trophée attend par ex. `math-magie-geometrie-triangles` mais le `nomOperation` n'existe pas)
+
+### 6. La page Trophées ne reflète pas les bonnes clés localStorage
+
+[trophees.html:78-86](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/trophees.html#L78-L86) utilise des IDs comme `geometrie-formes`, `geometrie-droites`, `geometrie-triangles`, `geometrie-quadrilateres`, `geometrie-patrons`. Mais les fichiers de config utilisent des `nomOperation` comme `geometrie-formes`, `geometrie-droites`… **Certains ne définissent pas de `nomOperation`** (voir point 5), donc les clés localStorage ne correspondront jamais → les trophées de ces missions resteront **toujours verrouillés**.
+
+### 7. Dossier vide `geometrie/styles/`
+
+Le répertoire `geometrie/styles/` est **complètement vide** — probablement un vestige de refactoring.
+
+---
+
+## 🎨 Contrastes & Accessibilité
+
+### 8. Texte `var(--text-muted)` (`#64748b`) sur fond `#F0F9FF`
+
+Ratio estimé : **~4.3:1**. C'est juste au-dessus du minimum **AA** (4.5:1 pour le texte normal). Avec les descriptions de sous-titre à `1.05rem`, cela passe limite mais pourrait **poser problème sur certains écrans**. Envisager un gris plus foncé comme `#475569`.
+
+### 9. Liens de navigation `var(--text-muted)` sur fond `#F8FAFC`
+
+Les liens dans `.choix-navigation li a` utilisent `color: var(--text-muted)` (`#64748b`) sur un fond `#F8FAFC` quasi-blanc → **ratio ~4.5:1**, bordeline pour l'accessibilité AA.
+
+### 10. Le bouton orange `#FF8C00` sur blanc a un contraste texte suffisant…
+
+Le texte blanc sur fond `#FF8C00` donne un ratio d'environ **3.0:1**, ce qui **échoue au critère AA** (4.5:1). C'est le cas pour `.bouton-action` (bouton "Commencer") sur la page d'accueil. Sur un public d'enfants, c'est particulièrement critique.
+
+### 11. Styles inline des boutons de `formes.html` écrasent `exercice-commun.css`
+
+Dans [formes.html:15-17](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/geometrie/missions/formes.html#L15-L17), les styles inline définissent `.bouton-option` avec :
+- `background: var(--secondary-color)` et `box-shadow: 0 4px 0px #2e6630` (vert forêt) → **incohérent visuellement**, le vert ne s'accorde pas avec le bleu calme
+- Les classes et styles se battent avec `exercice-commun.css`, créant des inconsistances
+
+---
+
+## 🧩 Logique d'interface
+
+### 12. Le calcul mental n'a pas de limite de questions
+
+Contrairement à `MoteurGeometrie` qui s'arrête après 10 questions (`limiteQuestions`), `MoteurCalcul` tourne **indéfiniment**. Cela peut fatiguer les enfants sans objectif de fin. Envisager d'ajouter une fin de session avec un résumé.
+
+### 13. Pas de bouton "Retour" ni de navigation claire dans les exercices
+
+Quand un enfant est dans un exercice (ex: `additions.html`), le seul moyen de revenir est le **header**. Il n'y a pas de bouton "← Retour aux missions" visible et immédiat en bas ou en haut de la zone de jeu.
+
+### 14. Vouvoiement vs Tutoiement incohérent
+
+- Les pages d'exercices calculs utilisent **"Votre taux de réussite"** (vouvoiement)
+- Le reste du site tutoie l'enfant : **"Deviens un champion"**, **"Ton score"**, **"Tu passes au niveau supérieur"**
+- La page trophées : **"badges que tu as gagnés"**
+
+→ **Incohérence de registre** à harmoniser (tutoiement partout pour un public enfant).
+
+### 15. Le "Niveau" affiché sur les cartes de mission est **statique et fixe**
+
+Les badges sur les cartes (`NIVEAU 1`, `NIVEAU 2`…) sont codés en dur en HTML. Ils ne reflètent **pas le niveau actuel sauvegardé** du joueur. On pourrait dynamiser ces badges pour montrer le niveau atteint.
+
+### 16. Trophée débloqué si `niveau > 1` seulement
+
+Dans [trophees.html:96](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/trophees.html#L96), un trophée est "débloqué" dès que le joueur a dépassé le niveau 1. C'est un **critère très bas** — un seul passage au niveau 2 suffit. Pour un système de trophées motivant, envisager des paliers plus élevés ou des badges par niveau (bronze, argent, or).
+
+### 17. L'accueil ne donne aucun feedback sur la progression globale
+
+Un enfant qui revient sur l'accueil ne voit **aucune indication** de là où il en est. Pas de progression visible, pas de score récapitulatif, pas d'indicateur "3/9 missions complétées" par exemple.
+
+---
+
+## 🏗️ Architecture & Qualité du code
+
+### 18. Duplication du code de la mascotte SVG
+
+La mascotte SVG (flamme bleue) est dupliquée **mot pour mot** entre [moteur_calcul.js:62-69](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/calculs_mentaux/js/moteur_calcul.js#L62-L69) et [moteur_geometrie.js:81-88](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/geometrie/js/moteur_geometrie.js#L81-L88). Si la mascotte change, il faudra modifier deux fichiers.
+
+### 19. Styles inline dans `header.js`
+
+Le composant header [injecte des styles inline](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/js/composants/header.js#L18-L21) `style="min-height: 44px; display: flex; align-items: center;"` sur chaque lien de navigation, au lieu de les mettre dans le CSS. Cela rend la maintenance plus difficile.
+
+### 20. Ordre de chargement CSS problématique dans les exercices
+
+Dans [additions.html:11-12](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/calculs_mentaux/additions/additions.html#L11-L12) :
+```html
+<link rel="stylesheet" href="../../style/exercice-commun.css" />
+<link rel="stylesheet" href="../../style/commun.css" />
+```
+`commun.css` est chargé **après** `exercice-commun.css`, ce qui fait que le reset `*, ::before, ::after` de `commun.css` est appliqué correctement. Mais `exercice-commun.css` a **aussi un reset `*`** (L2-6) qui entre en conflit. Cet ordre inversé pourrait provoquer des **conflits de cascade** imprévus.
+
+### 21. Image avec caractère accentué `géométrie.png`
+
+Le fichier [images/géométrie.png](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/images/géométrie.png) contient un caractère spécial (`é`) dans son nom. Cela peut poser des problèmes :
+- Sur certains serveurs web
+- Avec certains systèmes de fichiers
+- Dans les URLs si l'encoding n'est pas correctement géré
+
+### 22. Les `alt` de `calculs_mentaux/index.html` sont vides
+
+Les images des cartes de mission dans [calculs_mentaux/index.html:25,38,51,64](file:///c:/Users/pikat/Documents/Codage/javascript/math-magie/calculs_mentaux/index.html#L25) ont `alt=""`. En termes d'accessibilité, il serait mieux de fournir un texte alternatif descriptif comme c'est le cas sur la page d'accueil principale.
+
+---
+
+## 📋 Résumé des priorités
+
+| Priorité | # | Description |
+|----------|---|-------------|
+| 🔴 Haute | 5, 6 | Trophées cassés — `nomOperation` manquant = progression perdue |
+| 🔴 Haute | 10 | Contraste bouton orange/blanc insuffisant (public enfant) |
+| 🟠 Moyenne | 3 | Select #1a1a1a (fond noir) vestige du thème sombre |
+| 🟠 Moyenne | 4 | Sélecteur de niveau sans effet réel en géométrie |
+| 🟠 Moyenne | 14 | Incohérence vouvoiement/tutoiement |
+| 🟡 Basse | 1, 2, 7 | Code mort / fichiers inutiles |
+| 🟡 Basse | 11, 20 | Conflits CSS / ordre de cascade |
+| 💡 Idée | 12, 13, 15-17 | Améliorations UX (fin de session, retour, progression) |

@@ -32,16 +32,15 @@ class MoteurGeometrie {
       if (!this.elNiveauConteneur) {
         this.elNiveauConteneur = document.createElement("div");
         this.elNiveauConteneur.id = "niveau-selection";
-        this.elNiveauConteneur.style =
-          "margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold;";
+        this.elNiveauConteneur.style = "margin-bottom: 25px; display: flex; justify-content: center; align-items: center; gap: 15px; font-weight: bold; font-size: 1.5rem;";
         this.elNiveauConteneur.innerHTML = `
-                <label for="selectNiveau" style="color: var(--primary-color);">Niveau :</label>
-                <select id="selectNiveau" aria-label="Sélection du niveau de difficulté" style="padding: 5px 10px; border-radius: 10px; border: 2px solid var(--primary-color); background: #1a1a1a; color: white; font-weight: bold; cursor: pointer;">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                </select>
-            `;
+            <label for="selectNiveau" style="color: var(--primary-color);">Niveau :</label>
+            <select id="selectNiveau" aria-label="Sélection du niveau de difficulté" style="padding: 5px 15px; border-radius: 10px; border: 3px solid var(--primary-color); background: white; color: var(--primary-color); font-weight: bold; font-size: 1.5rem; cursor: pointer;">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
+        `;
         this.elCadre.insertBefore(this.elNiveauConteneur, this.elForme);
       }
 
@@ -71,13 +70,20 @@ class MoteurGeometrie {
     this.enAttente = false;
 
     this.nouveauDefi();
+
+    // Point 13 : bouton retour
+    const titreEl = document.querySelector('.titre');
+    if (titreEl) {
+      const lienRetour = document.createElement('a');
+      lienRetour.href = '../index.html';
+      lienRetour.className = 'lien-retour';
+      lienRetour.textContent = '← Retour aux missions';
+      titreEl.parentNode.insertBefore(lienRetour, titreEl);
+    }
   }
 
-  injecterElementsMagiques() {
-    // Mascotte (Flamme bleue SVG)
-    const mascotte = document.createElement("div");
-    mascotte.className = "mascotte-guide";
-    mascotte.innerHTML = `
+  static getMascotteSVG() {
+    return `
       <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
         <path d="M50 10C50 10 30 40 30 60C30 71.0457 38.9543 80 50 80C61.0457 80 70 71.0457 70 60C70 40 50 10 50 10Z" fill="#41B6E6" opacity="0.8">
           <animate attributeName="d" dur="3s" repeatCount="indefinite" values="M50 10C50 10 30 40 30 60C30 71.0457 38.9543 80 50 80C61.0457 80 70 71.0457 70 60C70 40 50 10 50 10Z;M50 5C50 5 25 40 25 60C25 73.8071 36.1929 85 50 85C63.8071 85 75 73.8071 75 60C75 40 50 5 50 5Z;M50 10C50 10 30 40 30 60C30 71.0457 38.9543 80 50 80C61.0457 80 70 71.0457 70 60C70 40 50 10 50 10Z" />
@@ -87,6 +93,12 @@ class MoteurGeometrie {
         <path d="M45 65 Q50 70 55 65" stroke="white" stroke-width="2" fill="none" />
       </svg>
     `;
+  }
+
+  injecterElementsMagiques() {
+    const mascotte = document.createElement("div");
+    mascotte.className = "mascotte-guide";
+    mascotte.innerHTML = MoteurGeometrie.getMascotteSVG();
     const presentation = document.querySelector(".presentation");
     if (presentation) presentation.appendChild(mascotte);
 

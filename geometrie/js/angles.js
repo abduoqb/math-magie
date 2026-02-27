@@ -29,16 +29,16 @@ const configAngles = {
     const pArc2 = { x: centre.x + rArc * Math.cos(rad2), y: centre.y + rArc * Math.sin(rad2) };
     const largeArcFlag = degres > 180 ? 1 : 0;
     
-    const pathArc = `<path d="M ${pArc1.x} ${pArc1.y} A ${rArc} ${rArc} 0 ${largeArcFlag} 1 ${pArc2.x} ${pArc2.y}" fill="none" stroke="#ff9800" stroke-width="3"/>`;
+    const pathArc = `<path d="M ${pArc1.x} ${pArc1.y} A ${rArc} ${rArc} 0 ${largeArcFlag} 1 ${pArc2.x} ${pArc2.y}" fill="none" stroke="#FF8C00" stroke-width="3"/>`;
 
     const svg = `
       <svg viewBox="0 0 100 100">
-        <line x1="${centre.x}" y1="${centre.y}" x2="${p1.x}" y2="${p1.y}" stroke="white" stroke-width="3" stroke-linecap="round"/>
-        <line x1="${centre.x}" y1="${centre.y}" x2="${p2.x}" y2="${p2.y}" stroke="white" stroke-width="3" stroke-linecap="round"/>
+        <line x1="${centre.x}" y1="${centre.y}" x2="${p1.x}" y2="${p1.y}" stroke="#334155" stroke-width="4" stroke-linecap="round"/>
+        <line x1="${centre.x}" y1="${centre.y}" x2="${p2.x}" y2="${p2.y}" stroke="#334155" stroke-width="4" stroke-linecap="round"/>
         ${typeCible === "Droit" ? 
-          `<rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#ff9800" stroke-width="2" transform="translate(${centre.x},${centre.y}) rotate(${rotationBase + 45})"/>` : 
+          `<rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#FF8C00" stroke-width="3" transform="translate(${centre.x},${centre.y}) rotate(${rotationBase + 45})"/>` : 
           pathArc}
-        <circle cx="${centre.x}" cy="${centre.y}" r="3" fill="#ff9800"/>
+        <circle cx="${centre.x}" cy="${centre.y}" r="3" fill="#FF8C00"/>
       </svg>`;
 
     return {

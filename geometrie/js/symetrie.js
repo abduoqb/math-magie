@@ -51,7 +51,7 @@ const configSymetrie = {
 
     const svg = `
       <svg viewBox="0 0 100 100">
-        <path d="${pathData}" fill="${couleur}" fill-opacity="0.6" stroke="white" stroke-width="1.5"/>
+        <path d="${pathData}" fill="${couleur}" fill-opacity="0.6" stroke="#334155" stroke-width="3"/>
         <line x1="50" y1="0" x2="50" y2="100" stroke="#f44336" stroke-width="2" stroke-dasharray="4"/>
       </svg>`;
 

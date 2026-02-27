@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salle des Trophées - Mathémagie</title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/5090/5090482.png">
+    <link rel="stylesheet" href="style/commun.css">
+    <script src="js/composants/header.js" defer></script>
+    <style>
+        .trophees-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .trophee-carte {
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            border: 4px solid #E2E8F0;
+            border-bottom-width: 8px;
+            border-bottom-color: #CBD5E1;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+            filter: grayscale(1);
+        }
+        .trophee-carte.debloque {
+            opacity: 1;
+            filter: grayscale(0);
+            border-color: var(--primary-color);
+            border-bottom-color: #A077EE;
+        }
+        .trophee-icone {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .trophee-nom {
+            font-family: 'Lexend', sans-serif;
+            font-weight: 800;
+            color: var(--primary-color);
+            display: block;
+            margin-bottom: 5px;
+        }
+        .trophee-condition {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .stats-globales {
+            background: var(--primary-color);
+            color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            margin-bottom: 40px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(160, 119, 238, 0.3);
+        }
+        .stats-globales h2 { color: white; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <app-header base-path=""></app-header>
+    <main>
+        <section class="hero-text">
+            <h2>Ta Salle des Trophées 🏆</h2>
+            <p>Découvre tous les badges que tu as gagnés en t'entraînant !</p>
+        </section>
+
+        <div id="trophees-conteneur" class="trophees-grid">
+            <!-- Injecté par JS -->
+        </div>
+    </main>
+
+    <script>
+        const missions = [
+            { id: 'additions', nom: 'Apprenti Additionneur', icone: '🟢' },
+            { id: 'soustractions', nom: 'Mage des Soustractions', icone: '🔵' },
+            { id: 'multiplications', nom: 'Grand Multiplicateur', icone: '🔴' },
+            { id: 'divisions', nom: 'Maître Diviseur', icone: '🟣' },
+            { id: 'geometrie-formes', nom: 'Gardien des Formes', icone: '📐' }
+        ];
+
+        const conteneur = document.getElementById('trophees-conteneur');
+
+        missions.forEach(mission => {
+            const data = JSON.parse(localStorage.getItem(`math-magie-${mission.id}`)) || { niveau: 1 };
+            const niv = data.niveau;
+            
+            const carte = document.createElement('div');
+            carte.className = `trophee-carte ${niv > 1 ? 'debloque' : ''}`;
+            
+            carte.innerHTML = `
+                <span class="trophee-icone">${mission.icone}</span>
+                <span class="trophee-nom">${mission.nom}</span>
+                <span class="trophee-condition">Niveau atteint : ${niv}</span>
+            `;
+            conteneur.appendChild(carte);
+        });
+    </script>
+</body>
+</html>

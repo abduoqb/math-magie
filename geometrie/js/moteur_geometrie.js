@@ -6,11 +6,15 @@ class MoteurGeometrie {
 
     this.score = 0;
     this.tentatives = 0;
+    this.consecutifs = 0;
+    this.erreursConsecutives = 0;
     this.limiteQuestions = 10;
     this.historiqueSession = []; // Pour garantir l'unicité
 
     // Chargement simple du niveau pour la session
-    const savedData = JSON.parse(localStorage.getItem(`math-magie-${this.nomOperation}`)) || { niveau: 1 };
+    const savedData = JSON.parse(
+      localStorage.getItem(`math-magie-${this.nomOperation}`),
+    ) || { niveau: 1 };
     this.niveau = savedData.niveau;
 
     this.elForme = document.getElementById("forme-conteneur");
@@ -19,14 +23,18 @@ class MoteurGeometrie {
     this.elCadre = document.querySelector(".cadre");
     this.elZoneReponse = document.getElementById("zone-reponse");
 
+    // Injection de la Mascotte et de la Barre de Mana
+    this.injecterElementsMagiques();
+
     // Ajout d'un sélecteur de niveau si la config le supporte (ex: formes.js)
     if (config.nomOperation) {
-        this.elNiveauConteneur = document.getElementById("niveau-selection");
-        if (!this.elNiveauConteneur) {
-            this.elNiveauConteneur = document.createElement("div");
-            this.elNiveauConteneur.id = "niveau-selection";
-            this.elNiveauConteneur.style = "margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold;";
-            this.elNiveauConteneur.innerHTML = `
+      this.elNiveauConteneur = document.getElementById("niveau-selection");
+      if (!this.elNiveauConteneur) {
+        this.elNiveauConteneur = document.createElement("div");
+        this.elNiveauConteneur.id = "niveau-selection";
+        this.elNiveauConteneur.style =
+          "margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold;";
+        this.elNiveauConteneur.innerHTML = `
                 <label for="selectNiveau" style="color: var(--primary-color);">Niveau :</label>
                 <select id="selectNiveau" aria-label="Sélection du niveau de difficulté" style="padding: 5px 10px; border-radius: 10px; border: 2px solid var(--primary-color); background: #1a1a1a; color: white; font-weight: bold; cursor: pointer;">
                     <option value="1">1</option>
@@ -34,23 +42,29 @@ class MoteurGeometrie {
                     <option value="3">3</option>
                 </select>
             `;
-            this.elCadre.insertBefore(this.elNiveauConteneur, this.elForme);
-        }
-        
-        this.elSelectNiveau = document.getElementById("selectNiveau");
-        if (this.elSelectNiveau) {
-            this.elSelectNiveau.value = this.niveau;
-            this.elSelectNiveau.addEventListener("change", (e) => {
-              this.niveau = parseInt(e.target.value);
-              localStorage.setItem(`math-magie-${this.nomOperation}`, JSON.stringify({ niveau: this.niveau }));
-              // Reset la session en cours
-              this.score = 0;
-              this.tentatives = 0;
-              this.historiqueSession = [];
-              this.majStatistiques();
-              this.nouveauDefi();
-            });
-        }
+        this.elCadre.insertBefore(this.elNiveauConteneur, this.elForme);
+      }
+
+      this.elSelectNiveau = document.getElementById("selectNiveau");
+      if (this.elSelectNiveau) {
+        this.elSelectNiveau.value = this.niveau;
+        this.elSelectNiveau.addEventListener("change", (e) => {
+          this.niveau = parseInt(e.target.value);
+          this.consecutifs = 0;
+          this.erreursConsecutives = 0;
+          this.majMana(0);
+          localStorage.setItem(
+            `math-magie-${this.nomOperation}`,
+            JSON.stringify({ niveau: this.niveau }),
+          );
+          // Reset la session en cours
+          this.score = 0;
+          this.tentatives = 0;
+          this.historiqueSession = [];
+          this.majStatistiques();
+          this.nouveauDefi();
+        });
+      }
     }
 
     this.currentReponse = null;
@@ -59,28 +73,41 @@ class MoteurGeometrie {
     this.nouveauDefi();
   }
 
-  setInstructionText(htmlContent, typeClass = "") {
-    this.elInstructions.className = typeClass;
-    this.elInstructions.innerHTML = `
-      <span>${htmlContent}</span>
-      <button class="btn-audio" aria-label="Lire la consigne">🔊</button>
+  injecterElementsMagiques() {
+    // Mascotte (Flamme bleue SVG)
+    const mascotte = document.createElement("div");
+    mascotte.className = "mascotte-guide";
+    mascotte.innerHTML = `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 10C50 10 30 40 30 60C30 71.0457 38.9543 80 50 80C61.0457 80 70 71.0457 70 60C70 40 50 10 50 10Z" fill="#41B6E6" opacity="0.8">
+          <animate attributeName="d" dur="3s" repeatCount="indefinite" values="M50 10C50 10 30 40 30 60C30 71.0457 38.9543 80 50 80C61.0457 80 70 71.0457 70 60C70 40 50 10 50 10Z;M50 5C50 5 25 40 25 60C25 73.8071 36.1929 85 50 85C63.8071 85 75 73.8071 75 60C75 40 50 5 50 5Z;M50 10C50 10 30 40 30 60C30 71.0457 38.9543 80 50 80C61.0457 80 70 71.0457 70 60C70 40 50 10 50 10Z" />
+        </path>
+        <circle cx="43" cy="55" r="3" fill="white" />
+        <circle cx="57" cy="55" r="3" fill="white" />
+        <path d="M45 65 Q50 70 55 65" stroke="white" stroke-width="2" fill="none" />
+      </svg>
     `;
-    const btnAudio = this.elInstructions.querySelector('.btn-audio');
-    btnAudio.onclick = () => {
-      // Extract pure text for speech, removing any HTML tags
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = htmlContent;
-      const pureText = tempDiv.textContent || tempDiv.innerText || "";
-      
-      const utterance = new SpeechSynthesisUtterance(pureText);
-      utterance.lang = 'fr-FR';
-      window.speechSynthesis.speak(utterance);
-    };
+    const presentation = document.querySelector(".presentation");
+    if (presentation) presentation.appendChild(mascotte);
+
+    // Barre de Mana
+    const manaConteneur = document.createElement("div");
+    manaConteneur.className = "mana-conteneur";
+    manaConteneur.innerHTML = `<div class="mana-barre" id="manaBarreGeo"></div>`;
+    this.elCadre.insertBefore(manaConteneur, this.elCadre.firstChild);
+    this.elManaBarre = document.getElementById("manaBarreGeo");
+  }
+
+  majMana(valeur) {
+    const pourcentage = Math.min(100, (valeur / 5) * 100);
+    if (this.elManaBarre) {
+      this.elManaBarre.style.width = `${pourcentage}%`;
+    }
   }
 
   nouveauDefi() {
     this.enAttente = false;
-    
+
     if (this.tentatives >= this.limiteQuestions) {
       this.afficherResultats();
       return;
@@ -104,8 +131,10 @@ class MoteurGeometrie {
     this.currentReponse = defi.reponse;
 
     this.elForme.innerHTML = defi.svg;
-    this.setInstructionText(defi.instruction);
+    this.elInstructions.innerHTML = defi.instruction;
+    this.elInstructions.className = "";
     this.elCadre.classList.remove("succes", "erreur");
+    this.majMana(this.consecutifs);
 
     this.preparerInterface(defi.options);
     this.majStatistiques();
@@ -133,14 +162,13 @@ class MoteurGeometrie {
       const input = document.createElement("input");
       input.type = "number";
       input.id = "saisieReponse";
-      input.placeholder = "?";
       input.setAttribute("aria-label", "Saisis ta réponse ici");
       input.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           this.validerReponse(input.value);
         }
       });
-      
+
       const btnValider = document.createElement("button");
       btnValider.innerText = "Valider";
       btnValider.className = "bouton-option";
@@ -152,19 +180,28 @@ class MoteurGeometrie {
       conteneurInput.appendChild(input);
       conteneurInput.appendChild(btnValider);
       this.elZoneReponse.appendChild(conteneurInput);
-      
+
       setTimeout(() => input.focus(), 100);
     }
   }
 
   validerReponse(valeurSaisie) {
-    if (this.enAttente || valeurSaisie === "" || valeurSaisie === null || valeurSaisie === undefined) return;
-    if (this.currentReponse === null || this.currentReponse === undefined) return;
+    if (
+      this.enAttente ||
+      valeurSaisie === "" ||
+      valeurSaisie === null ||
+      valeurSaisie === undefined
+    )
+      return;
+    if (this.currentReponse === null || this.currentReponse === undefined)
+      return;
 
     if (this.typeInterface === "clavier") {
       const num = Number(valeurSaisie);
       if (isNaN(num)) {
-        this.setInstructionText("Saisie invalide ! Utilise uniquement des chiffres.", "texte-erreur");
+        this.elInstructions.innerHTML =
+          "Saisie invalide ! Utilise uniquement des chiffres.";
+        this.elInstructions.className = "texte-erreur";
         this.elCadre.classList.add("erreur");
         setTimeout(() => this.elCadre.classList.remove("erreur"), 400);
         return;
@@ -173,20 +210,28 @@ class MoteurGeometrie {
 
     this.enAttente = true;
     this.tentatives++;
-    
+
     const s1 = valeurSaisie.toString().toLowerCase().trim();
     const s2 = this.currentReponse.toString().toLowerCase().trim();
-    const estCorrect = (s1 === s2);
+    const estCorrect = s1 === s2;
 
     this.elCadre.classList.remove("succes", "erreur");
     void this.elCadre.offsetWidth;
 
     if (estCorrect) {
       this.score++;
-      this.setInstructionText("Bien joué !", "texte-succes");
+      this.consecutifs++;
+      this.erreursConsecutives = 0;
+      this.majMana(this.consecutifs);
+      this.elInstructions.innerText = "Bien joué !";
+      this.elInstructions.className = "texte-succes";
       this.elCadre.classList.add("succes");
     } else {
-      this.setInstructionText(`Oups ! C'était : ${this.currentReponse}`, "texte-erreur");
+      this.consecutifs = 0;
+      this.erreursConsecutives++;
+      this.majMana(0);
+      this.elInstructions.innerText = `Oups ! C'était : ${this.currentReponse}`;
+      this.elInstructions.className = "texte-erreur";
       this.elCadre.classList.add("erreur");
     }
 
@@ -199,10 +244,10 @@ class MoteurGeometrie {
     this.elInstructions.innerHTML = `
       <div style="font-size: 1.5rem; margin-bottom: 20px;">
         Mission terminée !<br>
-        Ton score est de <strong style="color:var(--primary-color)">${this.score} / ${this.limiteQuestions}</strong>
+        Ton score est de <strong style="color:var(--accent-color)">${this.score} / ${this.limiteQuestions}</strong>
       </div>
     `;
-    
+
     this.elZoneReponse.innerHTML = "";
     const btnRejouer = document.createElement("button");
     btnRejouer.innerText = "Recommencer la mission";
@@ -212,7 +257,9 @@ class MoteurGeometrie {
     btnRejouer.onclick = () => {
       this.score = 0;
       this.tentatives = 0;
+      this.consecutifs = 0;
       this.historiqueSession = []; // Reset de l'historique
+      this.majMana(0);
       this.nouveauDefi();
     };
     this.elZoneReponse.appendChild(btnRejouer);

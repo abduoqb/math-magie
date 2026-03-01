@@ -404,9 +404,10 @@
         }
 
         // --- Grille d'avatars ---
-        function construireAvatarGrille(pourEdition = false) {
+        function construireAvatarGrille() {
             avatarGrille.innerHTML = '';
-            const { disponibles, debloquesInfos } = gestionnaireProfils.getAvatarsDisponibles();
+            const profilPourAvatars = modeEdition || gestionnaireProfils.getJoueurActif();
+            const { disponibles, debloquesInfos } = gestionnaireProfils.getAvatarsDisponibles(profilPourAvatars);
 
             // Avatars de base
             GestionnaireProfils.AVATARS_BASE.forEach(emoji => {

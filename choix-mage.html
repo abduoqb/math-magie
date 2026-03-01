@@ -37,7 +37,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
         .profil-carte:hover {
             transform: translateY(-5px);
@@ -48,14 +48,17 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-family: 'Lexend', sans-serif;
             font-weight: 800;
+            transition: transform 0.3s ease;
+        }
+        .profil-carte:hover .profil-avatar {
+            transform: scale(1.15) rotate(-5deg);
         }
         .profil-nom {
             font-family: 'Lexend', sans-serif;
@@ -63,6 +66,11 @@
             color: var(--text-color);
             font-size: 1rem;
             word-break: break-word;
+        }
+        .profil-titre {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
         }
         .profil-carte.nouveau {
             border-style: dashed;
@@ -75,9 +83,10 @@
             box-shadow: 0 8px 20px rgba(65, 182, 230, 0.25);
         }
         .profil-carte.nouveau .profil-avatar {
-            background: linear-gradient(135deg, var(--secondary-color), #7DD3FC);
+            background: linear-gradient(135deg, var(--secondary-color), #7DD3FC) !important;
             font-size: 2rem;
         }
+
         /* Formulaire de création */
         .creation-form {
             display: none;
@@ -108,6 +117,126 @@
         .creation-form input:focus {
             border-color: var(--primary-color);
         }
+
+        /* Section sélection avatar */
+        .section-label {
+            font-family: 'Lexend', sans-serif;
+            font-weight: 700;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin: 20px 0 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .avatar-grille {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .avatar-option {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            border: 3px solid #E2E8F0;
+            background: #F8FAFC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+        .avatar-option:hover {
+            transform: scale(1.15);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(160, 119, 238, 0.3);
+        }
+        .avatar-option.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(160, 119, 238, 0.15), rgba(65, 182, 230, 0.15));
+            box-shadow: 0 4px 15px rgba(160, 119, 238, 0.35);
+            transform: scale(1.1);
+        }
+        .avatar-option.locked {
+            opacity: 0.35;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+        .avatar-option.locked:hover {
+            transform: scale(1.0);
+            box-shadow: none;
+            border-color: #E2E8F0;
+        }
+        .avatar-option .lock-icon {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            font-size: 0.7rem;
+            background: #CBD5E1;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Sélection couleur */
+        .couleur-grille {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .couleur-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .couleur-option:hover {
+            transform: scale(1.2);
+        }
+        .couleur-option.selected {
+            border-color: var(--text-color);
+            transform: scale(1.15);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+        }
+
+        /* Aperçu */
+        .apercu-profil {
+            margin: 25px auto 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .apercu-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        .apercu-nom {
+            font-family: 'Lexend', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-color);
+            min-height: 1.4em;
+        }
+
         .creation-form .form-actions {
             margin-top: 20px;
             display: flex;
@@ -140,6 +269,7 @@
             margin-top: 10px;
             min-height: 1.5em;
         }
+
         /* Bouton supprimer */
         .btn-supprimer {
             background: none;
@@ -153,11 +283,47 @@
         }
         .profil-carte:hover .btn-supprimer { opacity: 1; }
         .btn-supprimer:hover { color: var(--error-color); }
+
+        /* Bouton changer avatar (sur carte existante) */
+        .btn-modifier-avatar {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .profil-carte:hover .btn-modifier-avatar { opacity: 1; }
+        .btn-modifier-avatar:hover { color: var(--primary-color); }
+
         /* Animation */
         @keyframes apparition {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes burst {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .avatar-burst {
+            animation: burst 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Particules */
+        .particule {
+            position: fixed;
+            pointer-events: none;
+            font-size: 1.2rem;
+            z-index: 9999;
+            animation: particule-fly 0.8s ease-out forwards;
+        }
+        @keyframes particule-fly {
+            0% { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3); }
+        }
+
         .logo-accueil {
             font-size: 4rem;
             margin-bottom: 10px;
@@ -181,7 +347,20 @@
 
             <div id="creation-form" class="creation-form">
                 <h3>✨ Nouveau Mage</h3>
+
                 <input type="text" id="input-nom" placeholder="Ton nom de mage..." maxlength="15" autocomplete="off">
+
+                <p class="section-label">Choisis ton avatar</p>
+                <div id="avatar-grille" class="avatar-grille"></div>
+
+                <p class="section-label">Choisis ta couleur</p>
+                <div id="couleur-grille" class="couleur-grille"></div>
+
+                <div class="apercu-profil">
+                    <div id="apercu-avatar" class="apercu-avatar">🧙‍♂️</div>
+                    <span id="apercu-nom" class="apercu-nom"></span>
+                </div>
+
                 <div id="erreur-msg" class="erreur-msg"></div>
                 <div class="form-actions">
                     <button class="btn-creer" id="btn-confirmer">Créer</button>
@@ -197,17 +376,155 @@
         const formCreation = document.getElementById('creation-form');
         const inputNom = document.getElementById('input-nom');
         const erreurMsg = document.getElementById('erreur-msg');
+        const avatarGrille = document.getElementById('avatar-grille');
+        const couleurGrille = document.getElementById('couleur-grille');
+        const apercuAvatar = document.getElementById('apercu-avatar');
+        const apercuNom = document.getElementById('apercu-nom');
 
+        let avatarChoisi = '🧙‍♂️';
+        let couleurChoisie = '#A077EE';
+        let modeEdition = null; // nom du profil en cours d'édition d'avatar
+
+        // --- Particules ---
+        function lancerParticules(x, y) {
+            const emojis = ['✨', '⭐', '🌟', '💫', '🪄'];
+            for (let i = 0; i < 8; i++) {
+                const p = document.createElement('span');
+                p.className = 'particule';
+                p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                const angle = (Math.PI * 2 * i) / 8;
+                const dist = 40 + Math.random() * 30;
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 800);
+            }
+        }
+
+        // --- Grille d'avatars ---
+        function construireAvatarGrille(pourEdition = false) {
+            avatarGrille.innerHTML = '';
+            const { disponibles, debloquesInfos } = gestionnaireProfils.getAvatarsDisponibles();
+
+            // Avatars de base
+            GestionnaireProfils.AVATARS_BASE.forEach(emoji => {
+                const btn = creerBoutonAvatar(emoji, true);
+                avatarGrille.appendChild(btn);
+            });
+
+            // Avatars débloquables
+            debloquesInfos.forEach(info => {
+                const btn = creerBoutonAvatar(info.emoji, info.debloque, info);
+                avatarGrille.appendChild(btn);
+            });
+
+            majSelectionAvatar();
+        }
+
+        function creerBoutonAvatar(emoji, disponible, info = null) {
+            const btn = document.createElement('div');
+            btn.className = 'avatar-option' + (!disponible ? ' locked' : '');
+            btn.textContent = emoji;
+            btn.dataset.emoji = emoji;
+
+            if (!disponible && info) {
+                const lock = document.createElement('span');
+                lock.className = 'lock-icon';
+                lock.textContent = '🔒';
+                btn.appendChild(lock);
+                btn.title = `${info.nom} — ${info.condition}`;
+            }
+
+            if (disponible) {
+                btn.addEventListener('click', (e) => {
+                    avatarChoisi = emoji;
+                    majSelectionAvatar();
+                    majApercu();
+                    SonMagique.jouer('selection');
+                    // Animation burst
+                    btn.classList.remove('avatar-burst');
+                    void btn.offsetWidth;
+                    btn.classList.add('avatar-burst');
+                    // Particules
+                    const rect = btn.getBoundingClientRect();
+                    lancerParticules(rect.left + rect.width / 2, rect.top + rect.height / 2);
+                });
+            }
+            return btn;
+        }
+
+        function majSelectionAvatar() {
+            document.querySelectorAll('.avatar-option').forEach(el => {
+                el.classList.toggle('selected', el.dataset.emoji === avatarChoisi);
+            });
+        }
+
+        // --- Grille de couleurs ---
+        function construireCouleurGrille() {
+            couleurGrille.innerHTML = '';
+            GestionnaireProfils.COULEURS.forEach(c => {
+                const btn = document.createElement('div');
+                btn.className = 'couleur-option';
+                btn.style.background = c.valeur;
+                btn.title = c.nom;
+                btn.dataset.couleur = c.valeur;
+
+                btn.addEventListener('click', () => {
+                    couleurChoisie = c.valeur;
+                    majSelectionCouleur();
+                    majApercu();
+                    SonMagique.jouer('selection');
+                });
+
+                couleurGrille.appendChild(btn);
+            });
+            majSelectionCouleur();
+        }
+
+        function majSelectionCouleur() {
+            document.querySelectorAll('.couleur-option').forEach(el => {
+                el.classList.toggle('selected', el.dataset.couleur === couleurChoisie);
+            });
+        }
+
+        // --- Aperçu ---
+        function majApercu() {
+            apercuAvatar.textContent = avatarChoisi;
+            apercuAvatar.style.background = `linear-gradient(135deg, ${couleurChoisie}, ${ajusterCouleur(couleurChoisie, 40)})`;
+            apercuNom.textContent = inputNom.value.trim() || '';
+        }
+
+        function ajusterCouleur(hex, amount) {
+            let r = parseInt(hex.slice(1, 3), 16);
+            let g = parseInt(hex.slice(3, 5), 16);
+            let b = parseInt(hex.slice(5, 7), 16);
+            r = Math.min(255, r + amount);
+            g = Math.min(255, g + amount);
+            b = Math.min(255, b + amount);
+            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+        }
+
+        inputNom.addEventListener('input', majApercu);
+
+        // --- Affichage des profils ---
         function afficherProfils() {
             grille.innerHTML = '';
             const profils = gestionnaireProfils.getListeProfils();
 
             profils.forEach(nom => {
+                const avatar = gestionnaireProfils.getAvatar(nom);
+                const couleur = gestionnaireProfils.getCouleur(nom);
+                const titre = gestionnaireProfils.getTitreMage(nom);
+
                 const carte = document.createElement('div');
                 carte.className = 'profil-carte';
                 carte.innerHTML = `
-                    <div class="profil-avatar">${nom.charAt(0).toUpperCase()}</div>
+                    <div class="profil-avatar" style="background: linear-gradient(135deg, ${couleur}, ${ajusterCouleur(couleur, 40)})">${avatar}</div>
                     <span class="profil-nom">${nom}</span>
+                    <span class="profil-titre">${titre}</span>
+                    <button class="btn-modifier-avatar" title="Changer l'avatar">✏️ modifier</button>
                     <button class="btn-supprimer" title="Supprimer ce profil">✕ supprimer</button>
                 `;
                 carte.addEventListener('click', (e) => {
@@ -219,7 +536,13 @@
                         }
                         return;
                     }
+                    if (e.target.classList.contains('btn-modifier-avatar')) {
+                        e.stopPropagation();
+                        ouvrirEditionAvatar(nom);
+                        return;
+                    }
                     gestionnaireProfils.setJoueurActif(nom);
+                    SonMagique.jouer('validation');
                     window.location.href = 'index.html';
                 });
                 grille.appendChild(carte);
@@ -233,25 +556,72 @@
                 <span class="profil-nom">Nouveau Mage</span>
             `;
             carteNouveau.addEventListener('click', () => {
+                modeEdition = null;
+                avatarChoisi = '🧙‍♂️';
+                couleurChoisie = '#A077EE';
                 formCreation.classList.add('visible');
+                construireAvatarGrille();
+                construireCouleurGrille();
+                majApercu();
                 inputNom.value = '';
                 erreurMsg.textContent = '';
                 inputNom.focus();
+                // Montrer les champs de nom et bouton créer
+                inputNom.style.display = '';
+                document.getElementById('btn-confirmer').textContent = 'Créer';
+                document.querySelector('.creation-form h3').textContent = '✨ Nouveau Mage';
             });
             grille.appendChild(carteNouveau);
         }
 
-        document.getElementById('btn-confirmer').addEventListener('click', creerProfil);
+        // --- Édition d'avatar sur profil existant ---
+        function ouvrirEditionAvatar(nom) {
+            modeEdition = nom;
+            avatarChoisi = gestionnaireProfils.getAvatar(nom);
+            couleurChoisie = gestionnaireProfils.getCouleur(nom);
+
+            formCreation.classList.add('visible');
+            construireAvatarGrille(true);
+            construireCouleurGrille();
+
+            inputNom.style.display = 'none';
+            inputNom.value = nom;
+            apercuNom.textContent = nom;
+            document.querySelector('.creation-form h3').textContent = `✏️ Modifier ${nom}`;
+            document.getElementById('btn-confirmer').textContent = 'Enregistrer';
+            erreurMsg.textContent = '';
+            majApercu();
+        }
+
+        // --- Création / Modification ---
+        document.getElementById('btn-confirmer').addEventListener('click', creerOuModifierProfil);
         document.getElementById('btn-annuler').addEventListener('click', () => {
             formCreation.classList.remove('visible');
+            modeEdition = null;
         });
         inputNom.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') creerProfil();
-            if (e.key === 'Escape') formCreation.classList.remove('visible');
+            if (e.key === 'Enter') creerOuModifierProfil();
+            if (e.key === 'Escape') {
+                formCreation.classList.remove('visible');
+                modeEdition = null;
+            }
         });
 
-        function creerProfil() {
-            const resultat = gestionnaireProfils.creerProfil(inputNom.value);
+        function creerOuModifierProfil() {
+            if (modeEdition) {
+                // Mode édition : sauvegarder avatar et couleur
+                gestionnaireProfils.setJoueurActif(modeEdition);
+                gestionnaireProfils.setAvatar(avatarChoisi);
+                gestionnaireProfils.setCouleur(couleurChoisie);
+                SonMagique.jouer('validation');
+                formCreation.classList.remove('visible');
+                modeEdition = null;
+                afficherProfils();
+                return;
+            }
+
+            // Mode création
+            const resultat = gestionnaireProfils.creerProfil(inputNom.value, avatarChoisi, couleurChoisie);
             if (!resultat.ok) {
                 erreurMsg.textContent = resultat.erreur;
                 inputNom.focus();
@@ -259,11 +629,10 @@
             }
             const nom = inputNom.value.trim();
             gestionnaireProfils.setJoueurActif(nom);
+            SonMagique.jouer('validation');
             window.location.href = 'index.html';
         }
 
-        // Si un joueur est déjà actif, on peut proposer de continuer directement
-        // mais on laisse le choix pour "changer de mage"
         afficherProfils();
     </script>
 </body>

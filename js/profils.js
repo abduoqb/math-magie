@@ -2,9 +2,48 @@
  * GestionnaireProfils — Module central de gestion des profils locaux.
  * Stocke tout sous la clé unique `mathemagie-profils` dans localStorage.
  * 
- * Structure : { joueurActif: "Nom" | null, profils: { "Nom": { operation: { niveau } } } }
+ * Structure : { joueurActif: "Nom" | null, profils: { "Nom": { _avatar, _couleur, operation: { niveau } } } }
  */
 class GestionnaireProfils {
+
+  // --- Constantes avatars et couleurs ---
+
+  static AVATARS_BASE = ['🧙‍♂️', '🧙‍♀️', '🧝‍♂️', '🧝‍♀️', '🦊', '🦁'];
+
+  static AVATARS_DEBLOQUABLES = [
+    { emoji: '🔮', nom: 'Cristal Magique', condition: 'Atteindre le niveau 5 dans une mission', test: (p) => p._niveauMax >= 5 },
+    { emoji: '🐉', nom: 'Dragon Ancien', condition: 'Cumuler 20 niveaux au total', test: (p) => p._totalNiveaux >= 20 },
+    { emoji: '⚡', nom: 'Éclair Foudroyant', condition: 'Compléter toutes les missions de calcul (niv 2+)', test: (p) => p._calculsComplets },
+    { emoji: '🦄', nom: 'Licorne Céleste', condition: 'Compléter toutes les missions de géométrie (niv 2+)', test: (p) => p._geometrieComplete },
+    { emoji: '🌟', nom: 'Étoile Suprême', condition: 'Toutes les missions au niveau 2+', test: (p) => p._toutesCompletes },
+    { emoji: '🎭', nom: 'Maître des Masques', condition: 'Toutes les missions au niveau 3+', test: (p) => p._toutesMaitrisees }
+  ];
+
+  static COULEURS = [
+    { id: 'violet', valeur: '#A077EE', nom: 'Violet Sage' },
+    { id: 'bleu', valeur: '#41B6E6', nom: 'Bleu Calme' },
+    { id: 'vert', valeur: '#6BCB77', nom: 'Vert Forêt' },
+    { id: 'orange', valeur: '#E07800', nom: 'Orange Flamme' },
+    { id: 'rose', valeur: '#EC4899', nom: 'Rose Enchanteur' },
+    { id: 'rouge', valeur: '#EF4444', nom: 'Rouge Dragon' }
+  ];
+
+  static TITRES_MAGE = [
+    { seuil: 40, titre: '🌟 Archimage' },
+    { seuil: 30, titre: '⚡ Grand Mage' },
+    { seuil: 20, titre: '🔮 Mage' },
+    { seuil: 15, titre: '📖 Adepte' },
+    { seuil: 0, titre: '✨ Apprenti' }
+  ];
+
+  static MISSIONS_CALCUL = ['additions', 'soustractions', 'multiplications', 'divisions'];
+  static MISSIONS_GEOMETRIE = [
+    'geometrie-formes', 'geometrie-proprietes', 'geometrie-angles',
+    'geometrie-symetrie', 'geometrie-vraifaux', 'geometrie-droites',
+    'geometrie-triangles', 'geometrie-quadrilateres', 'geometrie-patrons'
+  ];
+  static TOUTES_MISSIONS = [...GestionnaireProfils.MISSIONS_CALCUL, ...GestionnaireProfils.MISSIONS_GEOMETRIE];
+
   constructor() {
     this.CLE_STORAGE = 'mathemagie-profils';
     this.donnees = this.charger();
@@ -35,12 +74,7 @@ class GestionnaireProfils {
   // --- Migration des anciennes clés math-magie-* ---
 
   migrerAnciennesDonnees() {
-    const anciensIds = [
-      'additions', 'soustractions', 'multiplications', 'divisions',
-      'geometrie-formes', 'geometrie-proprietes', 'geometrie-angles',
-      'geometrie-symetrie', 'geometrie-vraifaux', 'geometrie-droites',
-      'geometrie-triangles', 'geometrie-quadrilateres', 'geometrie-patrons'
-    ];
+    const anciensIds = GestionnaireProfils.TOUTES_MISSIONS;
 
     let aDetecte = false;
     const profilMigre = {};
@@ -64,14 +98,19 @@ class GestionnaireProfils {
       if (!this.donnees.profils[nomMigration]) {
         this.donnees.profils[nomMigration] = profilMigre;
       } else {
-        // Fusionner sans écraser les données existantes
         Object.keys(profilMigre).forEach(op => {
           if (!this.donnees.profils[nomMigration][op]) {
             this.donnees.profils[nomMigration][op] = profilMigre[op];
           }
         });
       }
-      // Si pas de joueur actif, activer le profil migré
+      // Avatar et couleur par défaut si absents
+      if (!this.donnees.profils[nomMigration]._avatar) {
+        this.donnees.profils[nomMigration]._avatar = '🧙‍♂️';
+      }
+      if (!this.donnees.profils[nomMigration]._couleur) {
+        this.donnees.profils[nomMigration]._couleur = '#A077EE';
+      }
       if (!this.donnees.joueurActif) {
         this.donnees.joueurActif = nomMigration;
       }
@@ -103,13 +142,16 @@ class GestionnaireProfils {
 
   // --- Gestion des profils ---
 
-  creerProfil(nom) {
+  creerProfil(nom, avatar, couleur) {
     nom = (nom || '').trim();
     if (!nom) return { ok: false, erreur: 'Le nom ne peut pas être vide.' };
     if (nom.length > 15) return { ok: false, erreur: '15 caractères maximum.' };
     if (this.donnees.profils[nom]) return { ok: false, erreur: 'Ce mage existe déjà !' };
 
-    this.donnees.profils[nom] = {};
+    this.donnees.profils[nom] = {
+      _avatar: avatar || '🧙‍♂️',
+      _couleur: couleur || '#A077EE'
+    };
     this.sauvegarder();
     return { ok: true };
   }
@@ -126,6 +168,100 @@ class GestionnaireProfils {
 
   getListeProfils() {
     return Object.keys(this.donnees.profils);
+  }
+
+  // --- Avatar et Couleur ---
+
+  getAvatar(nom) {
+    const n = nom || this.donnees.joueurActif;
+    if (!n || !this.donnees.profils[n]) return '🧙‍♂️';
+    return this.donnees.profils[n]._avatar || '🧙‍♂️';
+  }
+
+  setAvatar(avatar) {
+    const joueur = this.donnees.joueurActif;
+    if (!joueur || !this.donnees.profils[joueur]) return;
+    this.donnees.profils[joueur]._avatar = avatar;
+    this.sauvegarder();
+  }
+
+  getCouleur(nom) {
+    const n = nom || this.donnees.joueurActif;
+    if (!n || !this.donnees.profils[n]) return '#A077EE';
+    return this.donnees.profils[n]._couleur || '#A077EE';
+  }
+
+  setCouleur(couleur) {
+    const joueur = this.donnees.joueurActif;
+    if (!joueur || !this.donnees.profils[joueur]) return;
+    this.donnees.profils[joueur]._couleur = couleur;
+    this.sauvegarder();
+  }
+
+  // --- Titre de mage ---
+
+  getStatsProgression(nom) {
+    const n = nom || this.donnees.joueurActif;
+    if (!n || !this.donnees.profils[n]) {
+      return { _totalNiveaux: 0, _niveauMax: 0, _calculsComplets: false, _geometrieComplete: false, _toutesCompletes: false, _toutesMaitrisees: false };
+    }
+    const profil = this.donnees.profils[n];
+
+    let total = 0;
+    let max = 0;
+    let calculsOk = true;
+    let geoOk = true;
+    let toutesOk = true;
+    let toutesMaitrisees = true;
+
+    GestionnaireProfils.TOUTES_MISSIONS.forEach(id => {
+      const niv = profil[id]?.niveau || 1;
+      total += niv;
+      if (niv > max) max = niv;
+      if (niv < 2) toutesOk = false;
+      if (niv < 3) toutesMaitrisees = false;
+    });
+
+    GestionnaireProfils.MISSIONS_CALCUL.forEach(id => {
+      const niv = profil[id]?.niveau || 1;
+      if (niv < 2) calculsOk = false;
+    });
+
+    GestionnaireProfils.MISSIONS_GEOMETRIE.forEach(id => {
+      const niv = profil[id]?.niveau || 1;
+      if (niv < 2) geoOk = false;
+    });
+
+    return {
+      _totalNiveaux: total,
+      _niveauMax: max,
+      _calculsComplets: calculsOk,
+      _geometrieComplete: geoOk,
+      _toutesCompletes: toutesOk,
+      _toutesMaitrisees: toutesMaitrisees
+    };
+  }
+
+  getTitreMage(nom) {
+    const stats = this.getStatsProgression(nom);
+    for (const t of GestionnaireProfils.TITRES_MAGE) {
+      if (stats._totalNiveaux >= t.seuil) return t.titre;
+    }
+    return '✨ Apprenti';
+  }
+
+  getAvatarsDisponibles(nom) {
+    const stats = this.getStatsProgression(nom);
+    const disponibles = [...GestionnaireProfils.AVATARS_BASE];
+    const debloquesInfos = [];
+
+    GestionnaireProfils.AVATARS_DEBLOQUABLES.forEach(a => {
+      const debloque = a.test(stats);
+      if (debloque) disponibles.push(a.emoji);
+      debloquesInfos.push({ ...a, debloque });
+    });
+
+    return { disponibles, debloquesInfos };
   }
 
   // --- Progression par opération ---
@@ -156,6 +292,51 @@ class GestionnaireProfils {
     return true;
   }
 }
+
+// --- Son magique (Web Audio API) ---
+
+class SonMagique {
+  static jouer(type = 'selection') {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const now = ctx.currentTime;
+
+      if (type === 'selection') {
+        // Petit chime magique ascendant
+        [523, 659, 784].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.15, now + i * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.3);
+          osc.connect(gain).connect(ctx.destination);
+          osc.start(now + i * 0.08);
+          osc.stop(now + i * 0.08 + 0.3);
+        });
+      } else if (type === 'validation') {
+        // Son de validation plus riche
+        [440, 554, 659, 880].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.12, now + i * 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.4);
+          osc.connect(gain).connect(ctx.destination);
+          osc.start(now + i * 0.06);
+          osc.stop(now + i * 0.06 + 0.4);
+        });
+      }
+      // Fermer le contexte après les sons
+      setTimeout(() => ctx.close(), 1000);
+    } catch (e) {
+      // Web Audio non supporté, pas grave
+    }
+  }
+}
+
+window.SonMagique = SonMagique;
 
 // Singleton global
 window.gestionnaireProfils = new GestionnaireProfils();

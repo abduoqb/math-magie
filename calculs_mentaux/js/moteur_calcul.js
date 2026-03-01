@@ -218,7 +218,6 @@ class MoteurCalcul {
       this.score += pointsGagnes;
       this.consecutifs++;
       this.erreursConsecutives = 0;
-      this.majMana(this.consecutifs % 5 === 0 ? 5 : this.consecutifs % 5);
       
       // Afficher les points gagnés avec le détail du combo
       if (this.consecutifs > 1) {
@@ -232,7 +231,8 @@ class MoteurCalcul {
       // Evolution : 5 bonnes réponses de suite = niveau supérieur (la streak continue)
       if (this.consecutifs >= 5 && this.consecutifs % 5 === 0 && this.niveau < 10) {
         this.niveau++;
-        this.majMana(0); // Reset visuel de la barre au changement de niveau
+        this.majMana(5); // Remplit la barre à 100% brièvement
+        setTimeout(() => this.majMana(0), 500); // Puis redescend à 0
         this.elInstructions.innerHTML = `🎉 Niveau ${this.niveau} ! <strong>+${pointsGagnes} pts</strong> <span style="color: var(--accent-color);">(combo x${this.consecutifs} 🔥)</span>`;
         this.majAffichageNiveau();
         
@@ -240,6 +240,8 @@ class MoteurCalcul {
         if (this.niveau > profilActuel.niveau) {
            this.sauvegarderProgression();
         }
+      } else {
+         this.majMana(this.consecutifs % 5);
       }
     } else {
       // Pénalité : on perd (niveau × 2) points, minimum 0

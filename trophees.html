@@ -162,22 +162,35 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const missionsCalcul = [
-                { id: 'additions', nom: 'Flamme de l\'Addition', icone: '🔥' },
-                { id: 'soustractions', nom: 'Givre de la Soustraction', icone: '❄️' },
-                { id: 'multiplications', nom: 'Foudre Multiplicatrice', icone: '⚡' },
-                { id: 'divisions', nom: 'Vague de la Division', icone: '🌊' }
+                { id: 'additions', nom: 'Flamme de l\'Addition',
+                  icones: { 1: '🕯️', 2: '🔥', 4: '☄️', 7: '🌋', 10: '💥' } },
+                { id: 'soustractions', nom: 'Givre de la Soustraction',
+                  icones: { 1: '❄️', 2: '🧊', 4: '🌨️', 7: '⛄', 10: '🏔️' } },
+                { id: 'multiplications', nom: 'Foudre Multiplicatrice',
+                  icones: { 1: '✨', 2: '⚡', 4: '🌩️', 7: '🔮', 10: '💎' } },
+                { id: 'divisions', nom: 'Vague de la Division',
+                  icones: { 1: '💧', 2: '🌊', 4: '🐚', 7: '🐋', 10: '🔱' } }
             ];
 
             const missionsGeometrie = [
-                { id: 'geometrie-formes', nom: 'Gardien des Formes', icone: '📐' },
-                { id: 'geometrie-proprietes', nom: 'Expert des Propriétés', icone: '🔍' },
-                { id: 'geometrie-angles', nom: 'Maître des Angles', icone: '📐' },
-                { id: 'geometrie-symetrie', nom: 'Gardien de la Symétrie', icone: '🪞' },
-                { id: 'geometrie-vraifaux', nom: 'Détecteur de Vérité', icone: '✅' },
-                { id: 'geometrie-droites', nom: 'Maître des Droites', icone: '📏' },
-                { id: 'geometrie-triangles', nom: 'Oracle des Triangles', icone: '💎' },
-                { id: 'geometrie-quadrilateres', nom: 'Prince des Quadrilatères', icone: '🪁' },
-                { id: 'geometrie-patrons', nom: 'Archimage des Solides', icone: '📦' }
+                { id: 'geometrie-formes', nom: 'Temple des Formes',
+                  icones: { 1: '🧱', 2: '🏛️', 3: '👑' } },
+                { id: 'geometrie-proprietes', nom: 'Laboratoire des Propriétés',
+                  icones: { 1: '🔍', 2: '🔬', 3: '🧬' } },
+                { id: 'geometrie-angles', nom: 'Boussole des Angles',
+                  icones: { 1: '📐', 2: '🧭', 3: '⭐' } },
+                { id: 'geometrie-symetrie', nom: 'Papillon de la Symétrie',
+                  icones: { 1: '🪞', 2: '🦋', 3: '🌈' } },
+                { id: 'geometrie-vraifaux', nom: 'Oracle de Vérité',
+                  icones: { 1: '❓', 2: '🎯', 3: '🏆' } },
+                { id: 'geometrie-droites', nom: 'Lame des Droites',
+                  icones: { 1: '📏', 2: '🗡️', 3: '⚔️' } },
+                { id: 'geometrie-triangles', nom: 'Pyramide des Triangles',
+                  icones: { 1: '🔺', 2: '🏔️', 3: '🗻' } },
+                { id: 'geometrie-quadrilateres', nom: 'Forteresse des Quadrilatères',
+                  icones: { 1: '🧱', 2: '🏰', 3: '🏯' } },
+                { id: 'geometrie-patrons', nom: 'Carte des Solides',
+                  icones: { 1: '📦', 2: '🗺️', 3: '🌍' } }
             ];
 
             // Garde d'accès
@@ -206,6 +219,14 @@
                 return '';
             }
 
+            function getIconeNiveau(icones, niv) {
+                let icone = Object.values(icones)[0];
+                for (const [seuil, emoji] of Object.entries(icones)) {
+                    if (niv >= parseInt(seuil)) icone = emoji;
+                }
+                return icone;
+            }
+
             function creerSection(titre, missions, paliers, estGeometrie = false) {
                 const titreSec = document.createElement('h3');
                 titreSec.className = 'trophees-section-titre';
@@ -228,6 +249,7 @@
                     if (estDebloque) debloques++;
 
                     const badge = getBadge(nivAffiche, paliers);
+                    const icone = estDebloque ? getIconeNiveau(mission.icones, nivAffiche) : '🔒';
 
                     const carte = document.createElement('div');
                     carte.className = `trophee-carte ${estDebloque ? 'debloque' : ''}`;
@@ -235,7 +257,7 @@
                     carte.setAttribute('aria-label', `${mission.nom} — ${estDebloque ? `Niveau ${nivAffiche} ${badge}` : 'Pas encore débloqué'}`);
 
                     carte.innerHTML = `
-                        <span class="trophee-icone" role="img" aria-hidden="true">${mission.icone}</span>
+                        <span class="trophee-icone" role="img" aria-hidden="true">${icone}</span>
                         <span class="trophee-nom">${mission.nom}</span>
                         <span class="trophee-condition">${estDebloque ? `Niveau ${nivAffiche} ${badge}` : 'Pas encore débloqué'}</span>
                     `;

@@ -3,9 +3,9 @@ class AppHeader extends HTMLElement {
     const basePath = this.getAttribute('base-path') || '';
     
     const path = window.location.pathname;
-    // Détection plus robuste des sections
     const isCalculs = path.includes('/calculs_mentaux/');
     const isGeometrie = path.includes('/geometrie/');
+    const isJouer = isCalculs || isGeometrie;
     const isTrophees = path.includes('trophees.html');
     const isAccueil = !isCalculs && !isGeometrie && !isTrophees;
 
@@ -21,27 +21,29 @@ class AppHeader extends HTMLElement {
           <h1><a href="${basePath}index.html">Mathémagie</a></h1>
           <div>
             <ul class="choix-navigation">
-              <li class="${isAccueil ? 'selected' : ''}"><a href="${basePath}index.html">Accueil</a></li>
-              <li class="${isCalculs ? 'selected' : ''}"><a href="${basePath}calculs_mentaux/index.html">Calculs</a></li>
-              <li class="${isGeometrie ? 'selected' : ''}"><a href="${basePath}geometrie/index.html">Géométrie</a></li>
-              <li class="${isTrophees ? 'selected' : ''}"><a href="${basePath}trophees.html">Trophées</a></li>
+              <li class="${isAccueil ? 'selected' : ''}"><a href="${basePath}index.html">🏠 Accueil</a></li>
+
+              <li class="nav-dropdown ${isJouer ? 'selected' : ''}">
+                <a href="#" class="nav-dropdown-toggle">🎮 Jouer ▾</a>
+                <ul class="nav-dropdown-menu">
+                  <li class="${isCalculs ? 'selected' : ''}">
+                    <a href="${basePath}calculs_mentaux/index.html">🧮 Calculs Mentaux</a>
+                  </li>
+                  <li class="${isGeometrie ? 'selected' : ''}">
+                    <a href="${basePath}geometrie/index.html">📐 Géométrie</a>
+                  </li>
+                </ul>
+              </li>
+
+              <li class="${isTrophees ? 'selected' : ''}"><a href="${basePath}trophees.html">🏆 Trophées</a></li>
+
               ${nomMage ? `
                 <li class="mage-bouton">
                   <a href="#" id="btn-changer-mage" style="display: flex; align-items: center; gap: 8px;">
-                    <span style="
-                      display: inline-flex;
-                      align-items: center;
-                      justify-content: center;
-                      width: 32px;
-                      height: 32px;
-                      border-radius: 50%;
-                      background: linear-gradient(135deg, ${couleurMage}, ${ajusterCouleurHeader(couleurMage, 40)});
-                      font-size: 1.1rem;
-                      flex-shrink: 0;
-                    ">${avatarMage}</span>
-                    <span style="display: flex; flex-direction: column; line-height: 1.2;">
-                      <span style="font-size: 0.95rem;">${nomMage}</span>
-                      ${titreMage ? `<span style="font-size: 0.65rem; opacity: 0.7;">${titreMage}</span>` : ''}
+                    <span class="mage-avatar" style="background: linear-gradient(135deg, ${couleurMage}, ${ajusterCouleurHeader(couleurMage, 40)})">${avatarMage}</span>
+                    <span class="mage-info">
+                      <span class="mage-nom">${nomMage}</span>
+                      ${titreMage ? `<span class="mage-titre">${titreMage}</span>` : ''}
                     </span>
                   </a>
                 </li>
@@ -51,6 +53,22 @@ class AppHeader extends HTMLElement {
         </nav>
       </header>
     `;
+
+    // Dropdown toggle
+    const dropdownToggle = this.querySelector('.nav-dropdown-toggle');
+    const dropdownLi = this.querySelector('.nav-dropdown');
+    if (dropdownToggle && dropdownLi) {
+      dropdownToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        dropdownLi.classList.toggle('open');
+      });
+      // Fermer quand on clique ailleurs
+      document.addEventListener('click', (e) => {
+        if (!dropdownLi.contains(e.target)) {
+          dropdownLi.classList.remove('open');
+        }
+      });
+    }
 
     // Bouton Changer de Mage
     const btnMage = this.querySelector('#btn-changer-mage');

@@ -139,6 +139,120 @@ header h1 a {
   color: white;
 }
 
+/* --- DROPDOWN "JOUER" --- */
+.nav-dropdown {
+  position: relative;
+}
+.nav-dropdown-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+.nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  border: 2px solid #E2E8F0;
+  padding: 8px;
+  z-index: 2000;
+  min-width: 220px;
+  animation: dropdownPop 0.2s ease;
+}
+.nav-dropdown.open .nav-dropdown-menu {
+  display: block;
+}
+@keyframes dropdownPop {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.nav-dropdown-menu li {
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+.nav-dropdown-menu li:hover {
+  background: #F0F9FF;
+  transform: none;
+  box-shadow: none;
+  border-color: transparent;
+}
+.nav-dropdown-menu li a {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: none;
+  white-space: nowrap;
+  font-family: 'Lexend', sans-serif;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+.nav-dropdown-menu li:hover a {
+  color: var(--secondary-color);
+}
+.nav-dropdown-menu li.selected {
+  background: rgba(65, 182, 230, 0.1);
+  border-color: transparent;
+  box-shadow: none;
+}
+.nav-dropdown-menu li.selected a {
+  color: var(--secondary-color);
+  font-weight: 700;
+}
+
+/* Petite flèche au-dessus du dropdown */
+.nav-dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  margin-left: -6px;
+  border-width: 0 6px 8px;
+  border-style: solid;
+  border-color: transparent transparent white;
+}
+.nav-dropdown-menu::after {
+  content: '';
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  margin-left: -7px;
+  border-width: 0 7px 9px;
+  border-style: solid;
+  border-color: transparent transparent #E2E8F0;
+  z-index: -1;
+}
+
+/* --- MAGE AVATAR dans la barre --- */
+.mage-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.mage-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.mage-nom {
+  font-size: 0.95rem;
+}
+.mage-titre {
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
 /* --- MAIN CONTAINER --- */
 main {
   max-width: 1200px;
@@ -173,6 +287,25 @@ main {
   .choix-navigation li {
     padding: 10px 20px;
     font-size: 0.9rem;
+  }
+
+  /* Dropdown en mode inline sur mobile */
+  .nav-dropdown-menu {
+    position: static;
+    transform: none;
+    box-shadow: none;
+    border: none;
+    padding: 4px 0 0;
+    min-width: auto;
+    animation: none;
+    background: transparent;
+  }
+  .nav-dropdown-menu::before,
+  .nav-dropdown-menu::after {
+    display: none;
+  }
+  .nav-dropdown-menu li {
+    padding: 8px 14px;
   }
 }
 

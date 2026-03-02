@@ -8,107 +8,272 @@
     <link rel="stylesheet" href="style/commun.css">
     <style>
         .choix-conteneur {
-            max-width: 600px;
-            margin: 60px auto 0;
+            max-width: 750px;
+            margin: 40px auto 0;
             text-align: center;
+            padding: 0 20px;
         }
         .choix-conteneur h2 {
-            font-size: 2.2rem;
+            font-size: 2.4rem;
             margin-bottom: 10px;
+            animation: titreEntree 0.6s ease-out;
         }
         .choix-conteneur > p {
             color: var(--text-muted);
-            margin-bottom: 40px;
-            font-size: 1.1rem;
+            margin-bottom: 35px;
+            font-size: 1.2rem;
+            animation: titreEntree 0.6s ease-out 0.1s both;
         }
+
+        /* --- Logo flottant --- */
+        .logo-accueil {
+            font-size: 5rem;
+            margin-bottom: 10px;
+            display: block;
+            animation: flottement 3s ease-in-out infinite;
+        }
+        @keyframes flottement {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* --- Grille de profils --- */
         .profils-grille {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 25px;
             margin-bottom: 35px;
         }
         .profil-carte {
             background: var(--card-bg);
             border: 3px solid #E2E8F0;
             border-radius: var(--border-radius);
-            padding: 25px 15px;
+            padding: 30px 20px 20px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 8px;
+            animation: carteEntree 0.4s ease-out both;
         }
         .profil-carte:hover {
-            transform: translateY(-5px);
+            transform: translateY(-6px);
             border-color: var(--primary-color);
-            box-shadow: 0 8px 20px rgba(160, 119, 238, 0.25);
+            box-shadow: 0 10px 25px rgba(160, 119, 238, 0.25);
         }
         .profil-avatar {
-            width: 60px;
-            height: 60px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 2rem;
+            font-size: 2.8rem;
             font-family: 'Lexend', sans-serif;
             font-weight: 800;
             transition: transform 0.3s ease;
         }
         .profil-carte:hover .profil-avatar {
-            transform: scale(1.15) rotate(-5deg);
+            transform: scale(1.12) rotate(-5deg);
         }
         .profil-nom {
             font-family: 'Lexend', sans-serif;
             font-weight: 700;
             color: var(--text-color);
-            font-size: 1rem;
+            font-size: 1.3rem;
             word-break: break-word;
         }
         .profil-titre {
-            font-size: 0.8rem;
+            font-size: 1rem;
             color: var(--text-muted);
             font-weight: 600;
         }
+
+        /* Boutons d'action sur la carte — toujours visibles */
+        .carte-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn-modifier-avatar, .btn-supprimer {
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Lexend', sans-serif;
+            font-weight: 600;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+        }
+        .btn-modifier-avatar {
+            background: rgba(160, 119, 238, 0.12);
+            color: var(--primary-color);
+        }
+        .btn-modifier-avatar:hover {
+            background: rgba(160, 119, 238, 0.25);
+            transform: scale(1.05);
+        }
+        .btn-supprimer {
+            background: rgba(239, 68, 68, 0.08);
+            color: #EF4444;
+        }
+        .btn-supprimer:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* Carte nouveau mage */
         .profil-carte.nouveau {
             border-style: dashed;
             border-color: var(--secondary-color);
-            opacity: 0.7;
+            border-width: 3px;
+            animation: dashAnime 8s linear infinite, carteEntree 0.4s ease-out both;
         }
         .profil-carte.nouveau:hover {
-            opacity: 1;
             border-color: var(--secondary-color);
-            box-shadow: 0 8px 20px rgba(65, 182, 230, 0.25);
+            box-shadow: 0 10px 25px rgba(65, 182, 230, 0.25);
         }
         .profil-carte.nouveau .profil-avatar {
             background: linear-gradient(135deg, var(--secondary-color), #7DD3FC) !important;
-            font-size: 2rem;
+            font-size: 2.8rem;
+        }
+        .profil-carte.nouveau .profil-nom {
+            font-size: 1.2rem;
+        }
+        .profil-carte.nouveau .sous-texte {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        @keyframes dashAnime {
+            0% { border-color: var(--secondary-color); }
+            50% { border-color: var(--primary-color); }
+            100% { border-color: var(--secondary-color); }
         }
 
-        /* Formulaire de création */
+        /* --- Écran de confirmation (sélection profil) --- */
+        .confirmation-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.2s ease;
+        }
+        .confirmation-carte {
+            background: white;
+            border-radius: 30px;
+            padding: 50px 60px;
+            text-align: center;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .confirmation-avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            margin: 0 auto 15px;
+            animation: rebond 0.6s ease 0.2s both;
+        }
+        .confirmation-nom {
+            font-family: 'Lexend', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-color);
+        }
+        .confirmation-msg {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+        @keyframes rebond {
+            0% { transform: scale(0.5); }
+            60% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        @keyframes popIn {
+            from { transform: scale(0.7); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* --- Formulaire Wizard --- */
         .creation-form {
             display: none;
             background: var(--card-bg);
             border-radius: var(--border-radius);
-            padding: 30px;
+            padding: 35px 30px;
             border: 3px solid var(--secondary-color);
             margin-bottom: 30px;
             animation: apparition 0.3s ease;
         }
         .creation-form.visible { display: block; }
         .creation-form h3 {
-            margin-bottom: 20px;
-            font-size: 1.3rem;
+            margin-bottom: 8px;
+            font-size: 1.5rem;
         }
+
+        /* Indicateur d'étapes */
+        .wizard-progress {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .wizard-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #E2E8F0;
+            transition: all 0.3s ease;
+        }
+        .wizard-dot.active {
+            background: var(--primary-color);
+            transform: scale(1.2);
+            box-shadow: 0 2px 8px rgba(160, 119, 238, 0.4);
+        }
+        .wizard-dot.done {
+            background: var(--success-color);
+        }
+
+        /* Étapes du wizard */
+        .wizard-etape {
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        .wizard-etape.active { display: block; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .wizard-question {
+            font-family: 'Lexend', sans-serif;
+            font-weight: 700;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            margin-bottom: 18px;
+        }
+
         .creation-form input {
             width: 100%;
-            max-width: 300px;
-            padding: 12px 18px;
+            max-width: 350px;
+            padding: 15px 22px;
             border: 3px solid #E2E8F0;
-            border-radius: 15px;
-            font-size: 1.1rem;
+            border-radius: 20px;
+            font-size: 1.2rem;
             font-family: inherit;
             color: var(--text-color);
             outline: none;
@@ -118,33 +283,30 @@
             border-color: var(--primary-color);
         }
 
-        /* Section sélection avatar */
-        .section-label {
-            font-family: 'Lexend', sans-serif;
-            font-weight: 700;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin: 20px 0 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        /* Grille avatars */
         .avatar-grille {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
+            gap: 15px;
             margin-bottom: 10px;
         }
+        .avatar-option-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
         .avatar-option {
-            width: 55px;
-            height: 55px;
+            width: 75px;
+            height: 75px;
             border-radius: 50%;
             border: 3px solid #E2E8F0;
             background: #F8FAFC;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.7rem;
+            font-size: 2.2rem;
             cursor: pointer;
             transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
@@ -152,18 +314,18 @@
         .avatar-option:hover {
             transform: scale(1.15);
             border-color: var(--primary-color);
-            box-shadow: 0 4px 12px rgba(160, 119, 238, 0.3);
+            box-shadow: 0 4px 15px rgba(160, 119, 238, 0.3);
         }
         .avatar-option.selected {
             border-color: var(--primary-color);
             background: linear-gradient(135deg, rgba(160, 119, 238, 0.15), rgba(65, 182, 230, 0.15));
-            box-shadow: 0 4px 15px rgba(160, 119, 238, 0.35);
+            box-shadow: 0 4px 18px rgba(160, 119, 238, 0.35);
             transform: scale(1.1);
         }
         .avatar-option.locked {
-            opacity: 0.35;
+            opacity: 0.4;
             cursor: not-allowed;
-            filter: grayscale(1);
+            filter: grayscale(0.8);
         }
         .avatar-option.locked:hover {
             transform: scale(1.0);
@@ -174,32 +336,80 @@
             position: absolute;
             bottom: -2px;
             right: -2px;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             background: #CBD5E1;
             border-radius: 50%;
-            width: 18px;
-            height: 18px;
+            width: 22px;
+            height: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
+        .avatar-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-family: 'Lexend', sans-serif;
+        }
 
-        /* Sélection couleur */
+        /* Tooltip bulle pour avatar verrouillé */
+        .tooltip-bulle {
+            position: fixed;
+            background: #1E293B;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-family: 'Lexend', sans-serif;
+            font-weight: 600;
+            z-index: 10000;
+            pointer-events: none;
+            animation: tooltipPop 0.3s ease;
+            max-width: 250px;
+            text-align: center;
+        }
+        .tooltip-bulle::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 8px 5px 0;
+            border-style: solid;
+            border-color: #1E293B transparent transparent;
+        }
+        @keyframes tooltipPop {
+            from { opacity: 0; transform: scale(0.8) translateY(5px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Grille couleurs */
         .couleur-grille {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 12px;
+            gap: 16px;
             margin-bottom: 10px;
         }
+        .couleur-option-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
         .couleur-option {
-            width: 40px;
-            height: 40px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
             border: 3px solid transparent;
             cursor: pointer;
             transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
         }
         .couleur-option:hover {
             transform: scale(1.2);
@@ -207,7 +417,13 @@
         .couleur-option.selected {
             border-color: var(--text-color);
             transform: scale(1.15);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            box-shadow: 0 5px 18px rgba(0,0,0,0.25);
+        }
+        .couleur-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-family: 'Lexend', sans-serif;
         }
 
         /* Aperçu */
@@ -219,88 +435,78 @@
             gap: 5px;
         }
         .apercu-avatar {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.8rem;
+            font-size: 3rem;
             transition: all 0.3s ease;
             box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
         .apercu-nom {
             font-family: 'Lexend', sans-serif;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             color: var(--text-color);
             min-height: 1.4em;
         }
 
-        .creation-form .form-actions {
-            margin-top: 20px;
+        /* Boutons du wizard */
+        .form-actions {
+            margin-top: 25px;
             display: flex;
             justify-content: center;
-            gap: 12px;
+            gap: 15px;
+            flex-wrap: wrap;
         }
-        .btn-creer, .btn-annuler {
-            padding: 10px 25px;
+        .btn-wizard {
+            padding: 14px 30px;
             border: none;
             border-radius: 25px;
-            font-weight: bold;
-            font-size: 1rem;
+            font-weight: 700;
+            font-size: 1.1rem;
             cursor: pointer;
             transition: all 0.2s;
             font-family: 'Lexend', sans-serif;
         }
-        .btn-creer {
+        .btn-suivant {
             background: var(--primary-color);
             color: white;
         }
-        .btn-creer:hover { background: #8B5CF6; transform: scale(1.05); }
-        .btn-annuler {
+        .btn-suivant:hover { background: #8B5CF6; transform: scale(1.05); }
+        .btn-retour {
             background: #F1F5F9;
             color: var(--text-muted);
         }
-        .btn-annuler:hover { background: #E2E8F0; }
+        .btn-retour:hover { background: #E2E8F0; transform: scale(1.05); }
+        .btn-creer {
+            background: linear-gradient(135deg, var(--primary-color), #8B5CF6);
+            color: white;
+        }
+        .btn-creer:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(160, 119, 238, 0.4); }
+
         .erreur-msg {
             color: var(--error-color);
             font-weight: bold;
             margin-top: 10px;
             min-height: 1.5em;
+            font-size: 1rem;
         }
 
-        /* Bouton supprimer */
-        .btn-supprimer {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.2s;
-            margin-top: -5px;
-        }
-        .profil-carte:hover .btn-supprimer { opacity: 1; }
-        .btn-supprimer:hover { color: var(--error-color); }
-
-        /* Bouton changer avatar (sur carte existante) */
-        .btn-modifier-avatar {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .profil-carte:hover .btn-modifier-avatar { opacity: 1; }
-        .btn-modifier-avatar:hover { color: var(--primary-color); }
-
-        /* Animation */
+        /* Animations d'entrée */
         @keyframes apparition {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes titreEntree {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes carteEntree {
+            from { opacity: 0; transform: scale(0.85) translateY(15px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
         @keyframes burst {
             0% { transform: scale(1); }
@@ -324,10 +530,20 @@
             100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3); }
         }
 
-        .logo-accueil {
-            font-size: 4rem;
-            margin-bottom: 10px;
-            display: block;
+        /* --- Responsive --- */
+        @media (max-width: 480px) {
+            .profils-grille {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+            .choix-conteneur h2 { font-size: 1.8rem; }
+            .btn-wizard { padding: 14px 25px; font-size: 1rem; width: 100%; }
+            .creation-form { padding: 25px 18px; }
+        }
+        @media (min-width: 768px) {
+            .profils-grille {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
     </style>
 </head>
@@ -346,25 +562,50 @@
             <div id="profils-grille" class="profils-grille"></div>
 
             <div id="creation-form" class="creation-form">
-                <h3>✨ Nouveau Mage</h3>
+                <h3 id="wizard-titre">✨ Nouveau Mage</h3>
 
-                <input type="text" id="input-nom" placeholder="Ton nom de mage..." maxlength="15" autocomplete="off">
-
-                <p class="section-label">Choisis ton avatar</p>
-                <div id="avatar-grille" class="avatar-grille"></div>
-
-                <p class="section-label">Choisis ta couleur</p>
-                <div id="couleur-grille" class="couleur-grille"></div>
-
-                <div class="apercu-profil">
-                    <div id="apercu-avatar" class="apercu-avatar">🧙‍♂️</div>
-                    <span id="apercu-nom" class="apercu-nom"></span>
+                <!-- Indicateur d'étapes -->
+                <div class="wizard-progress">
+                    <div class="wizard-dot active" data-step="1"></div>
+                    <div class="wizard-dot" data-step="2"></div>
+                    <div class="wizard-dot" data-step="3"></div>
                 </div>
 
-                <div id="erreur-msg" class="erreur-msg"></div>
-                <div class="form-actions">
-                    <button class="btn-creer" id="btn-confirmer">Créer</button>
-                    <button class="btn-annuler" id="btn-annuler">Annuler</button>
+                <!-- Étape 1 : Nom -->
+                <div class="wizard-etape active" data-step="1">
+                    <p class="wizard-question">✍️ Comment t'appelles-tu ?</p>
+                    <input type="text" id="input-nom" placeholder="Écris ton nom de mage ici ✍️" maxlength="15" autocomplete="off">
+                    <div id="erreur-msg" class="erreur-msg"></div>
+                    <div class="form-actions">
+                        <button class="btn-wizard btn-retour" id="btn-annuler">↩️ Retour</button>
+                        <button class="btn-wizard btn-suivant" id="btn-etape1-suivant">Suivant →</button>
+                    </div>
+                </div>
+
+                <!-- Étape 2 : Avatar -->
+                <div class="wizard-etape" data-step="2">
+                    <p class="wizard-question">🎭 Qui veux-tu être ?</p>
+                    <div id="avatar-grille" class="avatar-grille"></div>
+                    <div class="form-actions">
+                        <button class="btn-wizard btn-retour" id="btn-etape2-retour">← Retour</button>
+                        <button class="btn-wizard btn-suivant" id="btn-etape2-suivant">Suivant →</button>
+                    </div>
+                </div>
+
+                <!-- Étape 3 : Couleur + Aperçu -->
+                <div class="wizard-etape" data-step="3">
+                    <p class="wizard-question">🎨 Quelle est ta couleur préférée ?</p>
+                    <div id="couleur-grille" class="couleur-grille"></div>
+
+                    <div class="apercu-profil">
+                        <div id="apercu-avatar" class="apercu-avatar">🧙‍♂️</div>
+                        <span id="apercu-nom" class="apercu-nom"></span>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn-wizard btn-retour" id="btn-etape3-retour">← Retour</button>
+                        <button class="btn-wizard btn-creer" id="btn-confirmer">✨ Créer mon mage !</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -383,7 +624,24 @@
 
         let avatarChoisi = '🧙‍♂️';
         let couleurChoisie = '#A077EE';
-        let modeEdition = null; // nom du profil en cours d'édition d'avatar
+        let modeEdition = null;
+        let etapeActuelle = 1;
+
+        // Noms des avatars de base
+        const NOMS_AVATARS = {
+            '🧙‍♂️': 'Mage',
+            '🧙‍♀️': 'Mage',
+            '🧝‍♂️': 'Elfe',
+            '🧝‍♀️': 'Elfe',
+            '🦊': 'Renard',
+            '🦁': 'Lion',
+            '🔮': 'Cristal',
+            '🐉': 'Dragon',
+            '⚡': 'Éclair',
+            '🦄': 'Licorne',
+            '🌟': 'Étoile',
+            '🎭': 'Masque'
+        };
 
         // --- Particules ---
         function lancerParticules(x, y) {
@@ -403,6 +661,44 @@
             }
         }
 
+        // --- Wizard : navigation entre étapes ---
+        function allerEtape(num) {
+            etapeActuelle = num;
+            // Masquer toutes les étapes, afficher la bonne
+            document.querySelectorAll('.wizard-etape').forEach(e => {
+                e.classList.toggle('active', parseInt(e.dataset.step) === num);
+            });
+            // Mettre à jour les dots
+            document.querySelectorAll('.wizard-dot').forEach(dot => {
+                const s = parseInt(dot.dataset.step);
+                dot.classList.remove('active', 'done');
+                if (s === num) dot.classList.add('active');
+                else if (s < num) dot.classList.add('done');
+            });
+            // Mettre à jour l'aperçu sur l'étape 3
+            if (num === 3) majApercu();
+        }
+
+        // --- Tooltip tactile pour avatars verrouillés ---
+        let tooltipTimeout = null;
+        function afficherTooltip(element, texte) {
+            // Supprimer tooltip existant
+            const ancien = document.querySelector('.tooltip-bulle');
+            if (ancien) ancien.remove();
+            clearTimeout(tooltipTimeout);
+
+            const rect = element.getBoundingClientRect();
+            const bulle = document.createElement('div');
+            bulle.className = 'tooltip-bulle';
+            bulle.textContent = texte;
+            bulle.style.left = (rect.left + rect.width / 2) + 'px';
+            bulle.style.top = (rect.top - 10) + 'px';
+            bulle.style.transform = 'translate(-50%, -100%)';
+            document.body.appendChild(bulle);
+
+            tooltipTimeout = setTimeout(() => bulle.remove(), 2500);
+        }
+
         // --- Grille d'avatars ---
         function construireAvatarGrille() {
             avatarGrille.innerHTML = '';
@@ -411,20 +707,23 @@
 
             // Avatars de base
             GestionnaireProfils.AVATARS_BASE.forEach(emoji => {
-                const btn = creerBoutonAvatar(emoji, true);
-                avatarGrille.appendChild(btn);
+                const wrap = creerBoutonAvatar(emoji, true);
+                avatarGrille.appendChild(wrap);
             });
 
             // Avatars débloquables
             debloquesInfos.forEach(info => {
-                const btn = creerBoutonAvatar(info.emoji, info.debloque, info);
-                avatarGrille.appendChild(btn);
+                const wrap = creerBoutonAvatar(info.emoji, info.debloque, info);
+                avatarGrille.appendChild(wrap);
             });
 
             majSelectionAvatar();
         }
 
         function creerBoutonAvatar(emoji, disponible, info = null) {
+            const wrap = document.createElement('div');
+            wrap.className = 'avatar-option-wrap';
+
             const btn = document.createElement('div');
             btn.className = 'avatar-option' + (!disponible ? ' locked' : '');
             btn.textContent = emoji;
@@ -435,25 +734,35 @@
                 lock.className = 'lock-icon';
                 lock.textContent = '🔒';
                 btn.appendChild(lock);
-                btn.title = `${info.nom} — ${info.condition}`;
+                // Tooltip tactile au clic
+                btn.addEventListener('click', () => {
+                    afficherTooltip(btn, `🔒 Continue de jouer pour me débloquer ! (${info.condition})`);
+                });
             }
 
             if (disponible) {
-                btn.addEventListener('click', (e) => {
+                btn.addEventListener('click', () => {
                     avatarChoisi = emoji;
                     majSelectionAvatar();
                     majApercu();
                     SonMagique.jouer('selection');
-                    // Animation burst
                     btn.classList.remove('avatar-burst');
                     void btn.offsetWidth;
                     btn.classList.add('avatar-burst');
-                    // Particules
                     const rect = btn.getBoundingClientRect();
                     lancerParticules(rect.left + rect.width / 2, rect.top + rect.height / 2);
                 });
             }
-            return btn;
+
+            wrap.appendChild(btn);
+
+            // Label sous l'avatar
+            const label = document.createElement('span');
+            label.className = 'avatar-label';
+            label.textContent = (!disponible && info) ? '🔒' : (NOMS_AVATARS[emoji] || '');
+            wrap.appendChild(label);
+
+            return wrap;
         }
 
         function majSelectionAvatar() {
@@ -466,10 +775,12 @@
         function construireCouleurGrille() {
             couleurGrille.innerHTML = '';
             GestionnaireProfils.COULEURS.forEach(c => {
+                const wrap = document.createElement('div');
+                wrap.className = 'couleur-option-wrap';
+
                 const btn = document.createElement('div');
                 btn.className = 'couleur-option';
                 btn.style.background = c.valeur;
-                btn.title = c.nom;
                 btn.dataset.couleur = c.valeur;
 
                 btn.addEventListener('click', () => {
@@ -479,14 +790,23 @@
                     SonMagique.jouer('selection');
                 });
 
-                couleurGrille.appendChild(btn);
+                wrap.appendChild(btn);
+
+                const label = document.createElement('span');
+                label.className = 'couleur-label';
+                label.textContent = c.nom.split(' ')[0]; // Juste le premier mot: "Violet", "Bleu"...
+                wrap.appendChild(label);
+
+                couleurGrille.appendChild(wrap);
             });
             majSelectionCouleur();
         }
 
         function majSelectionCouleur() {
             document.querySelectorAll('.couleur-option').forEach(el => {
-                el.classList.toggle('selected', el.dataset.couleur === couleurChoisie);
+                const isSelected = el.dataset.couleur === couleurChoisie;
+                el.classList.toggle('selected', isSelected);
+                el.textContent = isSelected ? '✓' : '';
             });
         }
 
@@ -509,27 +829,50 @@
 
         inputNom.addEventListener('input', majApercu);
 
+        // --- Écran de confirmation ---
+        function afficherConfirmation(nom, avatar, couleur) {
+            const overlay = document.createElement('div');
+            overlay.className = 'confirmation-overlay';
+            overlay.innerHTML = `
+                <div class="confirmation-carte">
+                    <div class="confirmation-avatar" style="background: linear-gradient(135deg, ${couleur}, ${ajusterCouleur(couleur, 40)})">${avatar}</div>
+                    <div class="confirmation-nom">Bienvenue, ${nom} ! ✨</div>
+                    <div class="confirmation-msg">Prépare ta baguette…</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            SonMagique.jouer('validation');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+
         // --- Affichage des profils ---
         function afficherProfils() {
             grille.innerHTML = '';
             const profils = gestionnaireProfils.getListeProfils();
 
-            profils.forEach(nom => {
+            profils.forEach((nom, index) => {
                 const avatar = gestionnaireProfils.getAvatar(nom);
                 const couleur = gestionnaireProfils.getCouleur(nom);
                 const titre = gestionnaireProfils.getTitreMage(nom);
 
                 const carte = document.createElement('div');
                 carte.className = 'profil-carte';
+                carte.style.animationDelay = `${index * 0.1}s`;
                 carte.innerHTML = `
                     <div class="profil-avatar" style="background: linear-gradient(135deg, ${couleur}, ${ajusterCouleur(couleur, 40)})">${avatar}</div>
                     <span class="profil-nom">${nom}</span>
                     <span class="profil-titre">${titre}</span>
-                    <button class="btn-modifier-avatar" title="Changer l'avatar">✏️ modifier</button>
-                    <button class="btn-supprimer" title="Supprimer ce profil">✕ supprimer</button>
+                    <div class="carte-actions">
+                        <button class="btn-modifier-avatar">✏️ Modifier</button>
+                        <button class="btn-supprimer">🗑️ Supprimer</button>
+                    </div>
                 `;
+
+                // Clic sur la carte = sélection profil
                 carte.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('btn-supprimer')) {
+                    if (e.target.closest('.btn-supprimer')) {
                         e.stopPropagation();
                         if (confirm(`Supprimer le profil "${nom}" et toute sa progression ?`)) {
                             gestionnaireProfils.supprimerProfil(nom);
@@ -537,14 +880,13 @@
                         }
                         return;
                     }
-                    if (e.target.classList.contains('btn-modifier-avatar')) {
+                    if (e.target.closest('.btn-modifier-avatar')) {
                         e.stopPropagation();
                         ouvrirEditionAvatar(nom);
                         return;
                     }
                     gestionnaireProfils.setJoueurActif(nom);
-                    SonMagique.jouer('validation');
-                    window.location.href = 'index.html';
+                    afficherConfirmation(nom, avatar, couleur);
                 });
                 grille.appendChild(carte);
             });
@@ -552,25 +894,29 @@
             // Carte "Nouveau Mage"
             const carteNouveau = document.createElement('div');
             carteNouveau.className = 'profil-carte nouveau';
+            carteNouveau.style.animationDelay = `${profils.length * 0.1}s`;
             carteNouveau.innerHTML = `
-                <div class="profil-avatar">+</div>
-                <span class="profil-nom">Nouveau Mage</span>
+                <div class="profil-avatar">🌟</div>
+                <span class="profil-nom">Créer un nouveau mage !</span>
+                <span class="sous-texte">Clique ici pour commencer</span>
             `;
             carteNouveau.addEventListener('click', () => {
                 modeEdition = null;
                 avatarChoisi = '🧙‍♂️';
                 couleurChoisie = '#A077EE';
                 formCreation.classList.add('visible');
+                allerEtape(1);
                 construireAvatarGrille();
                 construireCouleurGrille();
                 majApercu();
                 inputNom.value = '';
                 erreurMsg.textContent = '';
-                inputNom.focus();
-                // Montrer les champs de nom et bouton créer
                 inputNom.style.display = '';
-                document.getElementById('btn-confirmer').textContent = 'Créer';
-                document.querySelector('.creation-form h3').textContent = '✨ Nouveau Mage';
+                document.getElementById('wizard-titre').textContent = '✨ Nouveau Mage';
+                document.querySelector('.wizard-progress').style.display = 'flex';
+                document.getElementById('btn-etape2-retour').textContent = '← Retour';
+                document.getElementById('btn-confirmer').textContent = '✨ Créer mon mage !';
+                setTimeout(() => inputNom.focus(), 100);
             });
             grille.appendChild(carteNouveau);
         }
@@ -582,26 +928,76 @@
             couleurChoisie = gestionnaireProfils.getCouleur(nom);
 
             formCreation.classList.add('visible');
-            construireAvatarGrille(true);
+            // En mode édition : aller directement à l'étape 2 (avatar)
+            allerEtape(2);
+            construireAvatarGrille();
             construireCouleurGrille();
 
             inputNom.style.display = 'none';
             inputNom.value = nom;
             apercuNom.textContent = nom;
-            document.querySelector('.creation-form h3').textContent = `✏️ Modifier ${nom}`;
-            document.getElementById('btn-confirmer').textContent = 'Enregistrer';
+            document.getElementById('wizard-titre').textContent = `✏️ Modifier ${nom}`;
+            // Cacher les dots en mode édition
+            document.querySelector('.wizard-progress').style.display = 'none';
+            // Changer les boutons pour le mode édition
+            document.getElementById('btn-etape2-retour').textContent = '↩️ Annuler';
+            document.getElementById('btn-confirmer').textContent = '✅ Valider !';
             erreurMsg.textContent = '';
             majApercu();
         }
 
-        // --- Création / Modification ---
+        // --- Wizard boutons ---
+        // Étape 1 → 2
+        document.getElementById('btn-etape1-suivant').addEventListener('click', () => {
+            const nom = inputNom.value.trim();
+            if (!nom) {
+                erreurMsg.textContent = '⚠️ Tu dois écrire un nom de mage !';
+                inputNom.focus();
+                return;
+            }
+            if (!modeEdition && gestionnaireProfils.getListeProfils().includes(nom)) {
+                erreurMsg.textContent = '⚠️ Ce nom existe déjà, choisis-en un autre !';
+                inputNom.focus();
+                return;
+            }
+            erreurMsg.textContent = '';
+            SonMagique.jouer('selection');
+            allerEtape(2);
+        });
+
+        // Étape 2 → retour
+        document.getElementById('btn-etape2-retour').addEventListener('click', () => {
+            if (modeEdition) {
+                formCreation.classList.remove('visible');
+                modeEdition = null;
+                return;
+            }
+            allerEtape(1);
+        });
+
+        // Étape 2 → 3
+        document.getElementById('btn-etape2-suivant').addEventListener('click', () => {
+            SonMagique.jouer('selection');
+            allerEtape(3);
+        });
+
+        // Étape 3 → retour
+        document.getElementById('btn-etape3-retour').addEventListener('click', () => {
+            allerEtape(2);
+        });
+
+        // Confirmer (Étape 3 ou mode édition)
         document.getElementById('btn-confirmer').addEventListener('click', creerOuModifierProfil);
+
+        // Annuler
         document.getElementById('btn-annuler').addEventListener('click', () => {
             formCreation.classList.remove('visible');
             modeEdition = null;
         });
+
+        // Raccourcis clavier
         inputNom.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') creerOuModifierProfil();
+            if (e.key === 'Enter') document.getElementById('btn-etape1-suivant').click();
             if (e.key === 'Escape') {
                 formCreation.classList.remove('visible');
                 modeEdition = null;
@@ -610,7 +1006,6 @@
 
         function creerOuModifierProfil() {
             if (modeEdition) {
-                // Mode édition : sauvegarder avatar et couleur
                 gestionnaireProfils.setJoueurActif(modeEdition);
                 gestionnaireProfils.setAvatar(avatarChoisi);
                 gestionnaireProfils.setCouleur(couleurChoisie);
@@ -625,13 +1020,15 @@
             const resultat = gestionnaireProfils.creerProfil(inputNom.value, avatarChoisi, couleurChoisie);
             if (!resultat.ok) {
                 erreurMsg.textContent = resultat.erreur;
+                allerEtape(1);
                 inputNom.focus();
                 return;
             }
             const nom = inputNom.value.trim();
             gestionnaireProfils.setJoueurActif(nom);
-            SonMagique.jouer('validation');
-            window.location.href = 'index.html';
+            const couleur = gestionnaireProfils.getCouleur(nom);
+            const avatar = gestionnaireProfils.getAvatar(nom);
+            afficherConfirmation(nom, avatar, couleur);
         }
 
         afficherProfils();

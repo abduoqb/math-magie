@@ -206,7 +206,7 @@
                 return '';
             }
 
-            function creerSection(titre, missions, paliers) {
+            function creerSection(titre, missions, paliers, estGeometrie = false) {
                 const titreSec = document.createElement('h3');
                 titreSec.className = 'trophees-section-titre';
                 titreSec.textContent = titre;
@@ -220,28 +220,31 @@
 
                 missions.forEach(mission => {
                     const data = gestionnaireProfils.getProgression(mission.id);
-                    const niv = data?.niveau || 1;
-                    const estDebloque = niv >= 2;
+                    const nivBrut = data?.niveau || 1;
+                    // La géométrie stocke le prochain niveau à jouer (niveau+1), on corrige pour l'affichage
+                    const nivAffiche = estGeometrie ? Math.max(1, nivBrut - 1) : nivBrut;
+                    // Déblocage : nivBrut >= 2 signifie qu'on a progressé (les deux moteurs sauvegardent >= 2 dès le 1er succès)
+                    const estDebloque = nivBrut >= 2;
                     if (estDebloque) debloques++;
 
-                    const badge = getBadge(niv, paliers);
+                    const badge = getBadge(nivAffiche, paliers);
 
                     const carte = document.createElement('div');
                     carte.className = `trophee-carte ${estDebloque ? 'debloque' : ''}`;
                     carte.setAttribute('role', 'listitem');
-                    carte.setAttribute('aria-label', `${mission.nom} — ${estDebloque ? `Niveau ${niv} ${badge}` : 'Pas encore débloqué'}`);
+                    carte.setAttribute('aria-label', `${mission.nom} — ${estDebloque ? `Niveau ${nivAffiche} ${badge}` : 'Pas encore débloqué'}`);
 
                     carte.innerHTML = `
                         <span class="trophee-icone" role="img" aria-hidden="true">${mission.icone}</span>
                         <span class="trophee-nom">${mission.nom}</span>
-                        <span class="trophee-condition">${estDebloque ? `Niveau ${niv} ${badge}` : 'Pas encore débloqué'}</span>
+                        <span class="trophee-condition">${estDebloque ? `Niveau ${nivAffiche} ${badge}` : 'Pas encore débloqué'}</span>
                     `;
                     grille.appendChild(carte);
                 });
             }
 
-            creerSection('🧮 Calculs Mentaux', missionsCalcul, paliersCalcul);
-            creerSection('📐 Géométrie', missionsGeometrie, paliersGeometrie);
+            creerSection('🧮 Calculs Mentaux', missionsCalcul, paliersCalcul, false);
+            creerSection('📐 Géométrie', missionsGeometrie, paliersGeometrie, true);
 
             // Résumé de progression avec avatar
             const nomMage = gestionnaireProfils.getJoueurActif();

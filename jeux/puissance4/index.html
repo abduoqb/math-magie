@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puissance 4 - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
+    <link rel="stylesheet" href="../../style/commun.css">
+    <link rel="stylesheet" href="../../style/exercice-commun.css">
+    <script src="../../js/profils.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
+    <style>
+      .jeu-conteneur { text-align: center; }
+      .grille-p4 {
+        display: inline-grid; grid-template-columns: repeat(7, 1fr);
+        gap: 4px; background: var(--primary-color); border-radius: 20px;
+        padding: 12px; box-shadow: 0 8px 25px rgba(160, 119, 238, 0.3);
+      }
+      .case-p4 {
+        width: 52px; height: 52px; border-radius: 50%;
+        background: white; border: none; cursor: pointer;
+        transition: all 0.15s ease; position: relative;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .case-p4:hover { background: #F0F9FF; }
+      .case-p4.rouge { background: #EF4444; box-shadow: inset 0 3px 6px rgba(0,0,0,0.2); }
+      .case-p4.jaune { background: #EAB308; box-shadow: inset 0 3px 6px rgba(0,0,0,0.2); }
+      .case-p4.gagnante { animation: pulseWin 0.5s ease infinite alternate; }
+      @keyframes pulseWin {
+        from { transform: scale(1); box-shadow: inset 0 3px 6px rgba(0,0,0,0.2); }
+        to { transform: scale(1.1); box-shadow: 0 0 15px rgba(255,255,255,0.6), inset 0 3px 6px rgba(0,0,0,0.2); }
+      }
+      .case-p4.chute { animation: chute 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+      @keyframes chute {
+        0% { transform: translateY(-300px); opacity: 0; }
+        50% { opacity: 1; }
+        75% { transform: translateY(5px); }
+        100% { transform: translateY(0); }
+      }
+      .col-hover {
+        display: grid; grid-template-columns: repeat(7, 1fr);
+        gap: 4px; max-width: fit-content; margin: 0 auto 5px;
+        padding: 0 12px;
+      }
+      .col-indicateur {
+        width: 52px; height: 30px; display: flex;
+        align-items: center; justify-content: center;
+        font-size: 1.2rem; opacity: 0; transition: opacity 0.2s;
+        cursor: pointer;
+      }
+      .col-indicateur:hover { opacity: 1; }
+      .col-indicateur.rouge { color: #EF4444; }
+      .col-indicateur.jaune { color: #EAB308; }
+      .tour-info {
+        font-size: 1.4rem; font-weight: 700; margin: 10px 0;
+        font-family: 'Lexend', sans-serif; color: var(--text-muted); min-height: 45px;
+      }
+      .score-board {
+        display: flex; justify-content: center; gap: 30px; margin-top: 15px;
+      }
+      .score-item { font-family: 'Lexend', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--text-muted); }
+      .score-item span { font-size: 1.5rem; }
+      .score-rouge span { color: #EF4444; }
+      .score-jaune span { color: #EAB308; }
+      @media (max-width: 450px) {
+        .case-p4 { width: 40px; height: 40px; }
+        .col-indicateur { width: 40px; }
+        .grille-p4 { padding: 8px; gap: 3px; }
+      }
+    </style>
+</head>
+<body>
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
+    <app-header base-path="../../"></app-header>
+    <main>
+      <a href="../index.html" class="lien-retour">← Salle de Jeux</a>
+      <h2 class="titre">🔴🟡 Puissance 4</h2>
+      <div class="presentation">
+        <div class="cadre">
+          <div class="jeu-conteneur">
+            <p id="tour-info" class="tour-info">Tour de 🔴</p>
+            <div class="col-hover" id="col-hover"></div>
+            <div class="grille-p4" id="grille"></div>
+            <div class="score-board">
+              <div class="score-item score-rouge">🔴 : <span id="score-rouge">0</span></div>
+              <div class="score-item">Nul : <span id="score-nul">0</span></div>
+              <div class="score-item score-jaune">🟡 : <span id="score-jaune">0</span></div>
+            </div>
+            <button id="changer" onclick="reinitialiser()" style="margin-top:15px;">🔄 Rejouer</button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      const LIGNES = 6, COLS = 7;
+      let grille, tourRouge, partieTerminee;
+      let scores = { rouge: 0, jaune: 0, nul: 0 };
+
+      const grilleEl = document.getElementById('grille');
+      const colHoverEl = document.getElementById('col-hover');
+      const tourInfoEl = document.getElementById('tour-info');
+      const cadre = document.querySelector('.cadre');
+
+      function init() {
+        grille = Array.from({ length: LIGNES }, () => Array(COLS).fill(0));
+        tourRouge = true;
+        partieTerminee = false;
+        cadre.classList.remove('succes', 'erreur');
+        tourInfoEl.textContent = 'Tour de 🔴';
+        dessiner();
+      }
+
+      function dessiner() {
+        grilleEl.innerHTML = '';
+        colHoverEl.innerHTML = '';
+        for (let c = 0; c < COLS; c++) {
+          const ind = document.createElement('div');
+          ind.className = 'col-indicateur ' + (tourRouge ? 'rouge' : 'jaune');
+          ind.textContent = tourRouge ? '🔴' : '🟡';
+          ind.addEventListener('click', () => jouerColonne(c));
+          colHoverEl.appendChild(ind);
+        }
+        for (let l = 0; l < LIGNES; l++) {
+          for (let c = 0; c < COLS; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'case-p4';
+            cell.dataset.ligne = l;
+            cell.dataset.col = c;
+            cell.addEventListener('click', () => jouerColonne(c));
+            if (grille[l][c] === 1) cell.classList.add('rouge');
+            if (grille[l][c] === 2) cell.classList.add('jaune');
+            grilleEl.appendChild(cell);
+          }
+        }
+      }
+
+      function jouerColonne(col) {
+        if (partieTerminee) return;
+        // Trouver la ligne la plus basse libre
+        let ligneCible = -1;
+        for (let l = LIGNES - 1; l >= 0; l--) {
+          if (grille[l][col] === 0) { ligneCible = l; break; }
+        }
+        if (ligneCible === -1) return; // Colonne pleine
+
+        const joueur = tourRouge ? 1 : 2;
+        grille[ligneCible][col] = joueur;
+
+        dessiner();
+        // Animation de chute
+        const cell = grilleEl.children[ligneCible * COLS + col];
+        cell.classList.add('chute');
+
+        const combo = verifierVictoire(ligneCible, col, joueur);
+        if (combo) {
+          partieTerminee = true;
+          combo.forEach(([l, c]) => {
+            grilleEl.children[l * COLS + c].classList.add('gagnante');
+          });
+          tourInfoEl.textContent = `🎉 ${tourRouge ? '🔴' : '🟡'} a gagné !`;
+          cadre.classList.add('succes');
+          if (tourRouge) scores.rouge++; else scores.jaune++;
+          majScores();
+          sauvegarder();
+          return;
+        }
+
+        // Match nul : si la ligne du haut est pleine, toute la grille est pleine
+        if (grille[0].every(v => v !== 0)) {
+          partieTerminee = true;
+          tourInfoEl.textContent = '🤝 Match nul !';
+          scores.nul++;
+          majScores();
+          return;
+        }
+
+        tourRouge = !tourRouge;
+        tourInfoEl.textContent = `Tour de ${tourRouge ? '🔴' : '🟡'}`;
+      }
+
+      function verifierVictoire(l, c, joueur) {
+        const directions = [[0,1],[1,0],[1,1],[1,-1]];
+        for (const [dl, dc] of directions) {
+          const combo = [[l, c]];
+          // Sens positif
+          for (let i = 1; i < 4; i++) {
+            const nl = l + dl * i, nc = c + dc * i;
+            if (nl >= 0 && nl < LIGNES && nc >= 0 && nc < COLS && grille[nl][nc] === joueur) {
+              combo.push([nl, nc]);
+            } else break;
+          }
+          // Sens négatif
+          for (let i = 1; i < 4; i++) {
+            const nl = l - dl * i, nc = c - dc * i;
+            if (nl >= 0 && nl < LIGNES && nc >= 0 && nc < COLS && grille[nl][nc] === joueur) {
+              combo.push([nl, nc]);
+            } else break;
+          }
+          if (combo.length >= 4) return combo;
+        }
+        return null;
+      }
+
+      function reinitialiser() { init(); }
+
+      function majScores() {
+        document.getElementById('score-rouge').textContent = scores.rouge;
+        document.getElementById('score-jaune').textContent = scores.jaune;
+        document.getElementById('score-nul').textContent = scores.nul;
+      }
+
+      function sauvegarder() {
+        const data = gestionnaireProfils.getProgression('jeu-puissance4') || {};
+        gestionnaireProfils.setProgression('jeu-puissance4', {
+          partiesJouees: (data.partiesJouees || 0) + 1
+        });
+      }
+
+      init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morpion - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
+    <link rel="stylesheet" href="../../style/commun.css">
+    <link rel="stylesheet" href="../../style/exercice-commun.css">
+    <script src="../../js/profils.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
+    <style>
+      .jeu-conteneur { text-align: center; }
+      .grille-morpion {
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        gap: 8px; max-width: 320px; margin: 20px auto;
+      }
+      .case-morpion {
+        width: 100px; height: 100px; border-radius: 16px;
+        background: #F8FAFC; border: 3px solid #E2E8F0;
+        font-size: 2.8rem; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-family: 'Lexend', sans-serif; font-weight: 800;
+      }
+      .case-morpion:hover:not(.jouee) {
+        transform: scale(1.05); border-color: var(--secondary-color);
+        background: white; box-shadow: 0 6px 15px rgba(65, 182, 230, 0.2);
+      }
+      .case-morpion.jouee { cursor: default; }
+      .case-morpion.x { color: var(--secondary-color); }
+      .case-morpion.o { color: var(--accent-color); }
+      .case-morpion.gagnante {
+        background: var(--success-color) !important; color: white !important;
+        border-color: var(--success-color) !important;
+        animation: pulseWin 0.6s ease;
+      }
+      @keyframes pulseWin {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+      }
+      .tour-info {
+        font-size: 1.4rem; font-weight: 700; margin: 10px 0;
+        font-family: 'Lexend', sans-serif; color: var(--text-muted);
+        min-height: 45px;
+      }
+      .tour-info .symbole { font-size: 1.6rem; }
+      .score-board {
+        display: flex; justify-content: center; gap: 30px; margin-top: 15px;
+      }
+      .score-item {
+        font-family: 'Lexend', sans-serif; font-weight: 700;
+        font-size: 1.1rem; color: var(--text-muted);
+      }
+      .score-item span { font-size: 1.5rem; }
+      .score-x span { color: var(--secondary-color); }
+      .score-o span { color: var(--accent-color); }
+      .mode-selector {
+        display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;
+      }
+      .mode-btn {
+        padding: 8px 20px; border-radius: 20px; border: 2px solid #E2E8F0;
+        background: #F8FAFC; font-family: 'Lexend', sans-serif; font-weight: 700;
+        font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease;
+      }
+      .mode-btn:hover { border-color: var(--secondary-color); background: white; }
+      .mode-btn.actif {
+        background: var(--secondary-color); color: white;
+        border-color: var(--secondary-color); box-shadow: 0 3px 10px rgba(65, 182, 230, 0.3);
+      }
+      .ia-reflexion {
+        display: inline-block; animation: pulse 0.8s ease infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+      @media (max-width: 400px) {
+        .case-morpion { width: 85px; height: 85px; font-size: 2.2rem; }
+        .grille-morpion { max-width: 280px; }
+      }
+    </style>
+</head>
+<body>
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
+    <app-header base-path="../../"></app-header>
+    <main>
+      <a href="../index.html" class="lien-retour">← Salle de Jeux</a>
+      <h2 class="titre">❌⭕ Morpion</h2>
+      <div class="presentation">
+        <div class="cadre">
+          <div class="jeu-conteneur">
+            <div class="mode-selector">
+              <button class="mode-btn actif" id="btn-2j" onclick="changerMode(false)">👫 2 Joueurs</button>
+              <button class="mode-btn" id="btn-ia" onclick="changerMode(true)">🤖 vs IA</button>
+            </div>
+            <p id="tour-info" class="tour-info">Tour de <span class="symbole" style="color:var(--secondary-color)">❌</span></p>
+            <div class="grille-morpion" id="grille"></div>
+            <div class="score-board">
+              <div class="score-item score-x">❌ : <span id="score-x">0</span></div>
+              <div class="score-item">Nul : <span id="score-nul">0</span></div>
+              <div class="score-item score-o">⭕ : <span id="score-o">0</span></div>
+            </div>
+            <button id="changer" onclick="reinitialiser()" style="margin-top:15px;">🔄 Rejouer</button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      const plateau = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+      let tourX = true;
+      let partieTerminee = false;
+      let scores = { x: 0, o: 0, nul: 0 };
+      let modeIA = false;
+
+      const grilleEl = document.getElementById('grille');
+      const tourInfoEl = document.getElementById('tour-info');
+      const cadre = document.querySelector('.cadre');
+
+      const combosGagnantes = [
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
+      ];
+
+      function changerMode(ia) {
+        modeIA = ia;
+        document.getElementById('btn-2j').classList.toggle('actif', !ia);
+        document.getElementById('btn-ia').classList.toggle('actif', ia);
+        scores = { x: 0, o: 0, nul: 0 };
+        majScores();
+        reinitialiser();
+      }
+
+      function creerGrille() {
+        grilleEl.innerHTML = '';
+        for (let i = 0; i < 9; i++) {
+          const btn = document.createElement('button');
+          btn.className = 'case-morpion';
+          btn.dataset.index = i;
+          btn.addEventListener('click', () => jouer(i));
+          grilleEl.appendChild(btn);
+        }
+      }
+
+      function jouer(index) {
+        if (partieTerminee || plateau[index] !== 0) return;
+        // En mode IA, bloquer si c'est le tour de l'IA
+        if (modeIA && !tourX) return;
+
+        const joueur = tourX ? 1 : 2;
+        plateau[index] = joueur;
+
+        const cases = grilleEl.children;
+        cases[index].textContent = tourX ? '❌' : '⭕';
+        cases[index].classList.add('jouee', tourX ? 'x' : 'o');
+
+        const combo = verifierGagnant(joueur);
+        if (combo) {
+          partieTerminee = true;
+          combo.forEach(i => cases[i].classList.add('gagnante'));
+          const gagnant = tourX ? '❌' : '⭕';
+          tourInfoEl.innerHTML = `🎉 ${gagnant} a gagné !`;
+          cadre.classList.add('succes');
+          if (tourX) scores.x++; else scores.o++;
+          majScores();
+          sauvegarder();
+          return;
+        }
+
+        if (plateau.every(c => c !== 0)) {
+          partieTerminee = true;
+          tourInfoEl.textContent = '🤝 Match nul !';
+          scores.nul++;
+          majScores();
+          return;
+        }
+
+        tourX = !tourX;
+        const couleur = tourX ? 'var(--secondary-color)' : 'var(--accent-color)';
+        const symbole = tourX ? '❌' : '⭕';
+        tourInfoEl.innerHTML = `Tour de <span class="symbole" style="color:${couleur}">${symbole}</span>`;
+
+        // Tour de l'IA
+        if (modeIA && !tourX) {
+          tourInfoEl.innerHTML = '<span class="ia-reflexion">🤖 L\'IA réfléchit...</span>';
+          setTimeout(() => {
+            const coupIA = minimax(plateau, 2, true).index;
+            jouer(coupIA);
+          }, 400);
+        }
+      }
+
+      function verifierGagnant(joueur) {
+        for (const combo of combosGagnantes) {
+          if (combo.every(i => plateau[i] === joueur)) return combo;
+        }
+        return null;
+      }
+
+      // --- MINIMAX ---
+      function minimax(etat, joueurIA, estMax) {
+        // Vérifier fin de partie
+        if (verifierGagnantEtat(etat, joueurIA)) return { score: 10 };
+        if (verifierGagnantEtat(etat, joueurIA === 1 ? 2 : 1)) return { score: -10 };
+        const casesLibres = etat.reduce((acc, v, i) => { if (v === 0) acc.push(i); return acc; }, []);
+        if (casesLibres.length === 0) return { score: 0 };
+
+        const coups = [];
+        for (const i of casesLibres) {
+          const nouvelEtat = [...etat];
+          nouvelEtat[i] = estMax ? joueurIA : (joueurIA === 1 ? 2 : 1);
+          const resultat = minimax(nouvelEtat, joueurIA, !estMax);
+          coups.push({ index: i, score: resultat.score });
+        }
+
+        if (estMax) {
+          const meilleur = coups.reduce((a, b) => a.score > b.score ? a : b);
+          return meilleur;
+        } else {
+          const pire = coups.reduce((a, b) => a.score < b.score ? a : b);
+          return pire;
+        }
+      }
+
+      function verifierGagnantEtat(etat, joueur) {
+        return combosGagnantes.some(combo => combo.every(i => etat[i] === joueur));
+      }
+
+      function reinitialiser() {
+        plateau.fill(0);
+        tourX = true;
+        partieTerminee = false;
+        cadre.classList.remove('succes', 'erreur');
+        tourInfoEl.innerHTML = 'Tour de <span class="symbole" style="color:var(--secondary-color)">❌</span>';
+        creerGrille();
+      }
+
+      function majScores() {
+        document.getElementById('score-x').textContent = scores.x;
+        document.getElementById('score-o').textContent = scores.o;
+        document.getElementById('score-nul').textContent = scores.nul;
+      }
+
+      function sauvegarder() {
+        const data = gestionnaireProfils.getProgression('jeu-morpion') || {};
+        gestionnaireProfils.setProgression('jeu-morpion', {
+          partiesJouees: (data.partiesJouees || 0) + 1
+        });
+      }
+
+      creerGrille();
+    </script>
+</body>
+</html>

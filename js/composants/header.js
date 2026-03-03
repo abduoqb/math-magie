@@ -5,9 +5,10 @@ class AppHeader extends HTMLElement {
     const path = window.location.pathname;
     const isCalculs = path.includes('/calculs_mentaux/');
     const isGeometrie = path.includes('/geometrie/');
-    const isJouer = isCalculs || isGeometrie;
+    const isJeux = path.includes('/jeux/');
+    const isJouer = isCalculs || isGeometrie || isJeux;
     const isTrophees = path.includes('trophees.html');
-    const isAccueil = !isCalculs && !isGeometrie && !isTrophees;
+    const isAccueil = !isCalculs && !isGeometrie && !isJeux && !isTrophees;
 
     // Infos du mage actif
     const nomMage = window.gestionnaireProfils ? gestionnaireProfils.getJoueurActif() : null;
@@ -21,21 +22,26 @@ class AppHeader extends HTMLElement {
           <h1><a href="${basePath}index.html">Mathémagie</a></h1>
           <div>
             <ul class="choix-navigation">
-              <li class="${isAccueil ? 'selected' : ''}"><a href="${basePath}index.html">🏠 Accueil</a></li>
+              <li class="${isAccueil ? 'selected' : ''}"><a href="${basePath}index.html">Accueil</a></li>
 
               <li class="nav-dropdown ${isJouer ? 'selected' : ''}">
-                <a href="#" class="nav-dropdown-toggle">🎮 Jouer ▾</a>
+                <a href="#" class="nav-dropdown-toggle">Jouer ▾</a>
                 <ul class="nav-dropdown-menu">
-                  <li class="${isCalculs ? 'selected' : ''}">
-                    <a href="${basePath}calculs_mentaux/index.html">🧮 Calculs Mentaux</a>
-                  </li>
-                  <li class="${isGeometrie ? 'selected' : ''}">
-                    <a href="${basePath}geometrie/index.html">📐 Géométrie</a>
-                  </li>
+                  <div class="nav-dropdown-menu-inner">
+                    <li class="${isCalculs ? 'selected' : ''}">
+                      <a href="${basePath}calculs_mentaux/index.html">Calculs Mentaux</a>
+                    </li>
+                    <li class="${isGeometrie ? 'selected' : ''}">
+                      <a href="${basePath}geometrie/index.html">Géométrie</a>
+                    </li>
+                    <li>
+                      <a href="${basePath}jeux/index.html">Jeux</a>
+                    </li>
+                  </div>
                 </ul>
               </li>
 
-              <li class="${isTrophees ? 'selected' : ''}"><a href="${basePath}trophees.html">🏆 Trophées</a></li>
+              <li class="${isTrophees ? 'selected' : ''}"><a href="${basePath}trophees.html">Trophées</a></li>
 
               ${nomMage ? `
                 <li class="mage-bouton">
@@ -54,15 +60,22 @@ class AppHeader extends HTMLElement {
       </header>
     `;
 
-    // Dropdown toggle
+    // Dropdown hover
     const dropdownToggle = this.querySelector('.nav-dropdown-toggle');
     const dropdownLi = this.querySelector('.nav-dropdown');
     if (dropdownToggle && dropdownLi) {
+      // Ouvrir au survol
+      dropdownLi.addEventListener('mouseenter', () => {
+        dropdownLi.classList.add('open');
+      });
+      dropdownLi.addEventListener('mouseleave', () => {
+        dropdownLi.classList.remove('open');
+      });
+      // Fallback clic pour tactile
       dropdownToggle.addEventListener('click', (e) => {
         e.preventDefault();
         dropdownLi.classList.toggle('open');
       });
-      // Fermer quand on clique ailleurs
       document.addEventListener('click', (e) => {
         if (!dropdownLi.contains(e.target)) {
           dropdownLi.classList.remove('open');

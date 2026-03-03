@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Pendu - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
+    <link rel="stylesheet" href="../../style/commun.css">
+    <link rel="stylesheet" href="../../style/exercice-commun.css">
+    <script src="../../js/profils.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
+    <style>
+      .jeu-conteneur { text-align: center; }
+      .pendu-svg { margin: 10px auto; }
+      .pendu-svg line, .pendu-svg circle { stroke: var(--primary-color); stroke-width: 3; fill: none; stroke-linecap: round; }
+      .pendu-svg .structure { stroke: #CBD5E1; stroke-width: 4; }
+      .pendu-partie { opacity: 0; transition: opacity 0.3s ease; }
+      .pendu-partie.visible { opacity: 1; }
+      .mot-affichage {
+        display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+        margin: 20px 0; min-height: 60px;
+      }
+      .lettre-slot {
+        width: 40px; height: 50px; border-bottom: 4px solid var(--primary-color);
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Lexend', sans-serif; font-size: 2rem; font-weight: 800;
+        color: var(--primary-color); transition: all 0.3s ease;
+      }
+      .lettre-slot.trouvee { border-color: var(--success-color); color: var(--success-color); animation: popIn 0.3s ease; }
+      .lettre-slot.revele { border-color: var(--error-color); color: var(--error-color); }
+      @keyframes popIn { 0% { transform: scale(0.5); } 100% { transform: scale(1); } }
+      .clavier {
+        display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+        max-width: 450px; margin: 15px auto;
+      }
+      .touche {
+        width: 42px; height: 42px; border-radius: 10px; border: 2px solid #E2E8F0;
+        background: #F8FAFC; font-family: 'Lexend', sans-serif; font-weight: 700;
+        font-size: 1rem; cursor: pointer; transition: all 0.2s ease;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .touche:hover:not(:disabled) { border-color: var(--secondary-color); background: white; transform: translateY(-2px); }
+      .touche:disabled { opacity: 0.3; cursor: default; transform: none; }
+      .touche.correcte { background: #dcfce7; border-color: var(--success-color); color: #15803d; }
+      .touche.incorrecte { background: #ffe4e6; border-color: var(--error-color); color: #be123c; }
+      .erreurs-info { font-size: 1.1rem; color: var(--text-muted); font-weight: 600; margin-top: 10px; }
+      .erreurs-info span { color: var(--error-color); font-size: 1.3rem; font-weight: 800; }
+      .categorie-selector {
+        display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 15px;
+      }
+      .cat-btn {
+        padding: 6px 16px; border-radius: 20px; border: 2px solid #E2E8F0;
+        background: #F8FAFC; font-family: 'Lexend', sans-serif; font-weight: 700;
+        font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease;
+      }
+      .cat-btn:hover { border-color: var(--secondary-color); background: white; }
+      .cat-btn.actif {
+        background: var(--secondary-color); color: white;
+        border-color: var(--secondary-color); box-shadow: 0 3px 10px rgba(65, 182, 230, 0.3);
+      }
+      .cat-btn.perso {
+        background: linear-gradient(135deg, #f59e0b, #ef4444);
+        color: white; border-color: #f59e0b;
+      }
+      .cat-btn.perso.actif {
+        box-shadow: 0 3px 12px rgba(245, 158, 11, 0.4);
+      }
+      .categorie-label {
+        font-size: 0.95rem; color: var(--text-muted); font-weight: 600;
+        margin: 5px 0; font-family: 'Lexend', sans-serif;
+      }
+      /* Modal mot perso */
+      .modal-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,0.5); backdrop-filter: blur(6px);
+        z-index: 1000; align-items: center; justify-content: center;
+      }
+      .modal-overlay.visible { display: flex; }
+      .modal-box {
+        background: white; border-radius: 20px; padding: 30px 35px;
+        max-width: 420px; width: 90%; text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        animation: modalIn 0.3s ease;
+      }
+      @keyframes modalIn { from { transform: scale(0.85) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+      .modal-box h3 {
+        font-family: 'Lexend', sans-serif; font-size: 1.3rem;
+        margin: 0 0 6px; color: var(--text-color);
+      }
+      .modal-box p {
+        font-family: 'Lexend', sans-serif; font-size: 0.9rem;
+        color: var(--text-muted); margin: 0 0 20px;
+      }
+      .modal-input {
+        width: 100%; padding: 12px 16px; border-radius: 12px;
+        border: 2px solid #E2E8F0; font-family: 'Lexend', sans-serif;
+        font-size: 1.2rem; font-weight: 700; text-align: center;
+        letter-spacing: 6px; outline: none; transition: border-color 0.2s;
+        -webkit-text-security: disc;
+      }
+      .modal-input:focus { border-color: var(--secondary-color); }
+      .modal-input::placeholder { letter-spacing: 0; font-weight: 400; font-size: 0.9rem; }
+      .modal-preview {
+        font-family: 'Lexend', sans-serif; font-size: 0.85rem;
+        color: var(--text-muted); margin: 10px 0 0; min-height: 22px;
+      }
+      .modal-btns {
+        display: flex; gap: 10px; margin-top: 20px; justify-content: center;
+      }
+      .modal-btns button {
+        padding: 10px 24px; border-radius: 12px; border: none;
+        font-family: 'Lexend', sans-serif; font-weight: 700;
+        font-size: 0.95rem; cursor: pointer; transition: all 0.2s;
+      }
+      .modal-btn-ok {
+        background: linear-gradient(135deg, #f59e0b, #ef4444);
+        color: white; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      }
+      .modal-btn-ok:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4); }
+      .modal-btn-ok:disabled { opacity: 0.4; cursor: default; transform: none; box-shadow: none; }
+      .modal-btn-cancel {
+        background: #F1F5F9; color: var(--text-muted);
+      }
+      .modal-btn-cancel:hover { background: #E2E8F0; }
+      .mot-perso-badge {
+        display: inline-block; padding: 3px 12px; border-radius: 12px;
+        background: linear-gradient(135deg, #f59e0b, #ef4444);
+        color: white; font-size: 0.8rem; font-weight: 700;
+        font-family: 'Lexend', sans-serif; margin-left: 6px;
+      }
+      @media (max-width: 400px) {
+        .touche { width: 36px; height: 36px; font-size: 0.85rem; }
+        .lettre-slot { width: 30px; height: 40px; font-size: 1.5rem; }
+      }
+    </style>
+</head>
+<body>
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
+    <app-header base-path="../../"></app-header>
+    <main>
+      <a href="../index.html" class="lien-retour">← Salle de Jeux</a>
+      <h2 class="titre">🔤 Le Pendu</h2>
+      <div class="presentation">
+        <div class="cadre">
+          <div class="jeu-conteneur">
+            <div class="categorie-selector" id="categories"></div>
+            <p class="categorie-label" id="cat-label">Catégorie : Tout</p>
+            <svg class="pendu-svg" width="200" height="200" viewBox="0 0 200 200">
+              <!-- Structure -->
+              <line class="structure" x1="20" y1="190" x2="180" y2="190"/>
+              <line class="structure" x1="60" y1="190" x2="60" y2="20"/>
+              <line class="structure" x1="60" y1="20" x2="140" y2="20"/>
+              <line class="structure" x1="140" y1="20" x2="140" y2="40"/>
+              <!-- Parties du corps -->
+              <circle class="pendu-partie" id="tete" cx="140" cy="55" r="15"/>
+              <line class="pendu-partie" id="corps" x1="140" y1="70" x2="140" y2="120"/>
+              <line class="pendu-partie" id="bras-g" x1="140" y1="85" x2="115" y2="105"/>
+              <line class="pendu-partie" id="bras-d" x1="140" y1="85" x2="165" y2="105"/>
+              <line class="pendu-partie" id="jambe-g" x1="140" y1="120" x2="115" y2="155"/>
+              <line class="pendu-partie" id="jambe-d" x1="140" y1="120" x2="165" y2="155"/>
+            </svg>
+            <div class="mot-affichage" id="mot-affichage"></div>
+            <div class="clavier" id="clavier"></div>
+            <p class="erreurs-info">Erreurs : <span id="erreurs">0</span> / 6</p>
+            <button id="changer" onclick="nouveauMot()" style="margin-top:10px;">🔄 Nouveau mot</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal mot personnalisé -->
+    <div class="modal-overlay" id="modal-perso">
+      <div class="modal-box">
+        <h3>✏️ Mot personnalisé</h3>
+        <p>Entre un mot à faire deviner, puis passe le clavier à un ami !</p>
+        <input class="modal-input" id="input-perso" type="text" placeholder="Tape ton mot ici..." autocomplete="off" spellcheck="false" maxlength="20">
+        <p class="modal-preview" id="preview-perso"></p>
+        <div class="modal-btns">
+          <button class="modal-btn-cancel" id="btn-cancel-perso">Annuler</button>
+          <button class="modal-btn-ok" id="btn-ok-perso" disabled>C'est parti ! 🚀</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      const CATEGORIES = {
+        '🔢 Maths': [
+          'addition', 'nombre', 'calcul', 'chiffre', 'somme',
+          'double', 'moitie', 'dizaine', 'centaine', 'unite',
+          'entier', 'pair', 'impair', 'fraction', 'total',
+          'tableau', 'graphe', 'courbe'
+        ],
+        '📐 Géométrie': [
+          'triangle', 'cercle', 'carre', 'rectangle', 'losange',
+          'angle', 'droite', 'segment', 'rayon', 'diametre',
+          'surface', 'volume', 'perimetre', 'symetrie',
+          'pyramide', 'sphere', 'cube', 'ligne', 'point',
+          'forme', 'cote', 'sommet', 'base', 'hauteur', 'figure', 'solide'
+        ],
+        '🐾 Animaux': [
+          'chien', 'chat', 'lapin', 'cheval', 'poule',
+          'canard', 'mouton', 'cochon', 'tortue', 'serpent',
+          'tigre', 'lion', 'oiseau', 'dauphin', 'baleine'
+        ],
+        '🌍 Pays': [
+          'france', 'espagne', 'italie', 'japon', 'maroc',
+          'bresil', 'canada', 'egypte', 'grece', 'inde',
+          'chine', 'suisse', 'tunisie', 'portugal', 'turquie'
+        ],
+        '🍎 Nourriture': [
+          'pomme', 'banane', 'fraise', 'orange', 'cerise',
+          'tomate', 'salade', 'fromage', 'gateau', 'chocolat',
+          'croissant', 'baguette', 'pizza', 'crepe', 'soupe'
+        ]
+      };
+
+      const partiesCorps = ['tete', 'corps', 'bras-g', 'bras-d', 'jambe-g', 'jambe-d'];
+      let motActuel, lettresTrouvees, erreurs, partieTerminee;
+      let categorieActuelle = null; // null = tout
+      let modePerso = false;
+
+      // Créer les boutons de catégories
+      function creerCategories() {
+        const container = document.getElementById('categories');
+        // Bouton "Tout"
+        const btnTout = document.createElement('button');
+        btnTout.className = 'cat-btn actif';
+        btnTout.textContent = '🎲 Tout';
+        btnTout.addEventListener('click', () => {
+          categorieActuelle = null;
+          modePerso = false;
+          majCategories();
+          nouveauMot();
+        });
+        container.appendChild(btnTout);
+
+        for (const cat of Object.keys(CATEGORIES)) {
+          const btn = document.createElement('button');
+          btn.className = 'cat-btn';
+          btn.textContent = cat;
+          btn.addEventListener('click', () => {
+            categorieActuelle = cat;
+            modePerso = false;
+            majCategories();
+            nouveauMot();
+          });
+          container.appendChild(btn);
+        }
+
+        // Bouton "Mot perso"
+        const btnPerso = document.createElement('button');
+        btnPerso.className = 'cat-btn perso';
+        btnPerso.textContent = '✏️ Mot perso';
+        btnPerso.id = 'btn-cat-perso';
+        btnPerso.addEventListener('click', () => ouvrirModalPerso());
+        container.appendChild(btnPerso);
+      }
+
+      function majCategories() {
+        const btns = document.querySelectorAll('.cat-btn');
+        btns.forEach(b => {
+          if (modePerso && b.id === 'btn-cat-perso') b.classList.add('actif');
+          else if (!modePerso && categorieActuelle === null && b.textContent === '🎲 Tout') b.classList.add('actif');
+          else if (!modePerso && b.textContent === categorieActuelle) b.classList.add('actif');
+          else b.classList.remove('actif');
+        });
+        if (modePerso) {
+          document.getElementById('cat-label').innerHTML = 'Catégorie : <span class="mot-perso-badge">Mot perso</span>';
+        } else {
+          document.getElementById('cat-label').textContent = `Catégorie : ${categorieActuelle || 'Tout'}`;
+        }
+      }
+
+      function getMotsActuels() {
+        if (categorieActuelle) return CATEGORIES[categorieActuelle];
+        return Object.values(CATEGORIES).flat();
+      }
+
+      function nouveauMot() {
+        if (modePerso) {
+          ouvrirModalPerso();
+          return;
+        }
+        const mots = getMotsActuels();
+        motActuel = mots[Math.floor(Math.random() * mots.length)].toUpperCase();
+        demarrerPartie();
+      }
+
+      function demarrerPartie() {
+        lettresTrouvees = new Set();
+        erreurs = 0;
+        partieTerminee = false;
+        document.getElementById('erreurs').textContent = '0';
+        document.querySelector('.cadre').classList.remove('succes', 'erreur');
+        partiesCorps.forEach(id => document.getElementById(id).classList.remove('visible'));
+        afficherMot();
+        creerClavier();
+      }
+
+      // ---- Modal mot personnalisé ----
+      function ouvrirModalPerso() {
+        const modal = document.getElementById('modal-perso');
+        const input = document.getElementById('input-perso');
+        const preview = document.getElementById('preview-perso');
+        const btnOk = document.getElementById('btn-ok-perso');
+        input.value = '';
+        preview.textContent = '';
+        btnOk.disabled = true;
+        modal.classList.add('visible');
+        setTimeout(() => input.focus(), 100);
+      }
+
+      function fermerModalPerso() {
+        document.getElementById('modal-perso').classList.remove('visible');
+        document.getElementById('input-perso').value = '';
+      }
+
+      // Input handlers
+      document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('input-perso');
+        const preview = document.getElementById('preview-perso');
+        const btnOk = document.getElementById('btn-ok-perso');
+        const btnCancel = document.getElementById('btn-cancel-perso');
+
+        input.addEventListener('input', () => {
+          // Ne garder que les lettres
+          const nettoyage = input.value.replace(/[^a-zA-ZÀ-ÿ]/g, '');
+          input.value = nettoyage;
+          const longueur = nettoyage.length;
+          if (longueur >= 2) {
+            preview.textContent = `${longueur} lettres — prêt !`;
+            btnOk.disabled = false;
+          } else {
+            preview.textContent = longueur === 1 ? 'Encore au moins 1 lettre...' : '';
+            btnOk.disabled = true;
+          }
+        });
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !btnOk.disabled) lancerMotPerso();
+          if (e.key === 'Escape') fermerModalPerso();
+        });
+
+        btnOk.addEventListener('click', lancerMotPerso);
+        btnCancel.addEventListener('click', () => {
+          fermerModalPerso();
+          if (!modePerso) return; // On ne remet pas si on n'était pas en mode perso avant
+          modePerso = false;
+          categorieActuelle = null;
+          majCategories();
+        });
+
+        // Fermer en cliquant à l'extérieur
+        document.getElementById('modal-perso').addEventListener('click', (e) => {
+          if (e.target === e.currentTarget) {
+            fermerModalPerso();
+            if (!modePerso) return;
+            modePerso = false;
+            categorieActuelle = null;
+            majCategories();
+          }
+        });
+      });
+
+      function lancerMotPerso() {
+        const input = document.getElementById('input-perso');
+        const mot = input.value.trim();
+        if (mot.length < 2) return;
+
+        // Normaliser : retirer accents pour le jeu
+        motActuel = mot.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+        modePerso = true;
+        categorieActuelle = null;
+        majCategories();
+        fermerModalPerso();
+        demarrerPartie();
+      }
+
+      function afficherMot() {
+        const container = document.getElementById('mot-affichage');
+        container.innerHTML = '';
+        for (const lettre of motActuel) {
+          const slot = document.createElement('div');
+          slot.className = 'lettre-slot';
+          if (lettresTrouvees.has(lettre)) {
+            slot.textContent = lettre;
+            slot.classList.add('trouvee');
+          }
+          container.appendChild(slot);
+        }
+      }
+
+      function creerClavier() {
+        const clavier = document.getElementById('clavier');
+        clavier.innerHTML = '';
+        for (let i = 65; i <= 90; i++) {
+          const lettre = String.fromCharCode(i);
+          const btn = document.createElement('button');
+          btn.className = 'touche';
+          btn.textContent = lettre;
+          btn.addEventListener('click', () => deviner(lettre, btn));
+          clavier.appendChild(btn);
+        }
+      }
+
+      function deviner(lettre, btn) {
+        if (partieTerminee || btn.disabled) return;
+        btn.disabled = true;
+
+        if (motActuel.includes(lettre)) {
+          btn.classList.add('correcte');
+          lettresTrouvees.add(lettre);
+          afficherMot();
+          if ([...motActuel].every(l => lettresTrouvees.has(l))) {
+            partieTerminee = true;
+            document.querySelector('.cadre').classList.add('succes');
+            sauvegarder(true);
+          }
+        } else {
+          btn.classList.add('incorrecte');
+          document.getElementById(partiesCorps[erreurs]).classList.add('visible');
+          erreurs++;
+          document.getElementById('erreurs').textContent = erreurs;
+          if (erreurs >= 6) {
+            partieTerminee = true;
+            revelerMot();
+            document.querySelector('.cadre').classList.add('erreur');
+            sauvegarder(false);
+          }
+        }
+      }
+
+      function revelerMot() {
+        const slots = document.querySelectorAll('.lettre-slot');
+        [...motActuel].forEach((l, i) => {
+          if (!lettresTrouvees.has(l)) {
+            slots[i].textContent = l;
+            slots[i].classList.add('revele');
+          }
+        });
+      }
+
+      function sauvegarder(gagne) {
+        const data = gestionnaireProfils.getProgression('jeu-pendu') || {};
+        gestionnaireProfils.setProgression('jeu-pendu', {
+          partiesJouees: (data.partiesJouees || 0) + 1,
+          partiesGagnees: (data.partiesGagnees || 0) + (gagne ? 1 : 0)
+        });
+      }
+
+      // Support clavier physique
+      document.addEventListener('keydown', e => {
+        if (partieTerminee) return;
+        const code = e.key.toUpperCase();
+        if (code.length === 1 && code >= 'A' && code <= 'Z') {
+          const btn = [...document.querySelectorAll('.touche')].find(b => b.textContent === code && !b.disabled);
+          if (btn) deviner(code, btn);
+        }
+      });
+
+      creerCategories();
+      nouveauMot();
+    </script>
+</body>
+</html>

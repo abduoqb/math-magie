@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trouver le chiffre - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
+    <link rel="stylesheet" href="../../style/commun.css">
+    <link rel="stylesheet" href="../../style/exercice-commun.css">
+    <script src="../../js/profils.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
+    <style>
+      .jeu-conteneur { text-align: center; max-width: 500px; margin: 0 auto; }
+      .indice { font-size: 2rem; font-weight: 800; margin: 15px 0; min-height: 50px; font-family: 'Lexend', sans-serif; }
+      .indice.plus-grand { color: #E07800; }
+      .indice.plus-petit { color: var(--secondary-color); }
+      .indice.gagne { color: var(--success-color); }
+      .historique { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 20px 0; min-height: 40px; }
+      .historique-item {
+        padding: 8px 16px; border-radius: 15px; font-family: 'Lexend', sans-serif;
+        font-weight: 700; font-size: 1rem; border: 2px solid #E2E8F0;
+        display: flex; align-items: center; gap: 5px;
+      }
+      .historique-item.haut { background: #FFF7ED; border-color: #E07800; color: #E07800; }
+      .historique-item.bas { background: #F0F9FF; border-color: var(--secondary-color); color: var(--secondary-color); }
+      .tentatives-restantes {
+        font-size: 1.1rem; color: var(--text-muted); font-weight: 600; margin-top: 10px;
+      }
+      .tentatives-restantes span { color: var(--accent-color); font-size: 1.3rem; }
+      .plage-info {
+        font-size: 1.1rem; color: var(--primary-color); font-weight: 700;
+        margin: 10px 0; font-family: 'Lexend', sans-serif;
+        background: rgba(160, 119, 238, 0.08); padding: 8px 20px;
+        border-radius: 15px; display: inline-block;
+      }
+      .plage-info span { color: var(--secondary-color); font-size: 1.3rem; }
+      #saisieReponse { font-size: 2.5rem; max-width: 200px; }
+    </style>
+</head>
+<body>
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
+    <app-header base-path="../../"></app-header>
+    <main>
+      <a href="../index.html" class="lien-retour">← Salle de Jeux</a>
+      <h2 class="titre">🔢 Trouver le chiffre</h2>
+      <div class="presentation">
+        <div class="cadre">
+          <div class="jeu-conteneur">
+            <p id="calcul" style="font-size: 1.3rem;">Je pense à un nombre entre 1 et 100...</p>
+            <div id="indice" class="indice"></div>
+            <input type="number" id="saisieReponse" min="1" max="100" placeholder="?" autofocus>
+            <p class="plage-info" id="plage">Entre <span>1</span> et <span>100</span></p>
+            <div class="historique" id="historique"></div>
+            <p class="tentatives-restantes">Essais restants : <span id="essais">7</span></p>
+            <button id="changer" onclick="valider()" style="display:inline-block;">Valider</button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      const nombreSecret = Math.floor(Math.random() * 100) + 1;
+      let essaisRestants = 7;
+      let partieTerminee = false;
+      let borneMin = 1, borneMax = 100;
+      const plageEl = document.getElementById('plage');
+
+      const saisie = document.getElementById('saisieReponse');
+      const indiceEl = document.getElementById('indice');
+      const historiqueEl = document.getElementById('historique');
+      const essaisEl = document.getElementById('essais');
+      const btnValider = document.getElementById('changer');
+      const cadre = document.querySelector('.cadre');
+
+      saisie.addEventListener('keydown', e => { if (e.key === 'Enter') valider(); });
+
+      function valider() {
+        if (partieTerminee) { location.reload(); return; }
+        const proposition = parseInt(saisie.value);
+        if (isNaN(proposition) || proposition < 1 || proposition > 100) return;
+
+        essaisRestants--;
+        essaisEl.textContent = essaisRestants;
+        saisie.value = '';
+
+        if (proposition === nombreSecret) {
+          gagner();
+          return;
+        }
+
+        const estPlusGrand = proposition < nombreSecret;
+        indiceEl.textContent = estPlusGrand ? '⬆️ Plus grand !' : '⬇️ Plus petit !';
+        indiceEl.className = 'indice ' + (estPlusGrand ? 'plus-grand' : 'plus-petit');
+
+        const item = document.createElement('span');
+        item.className = 'historique-item ' + (estPlusGrand ? 'haut' : 'bas');
+        item.textContent = proposition + (estPlusGrand ? ' ↑' : ' ↓');
+        historiqueEl.appendChild(item);
+
+        // Mise à jour de la plage
+        if (estPlusGrand) borneMin = Math.max(borneMin, proposition + 1);
+        else borneMax = Math.min(borneMax, proposition - 1);
+        plageEl.innerHTML = `Entre <span>${borneMin}</span> et <span>${borneMax}</span>`;
+
+        cadre.classList.remove('succes', 'erreur');
+        void cadre.offsetWidth;
+        cadre.classList.add('erreur');
+        setTimeout(() => cadre.classList.remove('erreur'), 500);
+
+        if (essaisRestants <= 0) {
+          perdre();
+        } else {
+          saisie.focus();
+        }
+      }
+
+      function gagner() {
+        partieTerminee = true;
+        const nbEssais = 7 - essaisRestants;
+        indiceEl.textContent = `🎉 Bravo ! C'était ${nombreSecret} en ${nbEssais} essai${nbEssais > 1 ? 's' : ''} !`;
+        indiceEl.className = 'indice gagne';
+        cadre.classList.add('succes');
+        btnValider.textContent = '🔄 Rejouer';
+        saisie.style.display = 'none';
+        sauvegarderScore(nbEssais);
+      }
+
+      function perdre() {
+        partieTerminee = true;
+        indiceEl.textContent = `💀 Perdu ! C'était ${nombreSecret}`;
+        indiceEl.className = 'indice';
+        indiceEl.style.color = 'var(--error-color)';
+        cadre.classList.add('erreur');
+        btnValider.textContent = '🔄 Rejouer';
+        saisie.style.display = 'none';
+      }
+
+      function sauvegarderScore(essais) {
+        const data = gestionnaireProfils.getProgression('jeu-trouver-chiffre') || {};
+        const meilleur = data.meilleurScore || 99;
+        const parties = (data.partiesGagnees || 0) + 1;
+        gestionnaireProfils.setProgression('jeu-trouver-chiffre', {
+          meilleurScore: Math.min(meilleur, essais),
+          partiesGagnees: parties
+        });
+      }
+    </script>
+</body>
+</html>

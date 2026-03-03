@@ -181,7 +181,7 @@ main {
   font-weight: bold;
 }
 .cadre span {
-  color: var(--accent-color); /* Orange pour mettre en valeur le score */
+  color: whitesmoke; /* Orange pour mettre en valeur le score */
   font-size: 1.4rem;
   font-family: 'Lexend', sans-serif;
   font-weight: 800;

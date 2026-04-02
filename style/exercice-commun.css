@@ -181,7 +181,7 @@ main {
   font-weight: bold;
 }
 .cadre span {
-  color: whitesmoke; /* Orange pour mettre en valeur le score */
+  color: #475569; /* Gris ardoise pour mettre en valeur le score et les erreurs */
   font-size: 1.4rem;
   font-family: 'Lexend', sans-serif;
   font-weight: 800;

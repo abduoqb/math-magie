@@ -283,7 +283,11 @@ class MoteurGeometrie {
 
   majStatistiques() {
     if (this.elStatistique) {
-      this.elStatistique.innerText = `${this.tentatives} / ${this.limiteQuestions}`;
+      const erreurs = this.tentatives - this.score;
+      this.elStatistique.innerText = `${this.score} pts — ❌ ${erreurs}`;
+      if (this.elStatistique.previousSibling && this.elStatistique.previousSibling.nodeType === 3) {
+        this.elStatistique.previousSibling.nodeValue = "Score : ";
+      }
     }
   }
 }

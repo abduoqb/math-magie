@@ -193,12 +193,37 @@
                   icones: { 1: '📦', 2: '🗺️', 3: '🌍' } }
             ];
 
+            const statsGlobales = gestionnaireProfils.getStatsProgression();
+
+            const missionsJeux = [
+                { id: 'morpion', nom: 'Génie du Morpion',
+                  icones: { 5: '❌', 10: '⭕', 20: '👑' },
+                  checkProgress: () => statsGlobales._morpionJouees,
+                  suffixe: 'parties jouées'
+                },
+                { id: 'pendu', nom: 'Sauveur de Mots',
+                  icones: { 5: '📝', 10: '🔤', 20: '🦸' },
+                  checkProgress: () => statsGlobales._penduGagnees,
+                  suffixe: 'parties gagnées'
+                },
+                { id: 'chiffre', nom: 'Maître Divin',
+                  icones: { 5: '🔮', 10: '🧠', 20: '👁️' },
+                  checkProgress: () => statsGlobales._chiffreGagnees,
+                  suffixe: 'chiffres trouvés'
+                },
+                { id: 'puissance4', nom: 'Tacticien Connecté',
+                  icones: { 5: '🔴', 10: '🟡', 20: '🏅' },
+                  checkProgress: () => statsGlobales._p4Jouees,
+                  suffixe: 'parties jouées'
+                }
+            ];
+
             // Garde d'accès
             gestionnaireProfils.verifierAccesOuRediriger('');
 
             const conteneur = document.getElementById('trophees-conteneur');
             let debloques = 0;
-            const toutesLesMissions = [...missionsCalcul, ...missionsGeometrie];
+            const toutesLesMissions = [...missionsCalcul, ...missionsGeometrie, ...missionsJeux];
 
             // Paliers par catégorie : géométrie (max 3) et calculs (max 10)
             const paliersCalcul = [
@@ -210,6 +235,11 @@
             const paliersGeometrie = [
                 { seuil: 3, badge: '🥇' },
                 { seuil: 2, badge: '🥉' }
+            ];
+            const paliersJeux = [
+                { seuil: 20, badge: '🏆' },
+                { seuil: 10, badge: '🥈' },
+                { seuil: 5, badge: '🥉' }
             ];
 
             function getBadge(niv, paliers) {
@@ -227,7 +257,7 @@
                 return icone;
             }
 
-            function creerSection(titre, missions, paliers, estGeometrie = false) {
+            function creerSection(titre, missions, paliers, typeSection = 'calcul') {
                 const titreSec = document.createElement('h3');
                 titreSec.className = 'trophees-section-titre';
                 titreSec.textContent = titre;
@@ -240,33 +270,44 @@
                 conteneur.appendChild(grille);
 
                 missions.forEach(mission => {
-                    const data = gestionnaireProfils.getProgression(mission.id);
-                    const nivBrut = data?.niveau || 1;
-                    // La géométrie stocke le prochain niveau à jouer (niveau+1), on corrige pour l'affichage
-                    const nivAffiche = estGeometrie ? Math.max(1, nivBrut - 1) : nivBrut;
-                    // Déblocage : nivBrut >= 2 signifie qu'on a progressé (les deux moteurs sauvegardent >= 2 dès le 1er succès)
-                    const estDebloque = nivBrut >= 2;
+                    let nivAffiche = 0;
+                    let estDebloque = false;
+                    let conditionTexte = '';
+
+                    if (typeSection === 'jeux') {
+                        nivAffiche = mission.checkProgress();
+                        estDebloque = nivAffiche >= 5;
+                        conditionTexte = estDebloque ? `${nivAffiche} ${mission.suffixe}` : 'Pas encore débloqué';
+                    } else {
+                        const data = gestionnaireProfils.getProgression(mission.id);
+                        const nivBrut = data?.niveau || 1;
+                        nivAffiche = typeSection === 'geometrie' ? Math.max(1, nivBrut - 1) : nivBrut;
+                        estDebloque = nivBrut >= 2;
+                        const badge = getBadge(nivAffiche, paliers);
+                        conditionTexte = estDebloque ? `Niveau ${nivAffiche} ${badge}` : 'Pas encore débloqué';
+                    }
+
                     if (estDebloque) debloques++;
 
-                    const badge = getBadge(nivAffiche, paliers);
                     const icone = estDebloque ? getIconeNiveau(mission.icones, nivAffiche) : '🔒';
 
                     const carte = document.createElement('div');
                     carte.className = `trophee-carte ${estDebloque ? 'debloque' : ''}`;
                     carte.setAttribute('role', 'listitem');
-                    carte.setAttribute('aria-label', `${mission.nom} — ${estDebloque ? `Niveau ${nivAffiche} ${badge}` : 'Pas encore débloqué'}`);
+                    carte.setAttribute('aria-label', `${mission.nom} — ${conditionTexte}`);
 
                     carte.innerHTML = `
                         <span class="trophee-icone" role="img" aria-hidden="true">${icone}</span>
                         <span class="trophee-nom">${mission.nom}</span>
-                        <span class="trophee-condition">${estDebloque ? `Niveau ${nivAffiche} ${badge}` : 'Pas encore débloqué'}</span>
+                        <span class="trophee-condition">${conditionTexte}</span>
                     `;
                     grille.appendChild(carte);
                 });
             }
 
-            creerSection('🧮 Calculs Mentaux', missionsCalcul, paliersCalcul, false);
-            creerSection('📐 Géométrie', missionsGeometrie, paliersGeometrie, true);
+            creerSection('🧮 Calculs Mentaux', missionsCalcul, paliersCalcul, 'calcul');
+            creerSection('📐 Géométrie', missionsGeometrie, paliersGeometrie, 'geometrie');
+            creerSection('🎮 Salle de Jeux', missionsJeux, paliersJeux, 'jeux');
 
             // Résumé de progression avec avatar
             const nomMage = gestionnaireProfils.getJoueurActif();

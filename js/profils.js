@@ -16,7 +16,12 @@ class GestionnaireProfils {
     { emoji: '⚡', nom: 'Éclair Foudroyant', condition: 'Compléter toutes les missions de calcul (niv 2+)', test: (p) => p._calculsComplets },
     { emoji: '🦄', nom: 'Licorne Céleste', condition: 'Compléter toutes les missions de géométrie (niv 2+)', test: (p) => p._geometrieComplete },
     { emoji: '🌟', nom: 'Étoile Suprême', condition: 'Toutes les missions au niveau 2+', test: (p) => p._toutesCompletes },
-    { emoji: '🎭', nom: 'Maître des Masques', condition: 'Toutes les missions au niveau 3+', test: (p) => p._toutesMaitrisees }
+    { emoji: '🎭', nom: 'Maître des Masques', condition: 'Toutes les missions au niveau 3+', test: (p) => p._toutesMaitrisees },
+    { emoji: '🎮', nom: 'Joueur Vétéran', condition: 'Jouer à au moins 10 mini-jeux', test: (p) => p._jeuxJoues >= 10 },
+    { emoji: '❌', nom: 'Maître Morpion', condition: 'Jouer 15 parties de Morpion', test: (p) => p._morpionJouees >= 15 },
+    { emoji: '🔤', nom: 'Survivant du Pendu', condition: 'Gagner 10 parties du Pendu', test: (p) => p._penduGagnees >= 10 },
+    { emoji: '🧠', nom: 'Télépathe', condition: 'Gagner 15 fois à Trouver le chiffre', test: (p) => p._chiffreGagnees >= 15 },
+    { emoji: '🔴', nom: 'Stratège', condition: 'Jouer 15 parties de Puissance 4', test: (p) => p._p4Jouees >= 15 }
   ];
 
   static COULEURS = [
@@ -203,7 +208,10 @@ class GestionnaireProfils {
   getStatsProgression(nom) {
     const n = nom || this.donnees.joueurActif;
     if (!n || !this.donnees.profils[n]) {
-      return { _totalNiveaux: 0, _niveauMax: 0, _calculsComplets: false, _geometrieComplete: false, _toutesCompletes: false, _toutesMaitrisees: false };
+      return { 
+        _totalNiveaux: 0, _niveauMax: 0, _calculsComplets: false, _geometrieComplete: false, _toutesCompletes: false, _toutesMaitrisees: false,
+        _morpionJouees: 0, _penduGagnees: 0, _chiffreGagnees: 0, _p4Jouees: 0, _jeuxJoues: 0
+      };
     }
     const profil = this.donnees.profils[n];
 
@@ -232,13 +240,31 @@ class GestionnaireProfils {
       if (niv < 2) geoOk = false;
     });
 
+    const _morpionJouees = profil['jeu-morpion']?.partiesJouees || 0;
+    const _penduGagnees = profil['jeu-pendu']?.partiesGagnees || 0;
+    const _p4Jouees = profil['jeu-puissance4']?.partiesJouees || 0;
+    
+    let _chiffreGagnees = 0;
+    [10, 100, 1000].forEach(max => {
+      _chiffreGagnees += profil[`jeu-trouver-chiffre-${max}`]?.partiesGagnees || 0;
+    });
+    // Compatibilité avec l'ancienne clé "jeu-trouver-chiffre"
+    _chiffreGagnees += profil['jeu-trouver-chiffre']?.partiesGagnees || 0;
+
+    const _jeuxJoues = _morpionJouees + (profil['jeu-pendu']?.partiesJouees || 0) + _p4Jouees + _chiffreGagnees;
+
     return {
       _totalNiveaux: total,
       _niveauMax: max,
       _calculsComplets: calculsOk,
       _geometrieComplete: geoOk,
       _toutesCompletes: toutesOk,
-      _toutesMaitrisees: toutesMaitrisees
+      _toutesMaitrisees: toutesMaitrisees,
+      _morpionJouees,
+      _penduGagnees,
+      _chiffreGagnees,
+      _p4Jouees,
+      _jeuxJoues
     };
   }
 

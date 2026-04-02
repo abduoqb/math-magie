@@ -11,6 +11,61 @@
     <script src="../../js/composants/header.js" defer></script>
     <style>
       .jeu-conteneur { text-align: center; max-width: 500px; margin: 0 auto; }
+      .choix-difficulte { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+      .btn-difficulte {
+        padding: 18px 25px; border-radius: 20px; border: none;
+        background: white; font-family: 'Lexend', sans-serif; font-weight: 800;
+        font-size: 1.25rem; cursor: pointer; transition: all 0.2s ease;
+        display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 6px 0px #CBD5E1, 0 10px 20px rgba(0,0,0,0.05);
+        color: var(--text-color);
+        border: 2px solid #E2E8F0;
+      }
+      .btn-difficulte span { font-size: 0.95rem; color: var(--text-muted); font-weight: 600; background: #F1F5F9; padding: 4px 12px; border-radius: 10px; }
+      
+      .btn-difficulte.facile { border-color: var(--success-color); color: #15803D; }
+      .btn-difficulte.facile:hover { background: #F0FDF4; transform: translateY(-4px); box-shadow: 0 10px 0px #4CAF50, 0 15px 25px rgba(107, 203, 119, 0.2); }
+      .btn-difficulte.facile:active { transform: translateY(6px); box-shadow: 0 0px 0px #4CAF50; }
+      
+      .btn-difficulte.moyen { border-color: var(--secondary-color); color: #0369A1; }
+      .btn-difficulte.moyen:hover { background: #F0F9FF; transform: translateY(-4px); box-shadow: 0 10px 0px #2A9BCB, 0 15px 25px rgba(65, 182, 230, 0.2); }
+      .btn-difficulte.moyen:active { transform: translateY(6px); box-shadow: 0 0px 0px #2A9BCB; }
+      
+      .btn-difficulte.difficile { border-color: var(--primary-color); color: #6D28D9; }
+      .btn-difficulte.difficile:hover { background: #F5F3FF; transform: translateY(-4px); box-shadow: 0 10px 0px #7C3AED, 0 15px 25px rgba(160, 119, 238, 0.2); }
+      .btn-difficulte.difficile:active { transform: translateY(6px); box-shadow: 0 0px 0px #7C3AED; }
+
+      .btn-magique {
+        background-color: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 16px 40px;
+        font-family: 'Lexend', sans-serif;
+        font-size: 1.2rem;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 6px 0px #B56800, 0 10px 20px rgba(224, 120, 0, 0.3);
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 200px;
+        margin-top: 20px;
+      }
+      .btn-magique:hover {
+        background-color: #FFA533;
+        transform: translateY(-4px);
+        box-shadow: 0 10px 0px #B56800, 0 15px 25px rgba(224, 120, 0, 0.4);
+      }
+      .btn-magique:active {
+        transform: translateY(6px);
+        box-shadow: 0 0px 0px #B56800, 0 4px 10px rgba(224, 120, 0, 0.2);
+      }
+
+      .jeu-principal { display: none; }
       .indice { font-size: 2rem; font-weight: 800; margin: 15px 0; min-height: 50px; font-family: 'Lexend', sans-serif; }
       .indice.plus-grand { color: #E07800; }
       .indice.plus-petit { color: var(--secondary-color); }
@@ -26,7 +81,7 @@
       .tentatives-restantes {
         font-size: 1.1rem; color: var(--text-muted); font-weight: 600; margin-top: 10px;
       }
-      .tentatives-restantes span { color: var(--accent-color); font-size: 1.3rem; }
+      .tentatives-restantes span { color: #475569; font-size: 1.3rem; }
       .plage-info {
         font-size: 1.1rem; color: var(--primary-color); font-weight: 700;
         margin: 10px 0; font-family: 'Lexend', sans-serif;
@@ -46,37 +101,136 @@
       <div class="presentation">
         <div class="cadre">
           <div class="jeu-conteneur">
-            <p id="calcul" style="font-size: 1.3rem;">Je pense à un nombre entre 1 et 100...</p>
-            <div id="indice" class="indice"></div>
-            <input type="number" id="saisieReponse" min="1" max="100" placeholder="?" autofocus>
-            <p class="plage-info" id="plage">Entre <span>1</span> et <span>100</span></p>
-            <div class="historique" id="historique"></div>
-            <p class="tentatives-restantes">Essais restants : <span id="essais">7</span></p>
-            <button id="changer" onclick="valider()" style="display:inline-block;">Valider</button>
+            <!-- Écran de sélection de difficulté -->
+            <div id="ecran-difficulte">
+              <p style="font-size: 1.4rem; font-weight: 700; color: var(--primary-color); margin-bottom: 25px;">Choisis ta mission !</p>
+              <div class="choix-difficulte">
+                <button class="btn-difficulte facile" onclick="demarrerJeu(10, 4)">
+                  Petite Magie <span>1 à 10</span>
+                </button>
+                <button class="btn-difficulte moyen" onclick="demarrerJeu(100, 7)">
+                  Grande Magie <span>1 à 100</span>
+                </button>
+                <button class="btn-difficulte difficile" onclick="demarrerJeu(1000, 12)">
+                  Maître Magicien <span>1 à 1000</span>
+                </button>
+              </div>
+
+              <div class="choix-perso" style="margin-top: 30px; padding-top: 20px; border-top: 2px dashed #E2E8F0;">
+                <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 10px; font-weight: bold;">Mode 2 Joueurs :</p>
+                <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+                  <input type="password" id="input-perso" pattern="[0-9]*" inputmode="numeric" placeholder="Chiffre secret" style="padding: 10px; border-radius: 15px; border: 2px solid #E2E8F0; font-family: 'Lexend', sans-serif; font-size: 1.1rem; width: 160px; text-align: center; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--secondary-color)'" onblur="this.style.borderColor='#E2E8F0'">
+                  <button class="btn-magique" style="margin-top: 0; min-width: auto; padding: 10px 20px; font-size: 1rem;" onclick="demarrerJeuPerso()">Jouer</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Écran de jeu principal -->
+            <div id="ecran-jeu" class="jeu-principal">
+              <p id="phrase-intro" style="font-size: 1.3rem; font-weight: 600; color: var(--text-muted);">Je pense à un nombre entre 1 et 100...</p>
+              <div id="indice" class="indice"></div>
+              <input type="number" id="saisieReponse" min="1" max="100" placeholder="?" autofocus>
+              <p class="plage-info" id="plage">Entre <span>1</span> et <span>100</span></p>
+              <div class="historique" id="historique"></div>
+              <p class="tentatives-restantes">Essais restants : <span id="essais">7</span></p>
+              <button id="btn-valider" class="btn-magique" onclick="valider()">Valider</button>
+            </div>
           </div>
         </div>
       </div>
     </main>
     <script>
-      const nombreSecret = Math.floor(Math.random() * 100) + 1;
-      let essaisRestants = 7;
+      let nombreSecret;
+      let essaisRestants;
+      let totalEssaisNiveau;
+      let maxRange;
       let partieTerminee = false;
       let borneMin = 1, borneMax = 100;
-      const plageEl = document.getElementById('plage');
 
+      const ecranDifficulte = document.getElementById('ecran-difficulte');
+      const ecranJeu = document.getElementById('ecran-jeu');
+      const phraseIntro = document.getElementById('phrase-intro');
+      const plageEl = document.getElementById('plage');
       const saisie = document.getElementById('saisieReponse');
       const indiceEl = document.getElementById('indice');
       const historiqueEl = document.getElementById('historique');
       const essaisEl = document.getElementById('essais');
-      const btnValider = document.getElementById('changer');
+      const btnValider = document.getElementById('btn-valider');
       const cadre = document.querySelector('.cadre');
+      const inputPerso = document.getElementById('input-perso');
 
       saisie.addEventListener('keydown', e => { if (e.key === 'Enter') valider(); });
+      inputPerso.addEventListener('keydown', e => { if (e.key === 'Enter') demarrerJeuPerso(); });
+
+      function demarrerJeu(max, essais) {
+        maxRange = max;
+        totalEssaisNiveau = essais;
+        essaisRestants = essais;
+        nombreSecret = Math.floor(Math.random() * max) + 1;
+        borneMin = 1;
+        borneMax = max;
+        partieTerminee = false;
+
+        phraseIntro.textContent = `Je pense à un nombre entre 1 et ${max}...`;
+        saisie.max = max;
+        saisie.value = '';
+        saisie.style.display = 'inline-block';
+        essaisEl.textContent = essaisRestants;
+        plageEl.innerHTML = `Entre <span>1</span> et <span>${max}</span>`;
+        historiqueEl.innerHTML = '';
+        indiceEl.textContent = '';
+        indiceEl.className = 'indice';
+        btnValider.textContent = 'Valider';
+
+        ecranDifficulte.style.display = 'none';
+        ecranJeu.style.display = 'block';
+        setTimeout(() => saisie.focus(), 100);
+      }
+
+      function demarrerJeuPerso() {
+        const secret = parseInt(inputPerso.value);
+        if (isNaN(secret) || secret < 1) return;
+        
+        let max = 10;
+        while (max <= secret && max < 1000000) max *= 10;
+        if (secret === max) max *= 10;
+        
+        const essais = Math.ceil(Math.log2(max));
+        
+        maxRange = max;
+        totalEssaisNiveau = essais;
+        essaisRestants = essais;
+        nombreSecret = secret;
+        borneMin = 1;
+        borneMax = max;
+        partieTerminee = false;
+
+        phraseIntro.textContent = `Je pense à un nombre entre 1 et ${max}...`;
+        saisie.max = max;
+        saisie.value = '';
+        saisie.style.display = 'inline-block';
+        essaisEl.textContent = essaisRestants;
+        plageEl.innerHTML = `Entre <span>1</span> et <span>${max}</span>`;
+        historiqueEl.innerHTML = '';
+        indiceEl.textContent = '';
+        indiceEl.className = 'indice';
+        btnValider.textContent = 'Valider';
+
+        ecranDifficulte.style.display = 'none';
+        ecranJeu.style.display = 'block';
+        inputPerso.value = '';
+        setTimeout(() => saisie.focus(), 100);
+      }
 
       function valider() {
-        if (partieTerminee) { location.reload(); return; }
+        if (partieTerminee) { 
+          ecranJeu.style.display = 'none';
+          ecranDifficulte.style.display = 'block';
+          return; 
+        }
+        
         const proposition = parseInt(saisie.value);
-        if (isNaN(proposition) || proposition < 1 || proposition > 100) return;
+        if (isNaN(proposition) || proposition < 1 || proposition > maxRange) return;
 
         essaisRestants--;
         essaisEl.textContent = essaisRestants;
@@ -115,13 +269,13 @@
 
       function gagner() {
         partieTerminee = true;
-        const nbEssais = 7 - essaisRestants;
-        indiceEl.textContent = `🎉 Bravo ! C'était ${nombreSecret} en ${nbEssais} essai${nbEssais > 1 ? 's' : ''} !`;
+        const nbEssaisUsed = totalEssaisNiveau - essaisRestants;
+        indiceEl.textContent = `🎉 Bravo ! C'était ${nombreSecret} en ${nbEssaisUsed} essai${nbEssaisUsed > 1 ? 's' : ''} !`;
         indiceEl.className = 'indice gagne';
         cadre.classList.add('succes');
         btnValider.textContent = '🔄 Rejouer';
         saisie.style.display = 'none';
-        sauvegarderScore(nbEssais);
+        sauvegarderScore(nbEssaisUsed);
       }
 
       function perdre() {
@@ -135,10 +289,11 @@
       }
 
       function sauvegarderScore(essais) {
-        const data = gestionnaireProfils.getProgression('jeu-trouver-chiffre') || {};
+        const idProgression = `jeu-trouver-chiffre-${maxRange}`;
+        const data = gestionnaireProfils.getProgression(idProgression) || {};
         const meilleur = data.meilleurScore || 99;
         const parties = (data.partiesGagnees || 0) + 1;
-        gestionnaireProfils.setProgression('jeu-trouver-chiffre', {
+        gestionnaireProfils.setProgression(idProgression, {
           meilleurScore: Math.min(meilleur, essais),
           partiesGagnees: parties
         });

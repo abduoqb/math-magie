@@ -55,11 +55,31 @@
   border-bottom-color: #CBD5E1;
 }
 
+.lien-carte {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
 .carte-activite:hover {
   transform: translateY(-8px);
   border-color: var(--secondary-color);
   border-bottom-color: var(--secondary-color);
   box-shadow: 0 20px 30px rgba(65, 182, 230, 0.2);
+}
+
+.carte-activite:hover .bouton-action {
+  background-color: #FFA533; 
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0px #B56800, 0 12px 25px rgba(224, 120, 0, 0.4);
+}
+
+.carte-activite:active .bouton-action {
+  transform: translateY(6px);
+  box-shadow: 0 0px 0px #B56800, 0 2px 5px rgba(224, 120, 0, 0.3);
 }
 
 .badge-nouveau {
@@ -77,6 +97,7 @@
   box-shadow: 0 4px 10px rgba(65, 182, 230, 0.4);
   z-index: 20;
   border: 3px solid #FFF;
+  pointer-events: none;
 }
 
 .image-conteneur {
@@ -104,6 +125,9 @@
 .contenu-carte {
   padding: 30px 25px; 
   text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .contenu-carte h3 {
@@ -118,6 +142,7 @@
   margin-bottom: 30px;
   line-height: 1.5;
   font-size: 1.05rem; 
+  flex: 1;
 }
 
 .bouton-action {
@@ -140,6 +165,7 @@
   border: none;
   cursor: pointer;
   text-decoration: none;
+  margin: 0 auto;
 }
 
 .bouton-action:hover {

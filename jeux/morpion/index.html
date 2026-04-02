@@ -53,9 +53,7 @@
         font-family: 'Lexend', sans-serif; font-weight: 700;
         font-size: 1.1rem; color: var(--text-muted);
       }
-      .score-item span { font-size: 1.5rem; }
-      .score-x span { color: var(--secondary-color); }
-      .score-o span { color: var(--accent-color); }
+      .score-item span { font-size: 1.5rem; color: #475569; }
       .mode-selector {
         display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;
       }
@@ -139,15 +137,17 @@
           const btn = document.createElement('button');
           btn.className = 'case-morpion';
           btn.dataset.index = i;
-          btn.addEventListener('click', () => jouer(i));
+          btn.addEventListener('click', () => {
+            // En mode IA, bloquer les clics si c'est le tour de l'IA
+            if (modeIA && !tourX) return;
+            jouer(i);
+          });
           grilleEl.appendChild(btn);
         }
       }
 
       function jouer(index) {
         if (partieTerminee || plateau[index] !== 0) return;
-        // En mode IA, bloquer si c'est le tour de l'IA
-        if (modeIA && !tourX) return;
 
         const joueur = tourX ? 1 : 2;
         plateau[index] = joueur;
@@ -200,10 +200,10 @@
       }
 
       // --- MINIMAX ---
-      function minimax(etat, joueurIA, estMax) {
-        // Vérifier fin de partie
-        if (verifierGagnantEtat(etat, joueurIA)) return { score: 10 };
-        if (verifierGagnantEtat(etat, joueurIA === 1 ? 2 : 1)) return { score: -10 };
+      function minimax(etat, joueurIA, estMax, profondeur = 0) {
+        // Vérifier fin de partie avec prise en compte de la profondeur pour des victoires rapides
+        if (verifierGagnantEtat(etat, joueurIA)) return { score: 10 - profondeur };
+        if (verifierGagnantEtat(etat, joueurIA === 1 ? 2 : 1)) return { score: profondeur - 10 };
         const casesLibres = etat.reduce((acc, v, i) => { if (v === 0) acc.push(i); return acc; }, []);
         if (casesLibres.length === 0) return { score: 0 };
 
@@ -211,16 +211,14 @@
         for (const i of casesLibres) {
           const nouvelEtat = [...etat];
           nouvelEtat[i] = estMax ? joueurIA : (joueurIA === 1 ? 2 : 1);
-          const resultat = minimax(nouvelEtat, joueurIA, !estMax);
+          const resultat = minimax(nouvelEtat, joueurIA, !estMax, profondeur + 1);
           coups.push({ index: i, score: resultat.score });
         }
 
         if (estMax) {
-          const meilleur = coups.reduce((a, b) => a.score > b.score ? a : b);
-          return meilleur;
+          return coups.reduce((a, b) => a.score > b.score ? a : b);
         } else {
-          const pire = coups.reduce((a, b) => a.score < b.score ? a : b);
-          return pire;
+          return coups.reduce((a, b) => a.score < b.score ? a : b);
         }
       }
 

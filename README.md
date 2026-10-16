@@ -1,74 +1,149 @@
-# [Mathémagie](https://math-magie.vercel.app/index.html)
+# Mathémagie
 
-Bienvenue dans **Mathémagie**, une application web éducative conçue pour transformer l'apprentissage des mathématiques en une véritable aventure ! Ce projet propose une immersion dans l'**Académie de Magie Moderne**, mêlant défis de calcul, découverte de la géométrie et jeux.
+Site statique d'exercices de maths, du CP au CM2. Pas de build, pas de framework : du HTML, du CSS et du JavaScript vanilla, servis tels quels. Le déploiement est sur Vercel, branche `main`.
 
-## 🚀 Mission : Devenir un Mage des Chiffres et des Formes !
+## Lancer en local
 
-L'application est adaptée à **chaque classe, du CP au CM2**. Chaque enfant choisit son niveau, et tout le contenu (calculs, géométrie, jeux, trophées) s'ajuste aux programmes officiels de l'Éducation nationale pour sa classe.
+Il n'y a rien à installer. Il faut juste servir le dossier, parce que les pages chargent des scripts relatifs et que la synchro passe par `fetch` :
 
-### 🎮 Fonctionnalités Clés
+```bash
+python -m http.server 8000
+# puis http://localhost:8000
+```
 
-- **👤 Profils d'enfants protégés** :
-  - Chaque enfant a un prénom, un avatar, une couleur, une classe et un **code secret à 4 chiffres** saisi sur un pavé géant.
-  - Trois essais, puis une courte pause : un code se devine difficilement.
-  - Un **espace parent** (protégé par un code parent) permet de changer la classe, réinitialiser un code ou supprimer un profil.
-  - Les anciens profils sont conservés : au premier passage, l'enfant choisit sa classe et son code.
+Ouvrir les fichiers directement (`file://`) marche pour la plupart des pages, mais pas pour la synchro Supabase.
 
-- **☁️ Synchronisation entre appareils (optionnelle)** :
-  - Un parent crée un **compte famille** (e-mail et mot de passe) une seule fois par appareil.
-  - La progression de chaque enfant est retrouvée sur tous les appareils de la famille.
-  - Hors connexion, l'application fonctionne exactement comme avant : les données sont alors gardées sur l'appareil.
-  - Seule l'adresse e-mail du parent est stockée. Chaque famille ne voit que ses propres données.
+## Organisation
 
-- **🎓 L'Académie de Magie Moderne (Design)** :
-  - Style « autocollants » lumineux : contours épais, ombres franches et une couleur par univers (Calcul violet, Géométrie turquoise, Jeux orange, Trophées jaune).
-  - **Mascotte Guide** : une petite flamme bleue qui réagit à chaque réponse (neutre, contente, triste, en lecture).
-  - Illustrations vectorielles (SVG) pour chaque univers et chaque opération.
-  - **Lecture à voix haute** (🔊) des consignes pour les plus jeunes, et textes plus courts au CP.
+| Dossier / fichier | Rôle |
+|---|---|
+| `index.html` | Accueil. Affiche les univers accessibles pour la classe du profil actif. |
+| `connexion.html` | Choix du profil, pavé de code, création en 6 étapes, espace parent, écran de synchro. |
+| `trophees.html` | Liste des trophées, filtrée sur `programme.calcul / geometrie / jeux`. |
+| `calculs_mentaux/` | Moteur de calcul (`js/moteur_calcul.js`) + générateur pur (`js/generateur_calcul.js`) + une page par opération. |
+| `geometrie/` | Moteur (`js/moteur_geometrie.js`), lecture du programme (`js/programme_geo.js`), une page par mission. |
+| `jeux/` | Morpion, Puissance 4, Pendu, Trouver le chiffre. Helpers partagés dans `jeux/commun.js`. |
+| `programmes/` | Un fichier par classe (`cp.js` … `cm2.js`). C'est la seule source de vérité pour ce que chaque classe voit. |
+| `js/profils.js` | Chargeur : il injecte les scripts dans le bon ordre. Toutes les pages le incluent. |
+| `js/profils-core.js` | `GestionnaireProfils` : état, persistance, progression, codes, migration. |
+| `js/auth.js` | Hachage des codes, limitation des essais, garde de page. |
+| `js/niveaux.js` | Liste des niveaux, libellés, `getProgramme(niveau)`. |
+| `js/sync.js` | Synchro Supabase et fonction de fusion `fusionnerProfils` (exportée pour les tests). |
+| `js/composants/header.js` | En-tête (web component `<app-header>`), menus, indicateur ☁️. |
+| `js/supabase-config.js` | URL et clé `anon` du projet Supabase. |
+| `js/vendor/supabase.js` | `supabase-js` 2.45.4, versionné. Ne pas le remplacer par un CDN. |
+| `style/` | `commun.css` (tokens et classes génériques), `exercice-commun.css`, `calculs.css`, `geometrie.css`, `jeux.css`, `connexion.css`, `accueil.css`, `missions-liste.css`. |
+| `images/` | SVG (univers, opérations, mascotte en 4 expressions) et anciens PNG encore référencés par certaines pages. |
+| `supabase/migrations/` | Schéma de la synchro (tables, RLS, triggers), trace des migrations appliquées. |
+| `docs/` | `REFONTE-SPEC.md`, `DA-BRIEF.md`, `SYNC-SPEC.md`, et les recherches dans `docs/programmes/`. Lire la spec avant de toucher au modèle de données. |
 
-- **🧮 Calcul Mental** :
-  - Additions, soustractions, multiplications et divisions, sur 10 paliers de difficulté par classe.
-  - Un **pavé numérique** à l'écran (activé sur tablette et au CP), avec le bouton **Valider ✓**.
-  - Barre de mana : elle se remplit à chaque bonne réponse, et 5 bonnes réponses de suite font monter le palier.
-  - Une erreur montre la bonne réponse, sans culpabiliser.
+## Données et persistance
 
-- **📐 Géométrie** :
-  - Formes, propriétés, angles, symétrie, droites, triangles, quadrilatères et patrons, selon la classe.
-  - Les missions hors programme de la classe sont affichées mais verrouillées.
+Tout est stocké dans `localStorage` sous la clé `mathemagie-profils`, avec `version: 2`. Forme simplifiée :
 
-- **🎲 Salle de Jeux** :
-  - Morpion, Puissance 4, Pendu et Trouver le chiffre, avec des plages et des mots adaptés à chaque classe.
-  - Un **défi calcul** optionnel : résoudre un petit calcul avant de jouer son coup.
+```js
+{
+  version: 2,
+  joueurActif: "Léa" | null,
+  codeParent: { sel, hash, _maj } | null,
+  profils: {
+    "Léa": {
+      _avatar, _couleur, _majProfil,
+      niveauClasse: "cp" | "ce1" | "ce2" | "cm1" | "cm2" | null,  // null = migré, à configurer
+      code: { sel, hash } | null,                                 // SHA-256(sel + ":" + code)
+      progression: { cm1: { additions: { niveau: 4, _maj: 1739… }, "jeu-pendu": {…} } },
+      progressionEnAttente: {…}                                   // ancienne v1, le temps que la classe soit choisie
+    }
+  },
+  supprimes: { "Tom": { supprimeLe, _majProfil } }                 // pierres tombales pour la synchro
+}
+```
 
-- **🏆 Salle des Trophées** :
-  - Les trophées affichés sont ceux de la classe de l'enfant, verrouillés tant qu'ils ne sont pas gagnés, avec une consigne pour les débloquer.
+- La progression est indexée par **classe puis par mission**. Changer de classe ne fait rien disparaître.
+- Chaque écriture de progression pose `_maj` (ms). C'est ce qui permet la fusion.
+- Les anciennes données (clé `math-magie-*` et `mathemagie-profils` en v1) sont migrées au premier chargement. Une copie de la v1 reste dans `mathemagie-profils-v1-sauvegarde`.
+- Le code secret n'est jamais stocké en clair. `auth.js` limite les tentatives : 3 essais, puis 30 s de blocage, persistant au rechargement.
 
-## 📚 Programmes
+## Programmes
 
-Le contenu de chaque classe vit dans `programmes/` (`cp.js`, `ce1.js`, `ce2.js`, `cm1.js`, `cm2.js`). Les moteurs de calcul, de géométrie et de jeux lisent ces fichiers, sans nombre codé en dur.
+Chaque `programmes/<classe>.js` pose `window.PROGRAMMES.<classe>`. Les moteurs ne contiennent aucun nombre de classe en dur.
 
-Les recherches sur les programmes sont dans `docs/programmes/`. Les paliers de difficulté sont des **propositions dérivées des programmes officiels**, pas des citations : à valider avant tout usage scolaire officiel.
+```js
+window.PROGRAMMES.cp = {
+  id: 'cp', libelle: 'CP', cycle: 2,
+  calcul: {
+    additions: { actif: true, libelle, consigne, niveaux: [ /* 10 paliers */ ] },
+    divisions: { actif: false, … }
+  },
+  geometrie: { 'geometrie-formes': { actif: true, libelle, contenu: { formes: [...], … } }, … },
+  jeux: { morpion: true, puissance4: true, pendu: true, 'trouver-le-chiffre': true }
+};
+```
 
-## 🛠️ Technologies Utilisées
+- `actif: false` : la mission apparaît grisée « Pas encore au programme » et sa page redirige vers l'index.
+- Un palier de calcul a `min`, `max`, `retenue`, `termes`, `decimaux`. Les conventions de bornes diffèrent : **cp, ce1, ce2, cm2 bornent le résultat, cm1 borne chaque terme**. Le générateur gère les deux (`BORNES_PAR_TERME` dans `generateur_calcul.js`). C'est une incohérence connue, voir plus bas.
+- `contenu` d'une mission géométrie limite ce qui peut apparaître (formes, angles, axes…). Les moteurs filtrent dessus.
+- Les sources et les choix à valider sont dans les champs `source` et `notes` de chaque mission.
 
-- **HTML5** & **CSS3** (animations, contours et ombres « autocollants », respect de `prefers-reduced-motion`).
-- **JavaScript Vanilla (ES6+)**, sans étape de compilation : les pages se lancent directement depuis un serveur statique.
-- **Supabase** (authentification e-mail et base de données avec sécurité au niveau des lignes) pour la synchronisation, via `supabase-js` versionné dans `js/vendor/`.
-- **localStorage** pour la sauvegarde locale de tous les profils.
-- **SVG** pour les illustrations et les figures géométriques.
+## Ajouter ou modifier une mission
 
-## 🧭 Structure du projet
+1. Vérifier que la mission existe dans `programmes/<classe>.js` pour toutes les classes concernées (même id).
+2. Pour du calcul : le moteur lit `programme.calcul[op].niveaux[palier - 1]`. Ne pas ajouter de logique par classe dans `moteur_calcul.js`, la mettre dans le programme.
+3. Pour la géométrie : la mission doit lire `GeoProgramme` (`programme_geo.js`) et filtrer ses pools sur `contenu`. Une question hors `contenu` est un bug.
+4. Pour les jeux : respecter `programme.jeux[id]` et utiliser `JeuxNiveau` (`jeux/commun.js`) pour les plages et les mots.
+5. Les pages de mission ne doivent jamais charger `programmes/*.js` directement : c'est fait par `js/profils.js`.
 
-- `index.html` : accueil, `connexion.html` : profils, espace parent et synchronisation.
-- `calculs_mentaux/`, `geometrie/`, `jeux/` : les trois univers de jeu.
-- `programmes/` : le contenu pédagogique de chaque classe.
-- `js/` : profils, authentification, niveaux, synchronisation et en-tête.
-- `docs/` : spécifications (refonte, design, synchronisation) et recherches sur les programmes.
+## Synchronisation Supabase
 
-## ⚙️ Configuration de la synchronisation
+Le client est dans `js/sync.js` (`window.Sync`). Il est **inactif** si `window.SUPABASE_CONFIG` est absent ou si aucune famille n'est connectée. Dans ces cas, le site fonctionne uniquement en local.
 
-La clé publique (« anon ») de Supabase est dans `js/supabase-config.js`. Elle est publique par conception : elle ne donne accès à aucune donnée à elle seule. Ne jamais y mettre la clé `service_role`.
+Fonctionnement :
 
----
+- Un compte **famille** (e-mail + mot de passe, Supabase Auth) possède des lignes dans `familles` et `profils_enfants`.
+- `profils_enfants.data` contient exactement l'objet profil local, `version` est incrémenté à chaque écriture par un trigger.
+- Écriture avec concurrence optimiste : `update … where id = … and version = …`. En cas de conflit, relecture, fusion, nouvelle tentative (5 max).
+- **Fusion** (`fusionnerProfils`) : par mission, le `_maj` le plus récent gagne, sauf les champs `parties*` qui prennent le max. Une pierre tombale gagne si elle est postérieure à la dernière modification. Les données sans `_maj` valent 0 et ne sont jamais perdues. La fusion est commutative et idempotente, les tests le vérifient.
+- Déclencheurs : au chargement, au retour du réseau (`online`), toutes les 60 s quand l'onglet est visible, et 2 s après une modification (debounce).
+- File d'attente : la différence entre l'état local et le dernier état connu du serveur, stockée dans `mathemagie-sync-meta`. Elle survit au rechargement.
+- Session Supabase dans `mathemagie-supabase-auth`. La déconnexion utilise `signOut({ scope: 'local' })`.
+- RLS : chaque ligne est visible et modifiable uniquement par `famille_id = auth.uid()`. Le rôle `anon` n'a aucun droit sur les deux tables.
 
-Projet développé avec passion pour rendre les mathématiques aussi captivantes qu'une quête magique ! 🪄✨
+Pour modifier le schéma : ajouter une nouvelle migration dans `supabase/migrations/` et l'appliquer au projet. Ne jamais modifier une migration déjà appliquée.
+
+## Tests
+
+Les tests ne sont pas encore dans le dépôt. Ce qui a été vérifié par scripts :
+
+- génération : 10 paliers × 4 opérations × 5 classes, 300 tirages chacun, bornes et résultats contrôlés ;
+- géométrie : 85 combinaisons mission × palier × classe, 200 questions chacune, réponse toujours présente dans les choix ;
+- auth : hachage identique à `crypto.createHash`, blocage, migration v1→v2, mode parent ;
+- synchro : fusion (cas explicites + 3000 tirages aléatoires) et scénarios sur un faux client Supabase.
+
+Les scripts sont restés hors dépôt. Les rajouter (par exemple dans `tests/`, en `node --test`) serait la prochaine étape logique.
+
+## Conventions
+
+- **Interface en français**, tutoiement, phrases courtes. Au CP : textes courts et bouton 🔊 (`speechSynthesis`, `fr-FR`).
+- **Couleurs** : tokens sur `:root` dans `style/commun.css` (`--calcul`, `--geometrie`, `--jeux`, `--op-addition`…). Ne pas coder de couleur en dur dans les pages.
+- **Classes** : les nouvelles classes génériques vont dans `commun.css` ou `exercice-commun.css`. Les classes spécifiques à un univers sont préfixées (`calc-*`, `geo-*`, `jeu-*`).
+- **Texte utilisateur** : toujours échappé avant `innerHTML`. Le prénom est saisi par un enfant, il est considéré comme non fiable.
+- **Accessibilité** : cibles tactiles ≥ 48 px (56 px et plus pour les actions principales), focus visible, `prefers-reduced-motion` respecté.
+- **Pas de clé `service_role`** dans le dépôt. La clé `anon` dans `supabase-config.js` est publique par conception.
+
+## Limites connues
+
+- **Schéma Supabase versionné** dans `supabase/migrations/20261016000000_sync_familles_profils_enfants.sql`. Ce fichier est déjà appliqué au projet de production : ne pas le rejouer dessus, il sert à recréer un projet vierge. Toute modification future du schéma doit passer par une nouvelle migration.
+- **Supabase à configurer à la main** : « Site URL » et les « Redirect URLs » (Authentication → URL Configuration) doivent contenir le domaine de production et `/connexion.html`. Sinon les liens de confirmation et de mot de passe oublié sont faux.
+- **Flux e-mail non testé en réel** (confirmation, mot de passe oublié). Les tests ont utilisé des comptes créés directement en base.
+- **Déconnexion de famille** : elle ne vide pas les profils locaux. Un appareil partagé entre deux familles enverrait les profils locaux dans la nouvelle famille.
+- **Incohérence de bornes** entre cm1 (par terme) et les autres classes (par résultat) : voir `BORNES_PAR_TERME`.
+- **CE1 divisions** désactivées (`actif: false`), volontairement, en attente de la question du partage dans le moteur.
+- **Ancien code mort** : `choix-mage.html` n'est plus qu'une redirection vers `connexion.html`. Quelques PNG de `images/` ne sont plus utilisés.
+- **Jamais testé** : Safari, Firefox, un vrai appareil tactile, la voix (`speechSynthesis`) à l'oreille.
+
+## Documentation de référence
+
+- `docs/REFONTE-SPEC.md` : architecture des profils et des programmes.
+- `docs/DA-BRIEF.md` : tokens, règles d'interface, répartition des fichiers par univers.
+- `docs/SYNC-SPEC.md` : modèle de confiance, règles de fusion, RLS.
+- `docs/programmes/*.md` : recherches sur les programmes officiels, avec sources et points non confirmés.

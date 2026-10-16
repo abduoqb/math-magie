@@ -6,13 +6,14 @@
  * {
  *   version: 2,
  *   joueurActif: "Léa" | null,
- *   codeParent: { sel, hash } | null,
+ *   codeParent: { sel, hash, _maj? } | null,
+ *   supprimes: { "Prénom": { supprimeLe, _majProfil } },   // pierres tombales (synchro), invisibles dans l'API
  *   profils: {
  *     "Léa": {
- *       _avatar, _couleur,
+ *       _avatar, _couleur, _majProfil (ms, dernière modif de avatar/couleur/classe/code),
  *       niveauClasse: 'cp'|'ce1'|'ce2'|'cm1'|'cm2'|null,   // null = profil migré v1, niveau à demander
  *       code: { sel, hash } | null,                         // SHA-256(sel:code)
- *       progression: { cp: { additions: {niveau:3}, 'jeu-pendu': {...} }, ce1: {...} },
+ *       progression: { cp: { additions: {niveau:3, _maj: ms}, 'jeu-pendu': {...} }, ce1: {...} },
  *       progressionEnAttente: { ... }                       // ancienne progression v1 (migration) tant que le niveau est inconnu
  *     }
  *   }
@@ -76,7 +77,7 @@ class GestionnaireProfils {
   // --- Persistance ---
 
   _vide() {
-    return { version: GestionnaireProfils.VERSION, joueurActif: null, codeParent: null, profils: {} };
+    return { version: GestionnaireProfils.VERSION, joueurActif: null, codeParent: null, supprimes: {}, profils: {} };
   }
 
   charger() {
@@ -87,6 +88,7 @@ class GestionnaireProfils {
         if (parsed && typeof parsed === 'object' && parsed.profils && typeof parsed.profils === 'object') {
           if (parsed.version === GestionnaireProfils.VERSION) {
             if (!('codeParent' in parsed)) parsed.codeParent = null;
+            if (!parsed.supprimes || typeof parsed.supprimes !== 'object') parsed.supprimes = {};
             return parsed;
           }
           return this.migrerV1versV2(raw, parsed);
@@ -98,8 +100,22 @@ class GestionnaireProfils {
     return this._vide();
   }
 
-  sauvegarder() {
+  /** `silencieux` : pas de planification de synchro (utilisé par la synchro elle-même). */
+  sauvegarder(silencieux) {
     localStorage.setItem(this.CLE_STORAGE, JSON.stringify(this.donnees));
+    if (!silencieux) this._notifierSync();
+  }
+
+  /** Prévient la synchro (si présente) qu'il y a peut-être des modifications à envoyer. */
+  _notifierSync() {
+    try {
+      if (typeof window !== 'undefined' && window.Sync && typeof window.Sync.planifierPush === 'function') window.Sync.planifierPush();
+    } catch (e) { /* la synchro ne doit jamais gêner le jeu */ }
+  }
+
+  /** Marque une modification des champs de profil (avatar, couleur, classe, code) pour la fusion. */
+  _toucherProfil(p, plancher) {
+    p._majProfil = Math.max(Date.now(), (p._majProfil || 0) + 1, (plancher || 0) + 1);
   }
 
   // --- Migration v1 → v2 (sans perte) ---
@@ -282,13 +298,17 @@ class GestionnaireProfils {
     if (!Auth.codeValide(code)) return { ok: false, erreur: 'Le code doit avoir 4 chiffres.' };
     if (this._profil(v.prenom)) return { ok: false, erreur: 'Ce mage existe déjà !' };
 
-    this.donnees.profils[v.prenom] = {
+    const nouveau = {
       _avatar: avatar || '🧙‍♂️',
       _couleur: couleur || '#A077EE',
       niveauClasse,
       code: await Auth.creerEmpreinte(code),
       progression: {}
     };
+    const pierre = this.donnees.supprimes && this.donnees.supprimes[v.prenom];
+    this._toucherProfil(nouveau, pierre && pierre.supprimeLe);
+    if (pierre) delete this.donnees.supprimes[v.prenom];
+    this.donnees.profils[v.prenom] = nouveau;
     this.sauvegarder();
     return { ok: true, prenom: v.prenom };
   }
@@ -311,6 +331,7 @@ class GestionnaireProfils {
       delete p.progressionEnAttente;
     }
     if (!p.code) p.code = await Auth.creerEmpreinte(code);
+    this._toucherProfil(p);
     this.sauvegarder();
     return { ok: true };
   }
@@ -325,6 +346,13 @@ class GestionnaireProfils {
   async supprimerProfil(prenom, codeParent) {
     if (!this._profil(prenom)) return false;
     if (!(await this._verifierParentOuAbsent(codeParent))) return false;
+    const ancien = this.donnees.profils[prenom];
+    if (!this.donnees.supprimes) this.donnees.supprimes = {};
+    this.donnees.supprimes[prenom] = {
+      supprimeLe: Math.max(Date.now(), (ancien._majProfil || 0) + 1),
+      _majProfil: ancien._majProfil || 0
+    };
+    if (!this.donnees.supprimes[prenom]._majProfil) delete this.donnees.supprimes[prenom]._majProfil;
     delete this.donnees.profils[prenom];
     if (this.donnees.joueurActif === prenom) this.donnees.joueurActif = null;
     Auth.reinitialiserLimite('profil:' + prenom);
@@ -343,6 +371,7 @@ class GestionnaireProfils {
       delete p.progressionEnAttente;
     }
     p.niveauClasse = niveau;
+    this._toucherProfil(p);
     this.sauvegarder();
     return true;
   }
@@ -353,6 +382,7 @@ class GestionnaireProfils {
     if (!p || !Auth.codeValide(nouveau)) return false;
     if (!(await this._verifierParentOuAbsent(codeParent))) return false;
     p.code = await Auth.creerEmpreinte(nouveau);
+    this._toucherProfil(p);
     Auth.reinitialiserLimite('profil:' + prenom);
     this.sauvegarder();
     return true;
@@ -406,6 +436,7 @@ class GestionnaireProfils {
     if (!p || !Auth.codeValide(nouveau)) return false;
     if (!(await this.verifierCode(prenom, ancien))) return false;
     p.code = await Auth.creerEmpreinte(nouveau);
+    this._toucherProfil(p);
     this.sauvegarder();
     return true;
   }
@@ -423,7 +454,9 @@ class GestionnaireProfils {
   async definirCodeParent(code, ancien) {
     if (!Auth.codeValide(code)) return false;
     if (this.donnees.codeParent && !(await this.verifierCodeParent(ancien))) return false;
-    this.donnees.codeParent = await Auth.creerEmpreinte(code);
+    const empreinte = await Auth.creerEmpreinte(code);
+    empreinte._maj = Math.max(Date.now(), ((this.donnees.codeParent && this.donnees.codeParent._maj) || 0) + 1);
+    this.donnees.codeParent = empreinte;
     Auth.reinitialiserLimite('parent');
     this.sauvegarder();
     return true;
@@ -449,6 +482,7 @@ class GestionnaireProfils {
     const p = this._profilActif();
     if (!p) return;
     p._avatar = avatar;
+    this._toucherProfil(p);
     this.sauvegarder();
   }
 
@@ -461,6 +495,7 @@ class GestionnaireProfils {
     const p = this._profilActif();
     if (!p) return;
     p._couleur = couleur;
+    this._toucherProfil(p);
     this.sauvegarder();
   }
 
@@ -582,7 +617,13 @@ class GestionnaireProfils {
       console.warn('[Profils] Aucun joueur actif, progression non sauvegardée.');
       return;
     }
-    this._progressionActive(true)[missionId] = data;
+    const sac = this._progressionActive(true);
+    // `_maj` (ms) sert à la fusion entre appareils ; strictement croissant même si l'horloge recule.
+    const precedent = sac[missionId] && typeof sac[missionId]._maj === 'number' ? sac[missionId]._maj : 0;
+    if (data !== null && typeof data === 'object' && !Array.isArray(data)) {
+      data._maj = Math.max(Date.now(), precedent + 1);
+    }
+    sac[missionId] = data;
     this.sauvegarder();
   }
 
@@ -666,3 +707,8 @@ window.SonMagique = SonMagique;
 
 // Singleton global
 window.gestionnaireProfils = new GestionnaireProfils();
+
+// Synchronisation facultative (js/sync.js) : sans elle ou sans configuration, rien ne change.
+try {
+  if (window.Sync && typeof window.Sync.demarrer === 'function') window.Sync.demarrer(window.gestionnaireProfils);
+} catch (e) { console.warn('[Profils] Synchro indisponible.', e); }

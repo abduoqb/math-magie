@@ -461,6 +461,52 @@
 .btn-mini.choisi { background: var(--encre, #2B2D5B); color: #fff; }
 .actions-parent { display: flex; gap: 8px; flex-wrap: wrap; }
 
+/* --- Synchronisation (Espace parent) --- */
+.zone-sync { max-width: 520px; margin: 14px auto 0; text-align: left; display: flex; flex-direction: column; gap: 14px; }
+.sync-intro { font-size: 1.05rem; color: var(--texte, #334155); text-align: center; margin: 0; }
+.onglets-sync { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.onglets-sync .btn-mini { padding: 0 16px; }
+.formulaire-sync { display: flex; flex-direction: column; gap: 6px; }
+.formulaire-sync label { font-family: 'Lexend', sans-serif; font-weight: 700; color: var(--encre, #2B2D5B); margin-top: 8px; }
+.champ-parent {
+  width: 100%;
+  min-height: 56px;
+  font-family: inherit;
+  font-size: 1.1rem;
+  padding: 8px 14px;
+  border: var(--contour, 3px solid #2B2D5B);
+  border-radius: 16px;
+  background: var(--fond, #FFF8E7);
+  color: var(--encre, #2B2D5B);
+  box-shadow: inset 0 3px 0 rgba(43, 45, 91, 0.08);
+}
+.aide-champ { font-size: 0.95rem; color: var(--texte, #334155); margin: 0; }
+.formulaire-sync .btn { margin-top: 14px; width: 100%; }
+.lien-discret {
+  align-self: center; background: none; border: 0; padding: 10px 8px; min-height: 48px;
+  font: inherit; font-weight: 600; color: #1D4ED8; text-decoration: underline; cursor: pointer;
+}
+.statut-sync {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--fond-2, #E8F6FF);
+  border: var(--contour, 3px solid #2B2D5B);
+  border-radius: 20px;
+  padding: 12px 16px;
+  font-weight: 700;
+  color: var(--encre, #2B2D5B);
+}
+.statut-sync .nuage { font-size: 2rem; line-height: 1; }
+.statut-sync small { display: block; font-weight: 500; color: var(--texte, #334155); }
+.statut-sync.erreur { background: var(--ko-clair, #FEE2E2); }
+.statut-sync.ok { background: var(--ok-clair, #DCFCE7); }
+.actions-sync { display: flex; flex-direction: column; gap: 12px; }
+.sync-note { font-size: 0.95rem; color: var(--texte, #334155); margin: 0; text-align: center; }
+.resume-sync { display: flex; justify-content: center; margin-top: 18px; }
+@media (prefers-reduced-motion: no-preference) {
+  .statut-sync.encours .nuage { animation: nuageBat 1.2s ease-in-out infinite; }
+}
+@keyframes nuageBat { 50% { transform: translateY(-4px); } }
+
 @media (max-width: 720px) {
   .ligne-parent { grid-template-columns: 1fr; }
 }

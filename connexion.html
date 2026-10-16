@@ -110,7 +110,12 @@
 
       let arreterMinuteur = null;
       let nettoyageClavier = null;
+      let vueProfilsActive = false; // l'écran « Qui joue ? » est affiché (à rafraîchir après une synchro)
+      let surSync = null;           // rappel quand l'état de la synchro change (écran Synchroniser)
+      const Sync = window.Sync || null;
       function nettoyer() {
+        vueProfilsActive = false;
+        surSync = null;
         if (arreterMinuteur) { clearInterval(arreterMinuteur); arreterMinuteur = null; }
         if (nettoyageClavier) { nettoyageClavier(); nettoyageClavier = null; }
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -221,8 +226,12 @@
           entete('🔮', 'Qui joue ?', 'Touche ton prénom', 'mascotte-neutre'),
           el('div', { class: 'grille-profils' }, cartes),
           el('div', { class: 'pied' },
+            (!noms.length && Sync && Sync.estConfigure() && !Sync.estConnecte())
+              ? el('button', { type: 'button', class: 'btn btn-secondaire btn-parent', onclick: () => aller(() => ecranParentSync(false)) }, '☁️ J\'ai déjà un compte famille')
+              : null,
             el('button', { type: 'button', class: 'btn btn-discret btn-parent', onclick: () => aller(ecranParentAcces) }, '🔒 Espace parent'))
         );
+        vueProfilsActive = true;
       }
 
       // ---------- Écran 2 : saisie du code ----------
@@ -479,6 +488,7 @@
           entete('👨‍👩‍👧', 'Espace parent'),
           typeof message === 'string' ? el('p', { class: 'message-pave ok', role: 'status' }, message) : null,
           noms.length ? el('ul', { class: 'liste-parent' }, lignes) : el('p', { class: 'sous-titre' }, 'Aucun profil pour le moment.'),
+          resumeSync(),
           el('div', { class: 'pied' },
             btnRetour(() => { codeParentSession = null; aller(ecranProfils); }, 'Terminer'),
             el('button', { type: 'button', class: 'btn btn-discret', onclick: () => aller(ecranParentChangerCode) }, 'Changer le code parent')));
@@ -540,12 +550,256 @@
         saisie();
       }
 
+
+      // ---------- Synchronisation entre appareils (Espace parent) ----------
+
+      const TEXTES_ETAT = {
+        'synchronise': ['☁️', 'Tout est à jour', 'ok'],
+        'en-cours': ['☁️', 'Mise à jour en cours…', 'encours'],
+        'hors-ligne': ['📴', 'Pas de connexion pour le moment', ''],
+        'erreur': ['⚠️', 'Petit souci, nous réessayons bientôt', 'erreur'],
+        'non-connecte': ['☁️', 'Pas de famille connectée', '']
+      };
+
+      function ilYA(ms) {
+        if (!ms) return 'jamais';
+        const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
+        if (s < 60) return 'à l\'instant';
+        const m = Math.round(s / 60);
+        if (m < 60) return 'il y a ' + m + ' min';
+        const h = Math.round(m / 60);
+        if (h < 24) return 'il y a ' + h + ' h';
+        return 'il y a ' + Math.round(h / 24) + ' j';
+      }
+
+      /** Bouton « Synchroniser » dans le panneau parent. Null si la synchro n'est pas disponible. */
+      function resumeSync() {
+        if (!Sync || !Sync.estConfigure()) return null;
+        const connecte = Sync.estConnecte();
+        const t = TEXTES_ETAT[Sync.getEtat()] || TEXTES_ETAT['non-connecte'];
+        return el('div', { class: 'resume-sync' },
+          el('button', { type: 'button', class: 'btn btn-petit', onclick: () => aller(() => ecranParentSync(true)) },
+            '☁️ Synchroniser entre appareils' + (connecte ? ' (' + t[1].toLowerCase() + ')' : '')));
+      }
+
+      function ecranParentSync(depuisParent, message) {
+        const etat = { mode: 'connexion', occupe: false, message: message || '', type: message ? 'ok' : 'info' };
+        const zone = el('div', { class: 'zone-sync' });
+        const consigne = 'Synchroniser entre appareils. Retrouvez la progression de vos enfants sur tous vos appareils.';
+        ecran('ecran-parent', consigne,
+          entete('☁️', 'Synchroniser', 'Retrouvez la progression de vos enfants sur tous vos appareils.'),
+          zone,
+          el('div', { class: 'pied' }, btnRetour(() => aller(() => (depuisParent ? ecranParentPanneau() : ecranProfils())))));
+
+        const msg = () => el('p', { class: 'message-pave ' + etat.type, role: 'status' }, etat.message);
+        const dire = (texte, type) => { etat.message = texte; etat.type = type || 'info'; };
+
+        function champ(id, libelle, type, auto, aide) {
+          const input = el('input', {
+            id, name: id, type, class: 'champ-parent', autocomplete: auto, required: true,
+            autocapitalize: 'none', spellcheck: 'false', 'aria-describedby': aide ? id + '-aide' : null
+          });
+          return { input, noeuds: [el('label', { for: id }, libelle), input, aide ? el('p', { class: 'aide-champ', id: id + '-aide' }, aide) : null] };
+        }
+
+        function rendre() {
+          zone.textContent = '';
+          if (!Sync || !Sync.estConfigure()) {
+            zone.appendChild(el('p', { class: 'sync-intro' }, 'La synchronisation n\'est pas disponible pour le moment. Vos profils restent bien gardés sur cet appareil.'));
+            return;
+          }
+          if (Sync.estConnecte()) rendreConnecte(); else rendreFormulaire();
+        }
+
+        function remplacerMessage(racine) {
+          const ancien = racine.querySelector('.message-pave');
+          if (ancien) ancien.replaceWith(msg());
+        }
+
+        function rendreFormulaire() {
+          const inscription = etat.mode === 'inscription';
+          const oubli = etat.mode === 'oubli';
+          zone.appendChild(el('p', { class: 'sync-intro' },
+            'Avec un compte famille, la progression est sauvegardée en ligne. Seule votre adresse e-mail est conservée : les enfants gardent juste leur prénom et leur code.'));
+          zone.appendChild(el('div', { class: 'onglets-sync', role: 'group', 'aria-label': 'Choisir une action' },
+            ['connexion', 'inscription'].map(m => el('button', {
+              type: 'button', class: 'btn-mini' + ((m === 'inscription') === inscription ? ' choisi' : ''),
+              'aria-pressed': ((m === 'inscription') === inscription) ? 'true' : 'false',
+              onclick: () => { etat.mode = m; dire(''); rendre(); }
+            }, m === 'connexion' ? 'J\'ai un compte' : 'Créer un compte'))));
+
+          const e = champ('sync-email', 'Adresse e-mail du parent', 'email', 'email');
+          const champs = [e.noeuds];
+          let m = null;
+          if (!oubli) {
+            m = champ('sync-mdp', inscription ? 'Choisissez un mot de passe' : 'Mot de passe', 'password',
+              inscription ? 'new-password' : 'current-password', inscription ? '8 caractères au minimum.' : null);
+            champs.push(m.noeuds);
+          }
+          const bouton = el('button', { type: 'submit', class: 'btn btn-principal' },
+            oubli ? 'Envoyer le lien par e-mail' : inscription ? 'Créer le compte famille' : 'Me connecter');
+          const form = el('form', { class: 'formulaire-sync', novalidate: true,
+            'aria-label': oubli ? 'Mot de passe oublié' : inscription ? 'Créer un compte famille' : 'Se connecter' },
+            champs, msg(), bouton);
+          form.addEventListener('submit', async (ev) => {
+            ev.preventDefault();
+            if (etat.occupe) return;
+            etat.occupe = true; bouton.disabled = true;
+            const adresse = e.input.value.trim();
+            const mdp = m ? m.input.value : '';
+            const avantCode = JSON.stringify(gp.donnees.codeParent || null);
+            let r;
+            if (oubli) {
+              dire('Envoi en cours…'); remplacerMessage(form);
+              r = await Sync.reinitialiserMotDePasse(adresse);
+              if (r.ok) dire('Si cette adresse a un compte, un e-mail vient d\'être envoyé. Cliquez sur le lien qu\'il contient.', 'ok');
+              else dire(r.erreur, 'erreur');
+            } else if (inscription) {
+              dire('Création du compte…'); remplacerMessage(form);
+              r = await Sync.inscrire(adresse, mdp);
+              if (!r.ok) dire(r.erreur, 'erreur');
+              else if (r.confirmer) { etat.mode = 'connexion'; dire('Compte créé ! Ouvrez le message reçu par e-mail pour le confirmer, puis revenez vous connecter ici.', 'ok'); }
+              else dire('Compte créé : la famille est connectée.', 'ok');
+            } else {
+              dire('Connexion…'); remplacerMessage(form);
+              r = await Sync.connecter(adresse, mdp);
+              if (!r.ok) dire(r.erreur, 'erreur');
+              else {
+                const n = gp.getListeProfils().length;
+                dire('Famille connectée. ' + (n ? n + ' profil' + (n > 1 ? 's' : '') + ' sur cet appareil.' : 'Aucun profil pour le moment.'), 'ok');
+                if (codeParentSession && JSON.stringify(gp.donnees.codeParent || null) !== avantCode) {
+                  // Le code parent de la famille a remplacé celui de cet appareil : il faut le retaper
+                  codeParentSession = null;
+                  etat.occupe = false;
+                  aller(ecranProfils);
+                  return;
+                }
+              }
+            }
+            etat.occupe = false;
+            rendre();
+          });
+          zone.appendChild(form);
+          if (!inscription) {
+            zone.appendChild(el('button', { type: 'button', class: 'lien-discret',
+              onclick: () => { etat.mode = oubli ? 'connexion' : 'oubli'; dire(''); rendre(); } },
+              oubli ? 'Retour à la connexion' : 'Mot de passe oublié ?'));
+          }
+        }
+
+        function rendreConnecte() {
+          const e = Sync.getEtat();
+          const t = TEXTES_ETAT[e] || TEXTES_ETAT['non-connecte'];
+          const autorise = !gp.aCodeParent() || !!codeParentSession;
+          zone.appendChild(el('div', { class: 'statut-sync ' + t[2], role: 'status' },
+            el('span', { class: 'nuage', 'aria-hidden': 'true' }, t[0]),
+            el('span', null, t[1],
+              el('small', null, 'Famille : ' + (Sync.getEmail() || '')),
+              el('small', null, 'Dernière mise à jour : ' + ilYA(Sync.getDerniereSynchro())))));
+          if (e === 'hors-ligne') zone.appendChild(el('p', { class: 'sync-note' }, 'Rien n\'est perdu : tout est gardé sur cet appareil et sera envoyé dès que la connexion revient.'));
+          if (e === 'erreur' && Sync.getMessageErreur()) zone.appendChild(el('p', { class: 'sync-note' }, Sync.getMessageErreur()));
+          zone.appendChild(msg());
+          const bouton = el('button', { type: 'button', class: 'btn btn-principal' }, '🔄 Synchroniser maintenant');
+          bouton.addEventListener('click', async () => {
+            if (etat.occupe) return;
+            etat.occupe = true; bouton.disabled = true;
+            dire('Synchronisation…'); remplacerMessage(zone);
+            const r = await Sync.synchroniser();
+            etat.occupe = false;
+            if (r && r.ok) dire('C\'est à jour !' + (r.telecharges && r.telecharges.length ? ' ' + r.telecharges.length + ' profil(s) récupéré(s).' : ''), 'ok');
+            else if (r && r.raison === 'hors-ligne') dire('Pas de connexion pour le moment. Réessayez plus tard.', 'erreur');
+            else dire('La synchronisation n\'a pas pu se terminer. Réessayez dans un instant.', 'erreur');
+            rendre();
+          });
+          zone.appendChild(el('div', { class: 'actions-sync' }, bouton,
+            autorise ? deconnexionFamille() : el('p', { class: 'sync-note' }, 'Pour déconnecter la famille, passez par l\'Espace parent (code parent).')));
+          zone.appendChild(el('p', { class: 'sync-note' }, 'Après une déconnexion, les profils restent sur cet appareil mais ne sont plus synchronisés.'));
+        }
+
+        function deconnexionFamille() {
+          const b = el('button', { type: 'button', class: 'btn btn-petit btn-danger' }, 'Déconnecter la famille');
+          let arme = false;
+          b.addEventListener('click', async () => {
+            if (!arme) {
+              arme = true; b.textContent = 'Sûr ? Toucher encore'; b.classList.add('arme');
+              setTimeout(() => { if (b.isConnected) { arme = false; b.textContent = 'Déconnecter la famille'; b.classList.remove('arme'); } }, 4000);
+              return;
+            }
+            b.disabled = true;
+            await Sync.deconnecter();
+            etat.mode = 'connexion';
+            dire('La famille est déconnectée.', 'ok');
+            rendre();
+          });
+          return b;
+        }
+
+        surSync = () => { if (!etat.occupe) rendre(); };
+        rendre();
+      }
+
+      /** Retour d'un lien « mot de passe oublié » : choisir un nouveau mot de passe. */
+      function ecranNouveauMotDePasse() {
+        const etat = { occupe: false };
+        const mdp = el('input', { id: 'nouveau-mdp', type: 'password', class: 'champ-parent', autocomplete: 'new-password', required: true, 'aria-describedby': 'nouveau-mdp-aide' });
+        const mdp2 = el('input', { id: 'nouveau-mdp2', type: 'password', class: 'champ-parent', autocomplete: 'new-password', required: true });
+        const message = el('p', { class: 'message-pave', role: 'status' });
+        const bouton = el('button', { type: 'submit', class: 'btn btn-principal' }, 'Enregistrer le mot de passe');
+        const form = el('form', { class: 'formulaire-sync', novalidate: true, 'aria-label': 'Nouveau mot de passe' },
+          el('label', { for: 'nouveau-mdp' }, 'Nouveau mot de passe'), mdp,
+          el('p', { class: 'aide-champ', id: 'nouveau-mdp-aide' }, '8 caractères au minimum.'),
+          el('label', { for: 'nouveau-mdp2' }, 'Retapez le mot de passe'), mdp2, message, bouton);
+        form.addEventListener('submit', async (ev) => {
+          ev.preventDefault();
+          if (etat.occupe) return;
+          if (mdp.value !== mdp2.value) { message.className = 'message-pave erreur'; message.textContent = 'Les deux mots de passe sont différents.'; return; }
+          etat.occupe = true; bouton.disabled = true;
+          const r = await Sync.changerMotDePasse(mdp.value);
+          etat.occupe = false; bouton.disabled = false;
+          if (!r.ok) { message.className = 'message-pave erreur'; message.textContent = r.erreur; return; }
+          aller(() => ecranParentSync(false, 'Mot de passe modifié. La famille est connectée.'));
+        });
+        ecran('ecran-parent', 'Choisissez un nouveau mot de passe.',
+          entete('🔑', 'Nouveau mot de passe', 'Choisissez un nouveau mot de passe pour votre compte famille.'),
+          el('div', { class: 'zone-sync' }, form),
+          el('div', { class: 'pied' }, btnRetour(() => aller(ecranProfils), 'Plus tard')));
+      }
+
+      /** Appareil neuf avec une famille connectée : on télécharge les profils avant de proposer d'en créer. */
+      function ecranChargementFamille() {
+        ecran('ecran-profils', 'Je cherche vos mages.',
+          entete('☁️', 'Je cherche vos mages…', 'Un petit instant'),
+          el('p', { class: 'message-pave info', role: 'status' }, 'Les profils de la famille arrivent.'));
+        let fini = false;
+        const suite = () => {
+          if (fini) return;
+          fini = true;
+          if (gp.getListeProfils().length) aller(ecranProfils); else aller(() => ecranCreation());
+        };
+        Promise.race([Sync.synchroniser(), new Promise(r => setTimeout(r, 6000))]).then(suite, suite);
+      }
+
+      // Une synchro a changé quelque chose (ou l'état) : on rafraîchit l'écran concerné.
+      window.addEventListener('mathemagie-sync', (ev) => {
+        const d = (ev && ev.detail) || {};
+        if (d.recuperation) { aller(ecranNouveauMotDePasse); return; }
+        if (surSync) surSync();
+        else if (vueProfilsActive && d.changement) ecranProfils();
+      });
+
       // ---------- Démarrage ----------
 
       if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); // précharge les voix
-      ecranProfils();
-      // Premier lancement : aucun profil → directement la création
-      if (!gp.getListeProfils().length) aller(() => ecranCreation());
+      if (Sync && Sync.recuperationEnCours && Sync.recuperationEnCours()) {
+        ecranNouveauMotDePasse();
+      } else if (!gp.getListeProfils().length && Sync && Sync.estConfigure() && Sync.estConnecte()) {
+        // Appareil neuf, famille déjà connectée : on récupère d'abord les profils en ligne
+        ecranChargementFamille();
+      } else {
+        ecranProfils();
+        // Premier lancement : aucun profil → directement la création
+        if (!gp.getListeProfils().length) aller(() => ecranCreation());
+      }
     })();
     </script>
 </body>

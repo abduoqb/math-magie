@@ -100,6 +100,9 @@ class AppHeader extends HTMLElement {
       });
     });
 
+    // Indicateur de synchronisation ☁️ (discret ; rien tant qu'aucune famille n'est connectée)
+    this.initIndicateurSync();
+
     // Changer de profil / Se déconnecter: on ferme la session puis connexion.html
     ['#btn-changer-profil', '#btn-deconnexion'].forEach((sel) => {
       const btn = this.querySelector(sel);
@@ -126,5 +129,37 @@ function ajusterCouleurHeader(hex, amount) {
     return hex;
   }
 }
+
+
+AppHeader.prototype.initIndicateurSync = function () {
+  const liste = this.querySelector('.choix-navigation');
+  if (!liste || !window.Sync || typeof window.Sync.getEtat !== 'function') return;
+  const li = document.createElement('li');
+  li.className = 'sync-indicateur';
+  li.setAttribute('role', 'status');
+  li.style.cssText = 'display:none;align-items:center;font-size:1.1rem;padding:0 8px;cursor:default;user-select:none;';
+  liste.appendChild(li);
+  const TEXTES = {
+    'synchronise': ['☁️✓', 'Ta progression est sauvegardée'],
+    'en-cours': ['☁️…', 'Sauvegarde en cours'],
+    'hors-ligne': ['☁️⏸', 'Pas de connexion : ta progression est gardée ici'],
+    'erreur': ['☁️⏸', 'Sauvegarde en pause : ta progression est gardée ici']
+  };
+  const maj = () => {
+    const t = TEXTES[window.Sync.getEtat()];
+    if (!t) { li.style.display = 'none'; li.textContent = ''; li.removeAttribute('title'); return; }
+    li.style.display = 'flex';
+    li.textContent = t[0];
+    li.title = t[1];
+    li.setAttribute('aria-label', t[1]);
+  };
+  this._majSync = maj;
+  window.addEventListener('mathemagie-sync', maj);
+  maj();
+};
+
+AppHeader.prototype.disconnectedCallback = function () {
+  if (this._majSync) window.removeEventListener('mathemagie-sync', this._majSync);
+};
 
 customElements.define('app-header', AppHeader);

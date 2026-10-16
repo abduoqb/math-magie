@@ -204,8 +204,10 @@
   const MAX_TENTATIVES = 5;
   const INTERVALLE_MS = 60000;
 
+  const CLE_SAUVEGARDE_PROPRIO = 'mathemagie-profils-avant-changement';
   const MSG_INDISPO = 'La synchronisation n\'est pas disponible pour le moment.';
   const MSG_RESEAU = 'Impossible de joindre le serveur. Vérifiez la connexion internet.';
+  const MSG_PROPRIO = 'Les profils de cet appareil appartiennent à une autre famille. Rien n\'est envoyé tant que vous n\'avez pas choisi.';
 
   let racine = '';
   try {
@@ -224,6 +226,7 @@
   let echecs = 0;
   let erreurMsg = null;
   let erreurReseau = false;
+  let erreurConflit = false;
   let recuperation = false;
 
   function metaVide() {
@@ -291,6 +294,7 @@
     if (!session || !session.user) return;
     if (meta.uid && meta.uid !== session.user.id) {
       meta = Object.assign(metaVide(), { uid: session.user.id });
+      erreurConflit = false; erreurMsg = null; // le conflit se réévalue pour la nouvelle famille
     }
     meta.uid = session.user.id;
     meta.email = session.user.email || meta.email;
@@ -303,6 +307,7 @@
     if (timer) { clearTimeout(timer); timer = null; }
     if (timerRetry) { clearTimeout(timerRetry); timerRetry = null; }
     erreurMsg = null;
+    erreurConflit = false;
     emettre();
   }
 
@@ -420,7 +425,7 @@
   }
 
   function planifierPush() {
-    if (!gp || !estConnecte() || !estConfigure()) return;
+    if (!gp || !estConnecte() || !estConfigure() || erreurConflit) return;
     if (!estSale()) return;
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => { timer = null; synchroniser(); }, DEBOUNCE_MS);
@@ -567,6 +572,14 @@
     }
     adopterSession(session);
     const uid = session.user.id;
+    // Les profils de cet appareil appartiennent à la famille qui les a synchronisés en premier.
+    // Une autre famille ne doit pas les recevoir sans que le parent le choisisse.
+    const proprio = gp.donnees.proprietaire || null;
+    if (proprio !== uid) {
+      if (proprio && aDesProfilsLocaux()) { const e = new Error('proprietaire'); e.proprietaire = true; throw e; }
+      gp.donnees.proprietaire = uid;
+      try { gp.sauvegarder(true); } catch (e) { /* ignore */ }
+    }
     for (let t = 0; t < MAX_TENTATIVES; t++) {
       const rp = await c.from('profils_enfants').select('id,prenom,data,version,supprime_le').eq('famille_id', uid);
       if (rp.error) throw rp.error;
@@ -578,6 +591,11 @@
     throw new Error('conflit');
   }
 
+  function aDesProfilsLocaux() {
+    const d = gp.donnees;
+    return Object.keys(d.profils || {}).length > 0 || Object.keys(d.supprimes || {}).length > 0;
+  }
+
   function estErreurReseau(e) {
     const m = String((e && (e.message || e.details)) || '').toLowerCase();
     return horsLigneNavigateur() || m.indexOf('fetch') !== -1 || m.indexOf('network') !== -1 || m.indexOf('timeout') !== -1 ||
@@ -587,6 +605,7 @@
   /** Pull + fusion + push. Ne rejette jamais. Retourne { ok, telecharges, envoyes, changement, ... }. */
   function synchroniser() {
     if (!gp || !estConfigure() || !estConnecte()) return Promise.resolve({ ok: false, raison: 'non-connecte' });
+    if (erreurConflit) return Promise.resolve({ ok: false, raison: 'proprietaire' });
     if (horsLigneNavigateur()) { emettre(); return Promise.resolve({ ok: false, raison: 'hors-ligne' }); }
     if (enCours) { relancer = true; return enCoursPromesse; }
     if (timer) { clearTimeout(timer); timer = null; }
@@ -602,14 +621,21 @@
         erreurMsg = null; erreurReseau = false; echecs = 0;
         stats.ok = true;
       } catch (e) {
-        erreurReseau = estErreurReseau(e);
-        erreurMsg = erreurReseau ? MSG_RESEAU : 'La synchronisation a rencontré un problème. Nouvel essai bientôt.';
-        stats.erreur = erreurMsg;
-        if (!(e && e.session)) {
-          echecs++;
-          timerRetry = setTimeout(() => { timerRetry = null; synchroniser(); }, Math.min(300000, 15000 * Math.pow(2, echecs - 1)));
+        if (e && e.proprietaire) {
+          // Pas de nouvel essai automatique : c'est au parent de trancher
+          erreurConflit = true; erreurReseau = false;
+          erreurMsg = MSG_PROPRIO;
+          stats.erreur = erreurMsg;
         } else {
-          erreurMsg = 'Session expirée : reconnectez la famille.';
+          erreurReseau = estErreurReseau(e);
+          erreurMsg = erreurReseau ? MSG_RESEAU : 'La synchronisation a rencontré un problème. Nouvel essai bientôt.';
+          stats.erreur = erreurMsg;
+          if (!(e && e.session)) {
+            echecs++;
+            timerRetry = setTimeout(() => { timerRetry = null; synchroniser(); }, Math.min(300000, 15000 * Math.pow(2, echecs - 1)));
+          } else {
+            erreurMsg = 'Session expirée : reconnectez la famille.';
+          }
         }
       } finally {
         enCours = false;
@@ -633,8 +659,41 @@
     if (typeof gp.verifierAccesOuRediriger === 'function') gp.verifierAccesOuRediriger(racine);
   }
 
+  /**
+   * Résout un conflit de propriété : les profils de cet appareil viennent d'une autre famille.
+   *  - 'importer' : ces profils rejoignent la famille connectée (fusion par prénom, comme à la première synchro).
+   *  - 'repartir' : copie de sécurité des profils locaux, puis appareil vidé avant de télécharger la famille.
+   * Promise<{ ok, raison?, telecharges?, ... }>.
+   */
+  async function resoudreConflitProprietaire(mode) {
+    if (!gp || !erreurConflit || !estConnecte()) return { ok: false, raison: 'non-connecte' };
+    if (mode !== 'importer' && mode !== 'repartir') return { ok: false, raison: 'mode' };
+    const d = gp.donnees;
+    if (mode === 'repartir') {
+      try {
+        global.localStorage.setItem(CLE_SAUVEGARDE_PROPRIO, JSON.stringify({
+          date: new Date().toISOString(), proprietaire: d.proprietaire || null,
+          donnees: { profils: d.profils, supprimes: d.supprimes || {} }
+        }));
+      } catch (e) {
+        return { ok: false, raison: 'sauvegarde' }; // copie impossible : on ne touche à rien
+      }
+      d.profils = {};
+      d.supprimes = {};
+      d.joueurActif = null;
+    }
+    d.proprietaire = meta.uid;
+    // Empreintes et versions de l'ancienne famille ne valent plus : tout est réévalué
+    meta.ids = {}; meta.versions = {}; meta.snaps = {}; meta.snapCp = 'null';
+    ecrireMeta();
+    erreurConflit = false; erreurMsg = null; erreurReseau = false;
+    try { gp.sauvegarder(true); } catch (e) { /* ignore */ }
+    return synchroniser();
+  }
+
   function getDerniereSynchro() { return meta.derniere || 0; }
   function getMessageErreur() { return erreurMsg; }
+  function getConflitProprietaire() { return erreurConflit; }
   function recuperationEnCours() { return recuperation; }
 
   /** Appelé par profils-core.js une fois le gestionnaire créé. */
@@ -666,7 +725,7 @@
     estConfigure, estConnecte, getEmail,
     inscrire, connecter, deconnecter, reinitialiserMotDePasse, changerMotDePasse,
     synchroniser, planifierPush, getEtat,
-    getDerniereSynchro, getMessageErreur, recuperationEnCours, demarrer,
+    getDerniereSynchro, getMessageErreur, getConflitProprietaire, resoudreConflitProprietaire, recuperationEnCours, demarrer,
     fusionnerProfils, fusionnerCodeParent
   };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -7,6 +7,7 @@
  *   version: 2,
  *   joueurActif: "Léa" | null,
  *   codeParent: { sel, hash, _maj? } | null,
+ *   proprietaire: "uid" | null,                             // famille (synchro) à qui appartiennent ces profils locaux
  *   supprimes: { "Prénom": { supprimeLe, _majProfil } },   // pierres tombales (synchro), invisibles dans l'API
  *   profils: {
  *     "Léa": {
@@ -77,7 +78,7 @@ class GestionnaireProfils {
   // --- Persistance ---
 
   _vide() {
-    return { version: GestionnaireProfils.VERSION, joueurActif: null, codeParent: null, supprimes: {}, profils: {} };
+    return { version: GestionnaireProfils.VERSION, joueurActif: null, codeParent: null, proprietaire: null, supprimes: {}, profils: {} };
   }
 
   charger() {

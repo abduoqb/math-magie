@@ -63,7 +63,6 @@ class AppHeader extends HTMLElement {
                   <ul class="nav-dropdown-menu nav-dropdown-menu-droite">
                     <div class="nav-dropdown-menu-inner">
                       <li><a href="${basePath}connexion.html" id="btn-changer-profil">${ico('🔄')}Changer de profil</a></li>
-                      <li><a href="${basePath}connexion.html" id="btn-deconnexion">${ico('🚪')}Se déconnecter</a></li>
                     </div>
                   </ul>
                 </li>
@@ -103,16 +102,15 @@ class AppHeader extends HTMLElement {
     // Indicateur de synchronisation ☁️ (discret ; rien tant qu'aucune famille n'est connectée)
     this.initIndicateurSync();
 
-    // Changer de profil / Se déconnecter: on ferme la session puis connexion.html
-    ['#btn-changer-profil', '#btn-deconnexion'].forEach((sel) => {
-      const btn = this.querySelector(sel);
-      if (!btn) return;
-      btn.addEventListener('click', (e) => {
+    // Changer de profil : on ferme la session de l'enfant puis on revient à l'écran « Qui joue ? »
+    const btnChanger = this.querySelector('#btn-changer-profil');
+    if (btnChanger) {
+      btnChanger.addEventListener('click', (e) => {
         e.preventDefault();
         window.gestionnaireProfils?.deconnecter?.();
         window.location.href = basePath + 'connexion.html';
       });
-    });
+    }
   }
 }
 

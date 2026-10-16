@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Jeux">
+<g transform="rotate(-10 100 104)">
+<rect x="34" y="40" width="120" height="120" rx="30" fill="#F97316" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="5"/>
+<path d="M50 70Q50 56 64 54" fill="none" stroke="#FFFFFF" stroke-opacity=".6" stroke-width="8" stroke-linecap="round"/>
+<circle cx="66" cy="74" r="9" fill="#FFFFFF" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="3"/><circle cx="122" cy="74" r="9" fill="#FFFFFF" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="3"/><circle cx="94" cy="100" r="9" fill="#FFFFFF" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="3"/><circle cx="66" cy="126" r="9" fill="#FFFFFF" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="3"/><circle cx="122" cy="126" r="9" fill="#FFFFFF" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="3"/>
+</g>
+<g transform="rotate(14 160 150)"><rect x="132" y="124" width="52" height="52" rx="14" fill="#8B5CF6" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="4"/>
+<circle cx="148" cy="140" r="5" fill="#FFFFFF"/><circle cx="168" cy="160" r="5" fill="#FFFFFF"/></g>
+<path d="M160 16Q163.6 32.4 180 36Q163.6 39.6 160 56Q156.4 39.6 140 36Q156.4 32.4 160 16Z" fill="#FFF7C2" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="3"/><polygon points="26.0,17.0 29.4,25.3 38.4,26.0 31.6,31.8 33.6,40.5 26.0,35.9 18.4,40.5 20.4,31.8 13.6,26.0 22.6,25.3" fill="#FACC15" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="3"/>
+</svg>

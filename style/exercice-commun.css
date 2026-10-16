@@ -1,410 +1,451 @@
-/* styles généraux de la page de calcul */
-
-.lien-retour {
-  display: inline-block;
-  margin: 10px 0 5px;
-  padding: 8px 18px;
-  background: var(--bg-color);
-  color: var(--primary-color);
-  border: 2px solid var(--primary-color);
-  border-radius: 20px;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-}
-.lien-retour:hover {
-  background: var(--primary-color);
-  color: white;
-}
-.titre {
-  font-size: clamp(2rem, 5vw, 3rem); /* Texte responsive */
-  text-align: center;
-  margin: 30px 10px;
-  color: var(--primary-color);
-  text-shadow: 0 4px 10px rgba(160, 119, 238, 0.2); /* Lueur violette douce */
-}
+/* ==========================================================
+   Exercices — cadre « sticker », retours succès/erreur, mana,
+   champ de réponse géant, pavé numérique, mascotte.
+   Classes génériques .exo-* + compatibilité des anciennes pages.
+   ========================================================== */
 
 main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* Permet au cadre de ne pas être trop bas sur mobile */
+  justify-content: flex-start;
   min-height: calc(100vh - 120px);
   padding-bottom: 30px;
 }
 
-/* --- LE CADRE DE JEU (Le Grimoire/Tableau) --- */
-.presentation {
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius);
-  width: 90%; /* S'adapte à l'écran */
-  max-width: 600px;
+.titre {
+  font-size: clamp(2rem, 5vw, 3rem);
+  text-align: center;
+  margin: 24px 10px;
+  color: var(--encre);
+}
+
+/* --- Lien retour --- */
+.lien-retour, .exo-retour {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  margin: 10px 0 5px;
+  padding: 8px 20px;
+  background: var(--carte);
+  color: var(--encre);
+  border: var(--contour);
+  border-radius: 999px;
+  box-shadow: 0 4px 0 var(--encre);
+  font-family: var(--police-titre);
+  font-weight: 800;
+  font-size: .95rem;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.lien-retour:hover, .exo-retour:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--encre); background: var(--fond-2); }
+.lien-retour:active, .exo-retour:active { transform: translateY(4px); box-shadow: 0 0 0 var(--encre); }
+
+/* --- Cadre d'exercice (le « grimoire ») ---
+   .presentation = ancien nom, .exo = nouveau nom générique.
+   Couleur d'univers: poser class="u-calcul" / "u-geometrie" / "u-jeux" sur le cadre. */
+.presentation, .exo {
+  --u: var(--calcul);
+  --u-clair: var(--calcul-clair);
+  background-color: var(--carte);
+  border-radius: var(--rayon-grand);
+  width: 92%;
+  max-width: 640px;
   min-height: 450px;
-  box-shadow: var(--shadow);
+  box-shadow: 0 8px 0 var(--encre);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border: 4px solid #E2E8F0;
-  border-bottom-width: 8px; /* Effet 3D léger */
-  border-bottom-color: #CBD5E1;
-  padding: 40px 20px;
+  border: 4px solid var(--encre);
+  padding: 40px 20px 32px;
   position: relative;
-  overflow: visible; /* Permet aux éléments de dépasser (ex: étoiles) */
-  transition: all 0.3s ease;
-  margin-top: 20px;
+  overflow: visible;
+  margin-top: 30px;
 }
+.presentation.u-calcul, .exo.u-calcul { --u: var(--calcul); --u-clair: var(--calcul-clair); }
+.presentation.u-geometrie, .exo.u-geometrie { --u: var(--geometrie); --u-clair: var(--geometrie-clair); }
+.presentation.u-jeux, .exo.u-jeux { --u: var(--jeux); --u-clair: var(--jeux-clair); }
 
-/* Éléments magiques décoratifs autour du cadre */
-.presentation::before {
-  content: "✨";
+/* Bandeau de couleur d'univers sur le haut du cadre */
+.presentation::before, .exo::before {
+  content: "";
   position: absolute;
-  top: -20px;
-  left: -20px;
-  font-size: 50px;
-  color: #FFD700;
-  z-index: 10;
-  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
-  animation: twinkle 3s infinite alternate;
+  inset: 0 0 auto 0;
+  height: 16px;
+  background: var(--u);
+  border-radius: 28px 28px 0 0;
+  border-bottom: 3px solid var(--encre);
 }
-.presentation::after {
-  content: "⭐";
+/* Étincelle décorative */
+.presentation::after, .exo::after {
+  content: "";
   position: absolute;
-  bottom: -15px;
-  right: -15px;
-  font-size: 40px;
-  color: var(--secondary-color);
+  bottom: -22px;
+  right: -16px;
+  width: 52px;
+  height: 52px;
+  background: url("../images/etoile.svg") center / contain no-repeat;
   z-index: 10;
+  pointer-events: none;
   animation: float 4s ease-in-out infinite;
 }
-
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-8px) rotate(6deg); }
+}
 @keyframes twinkle {
-  0% { opacity: 0.5; transform: scale(0.8); }
+  0% { opacity: .5; transform: scale(.8); }
   100% { opacity: 1; transform: scale(1.1); }
 }
 
-.cadre {
-  z-index: 1; 
+.cadre, .exo-contenu {
+  z-index: 1;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 25px; 
+  gap: 22px;
+  border-radius: var(--rayon-grand);
 }
 
-/* Le calcul en gros */
-#calcul {
-  font-family: 'Lexend', sans-serif;
-  font-size: clamp(2.5rem, 8vw, 4rem);
+/* --- La question en gros --- */
+#calcul, .exo-question {
+  font-family: var(--police-titre);
+  font-size: clamp(2.5rem, 8vw, 4.2rem);
   font-weight: 800;
-  color: var(--primary-color);
-  background-color: #F8FAFC; /* Fond très clair */
-  padding: 20px 40px;
-  border-radius: 20px;
-  border: 2px dashed #CBD5E1; /* Bordure cahier */
-  box-shadow: inset 0 4px 6px rgba(0,0,0,0.02);
+  color: var(--encre);
+  background-color: var(--u-clair);
+  padding: 18px 36px;
+  border-radius: var(--rayon);
+  border: var(--contour);
   min-width: 60%;
   letter-spacing: 2px;
+  line-height: 1.15;
 }
 
-/* Le champ de saisie - Gros et accessible */
-#saisieReponse {
+/* --- Champ de réponse géant --- */
+#saisieReponse, .exo-reponse {
   width: 80%;
-  max-width: 250px;
-  height: 80px;
-  font-family: 'Lexend', sans-serif;
-  font-size: 3rem;
+  max-width: 280px;
+  height: 92px;
+  font-family: var(--police-titre);
+  font-size: 3.2rem;
   text-align: center;
-  border: 4px solid #E2E8F0;
-  border-radius: 20px;
+  border: 4px solid var(--encre);
+  border-radius: var(--rayon);
   background-color: #FFFFFF;
-  color: var(--text-color);
+  color: var(--encre);
   font-weight: 800;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform .15s ease, box-shadow .15s ease, background-color .15s;
   outline: none;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  box-shadow: inset 0 5px 0 rgba(43, 45, 91, .10);
+}
+#saisieReponse:focus, .exo-reponse:focus {
+  transform: scale(1.04);
+  background-color: #FFFEF5;
+  box-shadow: 0 0 0 6px var(--focus), 0 0 0 9px var(--encre);
 }
 
-#saisieReponse:focus {
-  border-color: var(--secondary-color);
-  transform: scale(1.05);
-  box-shadow: 0 8px 25px rgba(65, 182, 230, 0.3);
+/* --- Consigne / instructions --- */
+#instructions, .exo-consigne {
+  min-height: 48px;
+  font-size: clamp(1.15rem, 4vw, 1.4rem);
+  font-weight: 700;
+  padding: 10px 22px;
+  border-radius: var(--rayon);
+  color: var(--encre);
+  background-color: var(--fond-2);
+  border: 3px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5em;
 }
 
-/* Instructions dynamiques */
-#instructions {
-  min-height: 40px;
-  font-size: clamp(1.1rem, 4vw, 1.3rem);
-  font-weight: bold;
-  padding: 10px 20px;
-  border-radius: 15px;
-  color: var(--text-muted);
-  background-color: #F1F5F9;
-}
-
-/* Bouton Nouveau Calcul / Action Secondaire */
-#changer {
-  background-color: var(--secondary-color); /* Bleu Calme pour une action secondaire */
-  color: white;
-  border: none;
-  border-radius: 30px;
-  padding: 15px 30px;
-  font-family: 'Lexend', sans-serif;
-  font-size: 1.1rem;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 6px 0 #2A9BCB, 0 10px 20px rgba(65, 182, 230, 0.3); /* Effet 3D */
-  transition: all 0.2s ease;
-  margin-top: 10px;
+/* --- Bouton principal « Valider » --- */
+.exo-valider {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5em;
+  min-height: 72px;
   width: 80%;
-  max-width: 250px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  max-width: 300px;
+  padding: 14px 32px;
+  background: var(--action);
+  color: var(--encre);
+  border: 4px solid var(--encre);
+  border-radius: 999px;
+  box-shadow: 0 6px 0 var(--encre);
+  font-family: var(--police-titre);
+  font-weight: 800;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+  -webkit-tap-highlight-color: transparent;
 }
+.exo-valider:hover { transform: translateY(-3px); box-shadow: 0 9px 0 var(--encre); }
+.exo-valider:active { transform: translateY(6px); box-shadow: 0 0 0 var(--encre); }
+.exo-valider:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: 0 3px 0 var(--encre); }
 
-#changer:active {
-  transform: translateY(6px); 
-  box-shadow: 0 0 0 #2A9BCB, 0 2px 5px rgba(65, 182, 230, 0.3);
+/* --- Action secondaire (ancien #changer) --- */
+#changer, .exo-secondaire {
+  background-color: var(--carte);
+  color: var(--encre);
+  border: var(--contour);
+  border-radius: 999px;
+  padding: 12px 28px;
+  min-height: 56px;
+  font-family: var(--police-titre);
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 5px 0 var(--encre);
+  transition: transform .12s ease, box-shadow .12s ease, background-color .12s;
+  margin-top: 6px;
+  width: 80%;
+  max-width: 280px;
 }
+#changer:hover, .exo-secondaire:hover { background-color: var(--fond-2); transform: translateY(-3px); box-shadow: 0 8px 0 var(--encre); }
+#changer:active, .exo-secondaire:active { transform: translateY(5px); box-shadow: 0 0 0 var(--encre); }
 
-#changer:hover {
-  background-color: #5BC3ED;
+/* --- Pavé numérique (3 colonnes, grosses touches) --- */
+.exo-pave {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
 }
+.exo-touche {
+  min-height: 64px;
+  border: var(--contour);
+  border-radius: 18px;
+  background: var(--carte);
+  color: var(--encre);
+  font-family: var(--police-titre);
+  font-weight: 800;
+  font-size: 1.8rem;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--encre);
+  transition: transform .1s ease, box-shadow .1s ease, background-color .1s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.exo-touche:hover { background: var(--u-clair); }
+.exo-touche:active { transform: translateY(4px); box-shadow: 0 0 0 var(--encre); }
+.exo-touche.efface { background: var(--ko-clair); }
+.exo-touche.ok { background: var(--ok-clair); }
+.exo-pave.cp .exo-touche { min-height: 76px; font-size: 2.1rem; }
 
-/* Stats en bas */
-.cadre p {
-  margin-top: 20px;
+/* --- Score / stats --- */
+.cadre p, .exo-score {
+  margin-top: 6px;
   font-size: 1.1rem;
-  color: var(--text-muted);
-  font-weight: bold;
+  color: var(--texte-doux);
+  font-weight: 700;
 }
-.cadre span {
-  color: #475569; /* Gris ardoise pour mettre en valeur le score et les erreurs */
-  font-size: 1.4rem;
-  font-family: 'Lexend', sans-serif;
+.cadre span, .exo-score span {
+  color: var(--encre);
+  font-size: 1.3rem;
+  font-family: var(--police-titre);
   font-weight: 800;
 }
 
-
-/* --- ANIMATIONS LUDIQUES DE FEEDBACK --- */
-
-/* SUCCÈS : Vert magique */
-.cadre.succes {
-    animation: successBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border-color: var(--success-color);
-    border-bottom-color: #4CAF50;
-    box-shadow: 0 0 40px rgba(107, 203, 119, 0.3);
+/* ==========================================================
+   RETOURS : succès (vert + ✓) / erreur (rouge doux + ✗)
+   ========================================================== */
+.cadre.succes, .exo.succes, .exo-contenu.succes {
+  animation: successBounce .6s cubic-bezier(.175, .885, .32, 1.275);
 }
-.texte-succes {
-    color: #15803d !important; /* Vert foncé pour lisibilité */
-    background-color: #dcfce7 !important; /* Fond vert très clair */
-    border: 2px solid var(--success-color);
+.presentation:has(.cadre.succes), .exo.succes {
+  border-color: var(--encre);
+  background-color: var(--ok-clair);
+  box-shadow: 0 8px 0 var(--ok-fonce);
+}
+.presentation:has(.cadre.erreur), .exo.erreur {
+  border-color: var(--encre);
+  background-color: var(--ko-clair);
+  box-shadow: 0 8px 0 var(--ko-fonce);
+}
+
+.texte-succes, .exo-feedback.ok {
+  color: var(--ok-fonce) !important;
+  background-color: var(--ok-clair) !important;
+  border: 3px solid var(--ok-fonce) !important;
+  font-weight: 800;
+}
+.texte-succes::before, .exo-feedback.ok::before {
+  content: "✅";
+  font-size: 1.3em;
+}
+.texte-erreur, .exo-feedback.ko {
+  color: var(--ko-fonce) !important;
+  background-color: var(--ko-clair) !important;
+  border: 3px solid var(--ko-fonce) !important;
+  font-weight: 800;
+}
+.texte-erreur::before, .exo-feedback.ko::before {
+  content: "❌";
+  font-size: 1.3em;
+}
+.exo-feedback {
+  display: inline-flex;
+  align-items: center;
+  gap: .5em;
+  padding: 10px 22px;
+  border-radius: var(--rayon);
+  font-size: clamp(1.15rem, 4vw, 1.4rem);
 }
 
 @keyframes successBounce {
   0% { transform: scale(1); }
-  50% { transform: scale(1.08) translateY(-10px); }
+  50% { transform: scale(1.04) translateY(-8px); }
   100% { transform: scale(1) translateY(0); }
 }
 
-/* ERREUR : Tremblement doux */
-.cadre.erreur {
-    animation: gentleShake 0.5s ease-in-out;
-    border-color: var(--error-color);
-    border-bottom-color: #E11D48;
+.cadre.erreur, .exo.erreur, .exo-contenu.erreur {
+  animation: gentleShake .5s ease-in-out;
 }
-.texte-erreur {
-    color: #be123c !important; /* Rouge foncé pour lisibilité */
-    background-color: #ffe4e6 !important; /* Fond rouge très clair */
-    border: 2px solid var(--error-color);
-}
-
 @keyframes gentleShake {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-8px) rotate(-1deg); }
-    40%, 80% { transform: translateX(8px) rotate(1deg); }
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px) rotate(-1deg); }
+  40%, 80% { transform: translateX(8px) rotate(1deg); }
 }
 
-/* RESPONSIVE ADDITIONNEL POUR TRES PETITS ECRANS (ex: iPhone SE) */
-@media (max-width: 480px) {
-    .presentation { 
-      padding: 30px 15px; 
-      margin-top: 40px; /* Plus d'espace pour la mascotte */
-    }
-    
-    #calcul { 
-      min-width: 95%; 
-      font-size: clamp(1.8rem, 10vw, 2.5rem); 
-      padding: 15px 10px; 
-    }
-    
-    #saisieReponse { 
-      width: 100%; 
-      max-width: 200px;
-      height: 70px; 
-      font-size: 2.5rem;
-    }
-    
-    #niveau-selection { 
-      flex-direction: column !important; 
-      gap: 8px !important; 
-      width: 100%;
-    }
-
-    #niveau-selection select {
-      width: 100%;
-      text-align: center;
-    }
-
-    .mana-conteneur {
-      max-width: 100%;
-      height: 10px;
-    }
-
-    .mascotte-guide {
-      width: 60px;
-      height: 60px;
-      top: -50px;
-      right: 10px;
-    }
-
-    .presentation::before, .presentation::after { 
-      font-size: 30px;
-    }
-    .presentation::before { top: -15px; left: -10px; }
-    .presentation::after { bottom: -10px; right: -10px; }
-}
-
-@media (max-width: 380px) {
-    .presentation::before, .presentation::after { display: none; } /* Cacher les decos sur tout petit écran */
-}
-
-/* --- BARRE DE MANA (Progression) --- */
-.mana-conteneur {
+/* ==========================================================
+   BARRE DE MANA (progression)
+   ========================================================== */
+.mana-conteneur, .exo-mana {
   width: 100%;
-  max-width: 400px;
-  height: 12px;
-  background-color: #E2E8F0;
-  border-radius: 10px;
-  margin-bottom: 20px;
+  max-width: 420px;
+  height: 22px;
+  background-color: #FFFFFF;
+  border-radius: 999px;
+  margin-bottom: 14px;
   overflow: hidden;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-  border: 2px solid #FFF;
+  border: 3px solid var(--encre);
+  box-shadow: 0 3px 0 var(--encre);
 }
-
-.mana-barre {
+.mana-barre, .exo-mana-barre {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
-  box-shadow: 0 0 10px rgba(65, 182, 230, 0.5);
-  transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: repeating-linear-gradient(135deg, var(--u, var(--calcul)) 0 14px, color-mix(in srgb, var(--u, var(--calcul)) 78%, #fff) 14px 28px);
+  border-right: 3px solid var(--encre);
+  border-radius: 0 999px 999px 0;
+  transition: width .5s cubic-bezier(.175, .885, .32, 1.275);
 }
+.mana-barre[style*="width: 0%"], .mana-barre[style*="width:0%"] { border-right-width: 0; }
 
-/* --- MASCOTTE (Flamme Bleue) --- */
-.mascotte-guide {
+/* ==========================================================
+   MASCOTTE (flamme bleue) — <img src="…/images/mascotte-*.svg"> ou svg inline
+   ========================================================== */
+.mascotte-guide, .exo-mascotte {
   position: absolute;
-  top: -60px;
+  top: -66px;
   right: 20px;
-  width: 80px;
-  height: 80px;
+  width: 92px;
+  height: 92px;
   z-index: 5;
   animation: hoverMascotte 4s ease-in-out infinite;
   pointer-events: none;
 }
-
+.mascotte-guide img, .mascotte-guide svg, .exo-mascotte img, .exo-mascotte svg { width: 100%; height: 100%; }
 @keyframes hoverMascotte {
-  0%, 100% { transform: translateY(0) rotate(-5deg); }
-  50% { transform: translateY(-15px) rotate(5deg); }
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-10px) rotate(4deg); }
 }
 
-/* Styles partagés pour la Géométrie */
-.bouton-option { 
-    margin: 8px; 
-    padding: 10px 25px; 
-    min-height: 48px; /* Accessibilité : cible tactile confortable */
-    background-color: var(--card-bg); 
-    color: var(--text-color); 
-    border-radius: 20px; 
-    border: 3px solid #E2E8F0; 
-    font-family: 'Lexend', sans-serif;
-    font-weight: 600; 
-    cursor: pointer; 
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-    font-size: 1.1rem; 
-    box-shadow: 0 6px 0px #CBD5E1; 
-    min-width: 150px; 
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+/* ==========================================================
+   Styles partagés pour la Géométrie (boutons de choix)
+   ========================================================== */
+.bouton-option {
+  margin: 8px;
+  padding: 10px 25px;
+  min-height: 60px;
+  background-color: var(--carte);
+  color: var(--encre);
+  border-radius: 20px;
+  border: var(--contour);
+  font-family: var(--police-titre);
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease, background-color .12s;
+  font-size: 1.15rem;
+  box-shadow: 0 5px 0 var(--encre);
+  min-width: 150px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-
-.bouton-option:hover { 
-    transform: translateY(-4px); 
-    background-color: var(--secondary-color);
-    border-color: var(--secondary-color);
-    color: white;
-    box-shadow: 0 10px 0px #2A9BCB, 0 15px 20px rgba(65, 182, 230, 0.2); 
+.bouton-option:hover {
+  transform: translateY(-3px);
+  background-color: var(--u-clair, var(--geometrie-clair));
+  box-shadow: 0 8px 0 var(--encre);
 }
+.bouton-option:active { transform: translateY(5px); box-shadow: 0 0 0 var(--encre); }
 
-.bouton-option:active { 
-    transform: translateY(6px); 
-    box-shadow: 0 0px 0px #CBD5E1; 
-}
-
-/* Bouton valider spécifique pour le mode clavier en géométrie */
+/* Bouton valider spécifique (clavier en géométrie) = bouton principal */
 button.bouton-option[aria-label="Valider la réponse"] {
-    background-color: var(--accent-color);
-    color: white;
-    border-color: var(--accent-color);
-    box-shadow: 0 6px 0px #CC7000;
+  background-color: var(--action);
+  color: var(--encre);
+  min-height: 68px;
+  font-size: 1.3rem;
 }
-button.bouton-option[aria-label="Valider la réponse"]:hover {
-    background-color: #FFA533;
-    color: white;
-    box-shadow: 0 8px 0px #CC7000, 0 10px 20px rgba(255, 140, 0, 0.3);
+button.bouton-option[aria-label="Valider la réponse"]:hover { background-color: #FFA040; }
+
+#forme-conteneur svg {
+  width: 100%;
+  max-height: 220px;
+  display: block;
+  margin: 0 auto;
 }
-button.bouton-option[aria-label="Valider la réponse"]:active {
-    box-shadow: 0 0px 0px #CC7000;
+#zone-reponse {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 15px;
+  gap: 15px;
+  min-height: 120px;
+  align-items: center;
 }
 
-#forme-conteneur svg { 
-    width: 100%; 
-    max-height: 220px; 
-    display: block; 
-    margin: 0 auto; 
-    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
-}
-#zone-reponse { 
-    display: flex; 
-    flex-wrap: wrap; 
-    justify-content: center; 
-    margin-top: 15px; 
-    gap: 15px; 
-    min-height: 120px; 
-    align-items: center; 
-}
-
-/* Stylisation du sélecteur de niveau */
+/* Sélecteur de niveau */
 #niveau-selection select {
-    font-family: 'Lexend', sans-serif;
-    font-size: 1rem;
-    padding: 8px 15px !important;
-    border-radius: 15px !important;
-    border: 3px solid var(--secondary-color) !important;
-    background-color: white !important;
-    color: var(--primary-color) !important;
-    box-shadow: 0 4px 0 rgba(65, 182, 230, 0.3);
-    outline: none;
-    cursor: pointer;
-    transition: transform 0.1s;
+  font-family: var(--police-titre);
+  font-size: 1rem;
+  min-height: 48px;
+  padding: 8px 15px !important;
+  border-radius: 16px !important;
+  border: var(--contour) !important;
+  background-color: white !important;
+  color: var(--encre) !important;
+  box-shadow: 0 4px 0 var(--encre);
+  cursor: pointer;
+  transition: transform .1s;
 }
-#niveau-selection select:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 rgba(65, 182, 230, 0.3);
-}
+#niveau-selection select:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--encre); }
 #niveau-selection label {
-    font-family: 'Lexend', sans-serif;
-    color: var(--text-muted) !important;
+  font-family: var(--police-titre);
+  color: var(--encre) !important;
+  font-weight: 800;
+}
+
+/* ==========================================================
+   PETITS ÉCRANS
+   ========================================================== */
+@media (max-width: 480px) {
+  .presentation, .exo { padding: 34px 14px 26px; margin-top: 48px; }
+  #calcul, .exo-question { min-width: 95%; font-size: clamp(1.9rem, 10vw, 2.7rem); padding: 14px 10px; }
+  #saisieReponse, .exo-reponse { width: 100%; max-width: 220px; height: 80px; font-size: 2.7rem; }
+  #niveau-selection { flex-direction: column !important; gap: 8px !important; width: 100%; }
+  #niveau-selection select { width: 100%; text-align: center; }
+  .mana-conteneur, .exo-mana { max-width: 100%; }
+  .mascotte-guide, .exo-mascotte { width: 70px; height: 70px; top: -52px; right: 10px; }
+  .presentation::after, .exo::after { width: 38px; height: 38px; right: -8px; bottom: -14px; }
+}
+@media (max-width: 380px) {
+  .presentation::after, .exo::after { display: none; }
 }

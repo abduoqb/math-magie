@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Trophées">
+<path d="M58 54C22 54 20 112 70 118" fill="none" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="14"/>
+<path d="M58 54C22 54 20 112 70 118" fill="none" stroke="#FACC15" stroke-width="6" stroke-linecap="round"/>
+<path d="M142 54C178 54 180 112 130 118" fill="none" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="14"/>
+<path d="M142 54C178 54 180 112 130 118" fill="none" stroke="#FACC15" stroke-width="6" stroke-linecap="round"/>
+<path d="M56 30H144V84C144 114 124 130 100 130C76 130 56 114 56 84Z" fill="#FACC15" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="5"/>
+<path d="M72 44V84C72 100 80 110 90 116" fill="none" stroke="#FFF7C2" stroke-width="8" stroke-linecap="round"/>
+<polygon points="100.0,54.0 106.5,69.1 122.8,70.6 110.5,81.4 114.1,97.4 100.0,89.0 85.9,97.4 89.5,81.4 77.2,70.6 93.5,69.1" fill="#FFFFFF" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="3"/>
+<rect x="90" y="128" width="20" height="26" fill="#EAB308" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="4"/>
+<rect x="60" y="152" width="80" height="30" rx="10" fill="#8B5CF6" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="5"/>
+<path d="M78 167H122" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+<path d="M168 12Q171.24 26.76 186 30Q171.24 33.24 168 48Q164.76 33.24 150 30Q164.76 26.76 168 12Z" fill="#FFF7C2" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="3"/><polygon points="28.0,24.0 31.2,31.6 39.4,32.3 33.1,37.7 35.1,45.7 28.0,41.4 20.9,45.7 22.9,37.7 16.6,32.3 24.8,31.6" fill="#FACC15" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="3"/>
+</svg>

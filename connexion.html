@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion — Mathémagie</title>
-    <link rel="icon" type="image/png" href="images/logo_transparant.png">
+    <link rel="icon" type="image/svg+xml" href="images/mascotte-neutre.svg">
     <link rel="stylesheet" href="style/commun.css">
     <link rel="stylesheet" href="style/connexion.css">
 </head>
@@ -87,9 +87,18 @@
         return section;
       }
 
-      function entete(emoji, titre, sousTitre) {
+      // Mascotte SVG (repli sur l'emoji si l'image est absente)
+      function mascotte(fichier, emoji) {
+        const img = el('img', { class: 'mascotte-connexion', src: 'images/' + fichier + '.svg', alt: '', width: '110', height: '110' });
+        img.addEventListener('error', () => {
+          if (img.parentNode) img.replaceWith(el('span', { class: 'logo-flottant', 'aria-hidden': 'true' }, emoji));
+        });
+        return img;
+      }
+
+      function entete(emoji, titre, sousTitre, mascotteFichier) {
         return [
-          el('span', { class: 'logo-flottant', 'aria-hidden': 'true' }, emoji),
+          mascotteFichier ? mascotte(mascotteFichier, emoji) : el('span', { class: 'logo-flottant', 'aria-hidden': 'true' }, emoji),
           el('h2', null, titre),
           sousTitre ? el('p', { class: 'sous-titre' }, sousTitre) : null
         ];
@@ -206,13 +215,13 @@
         cartes.push(el('button', {
           type: 'button', class: 'carte-profil carte-nouveau', 'aria-label': 'Créer un nouveau mage',
           onclick: () => aller(() => ecranCreation())
-        }, el('span', { class: 'avatar-grand', 'aria-hidden': 'true' }, '➕'), el('span', { class: 'prenom' }, 'Nouveau mage')));
+        }, el('span', { class: 'avatar-grand', 'aria-hidden': 'true' }, '➕'), el('span', { class: 'prenom' }, 'Nouveau')));
 
         ecran('ecran-profils', consigne,
-          entete('🔮', 'Qui joue ?', 'Touche ton prénom'),
+          entete('🔮', 'Qui joue ?', 'Touche ton prénom', 'mascotte-neutre'),
           el('div', { class: 'grille-profils' }, cartes),
           el('div', { class: 'pied' },
-            el('button', { type: 'button', class: 'btn btn-discret', onclick: () => aller(ecranParentAcces) }, '👨‍👩‍👧 Espace parent'))
+            el('button', { type: 'button', class: 'btn btn-discret btn-parent', onclick: () => aller(ecranParentAcces) }, '🔒 Espace parent'))
         );
       }
 
@@ -238,13 +247,13 @@
           if (r.bloque) { demarrerPause(pave, r.restantMs); return; }
           pave.reinitialiser();
           pave.desactiver(false);
-          pave.message('Ce n\'est pas le bon code. Il te reste ' + r.essaisRestants + ' essai' + (r.essaisRestants > 1 ? 's' : '') + '.', 'erreur');
+          pave.message('Oups, ce n\'est pas le bon code. Essaie encore ! (' + r.essaisRestants + ' essai' + (r.essaisRestants > 1 ? 's' : '') + ')', 'erreur');
         });
         ecran('ecran-code', consigne,
           el('div', { class: 'mini-profil', style: '--couleur-profil:' + info.couleur },
             el('span', { class: 'avatar-grand', 'aria-hidden': 'true' }, info.avatar),
             el('span', { class: 'prenom' }, nom)),
-          el('h2', null, 'Ton code secret'),
+          el('h2', null, 'Ton code secret 🔑'),
           pave.racine,
           el('div', { class: 'pied' }, btnRetour(() => aller(ecranProfils), 'Changer de mage'))
         );
@@ -261,8 +270,13 @@
         etape = etape || 1;
         if (etape === 1) { Object.keys(etatCreation).forEach(k => delete etatCreation[k]); }
         const total = 6;
-        const progression = () => el('div', { class: 'etapes', role: 'img', 'aria-label': 'Étape ' + etape + ' sur ' + total },
-          Array.from({ length: total }, (_, i) => el('span', { class: 'etape' + (i + 1 <= etape ? ' faite' : '') })));
+        const iconesEtapes = ['✏️', '🎒', '🧙', '🎨', '🔑', '✅'];
+        const progression = () => el('div', { class: 'etapes', role: 'img', 'aria-label': 'Étape ' + etape + ' sur ' + total,
+          style: '--avance:' + Math.round(((etape - 1) / (total - 1)) * 100) + '%' },
+          el('span', { class: 'etapes-barre', 'aria-hidden': 'true' }, el('span', { class: 'etapes-remplie' })),
+          Array.from({ length: total }, (_, i) => el('span', {
+            class: 'etape' + (i + 1 < etape ? ' faite' : '') + (i + 1 === etape ? ' courante' : ''), 'aria-hidden': 'true'
+          }, i + 1 < etape ? '✓' : iconesEtapes[i])));
         const retour = () => btnRetour(() => aller(() => etape === 1 ? ecranProfils() : ecranCreation(etape - 1)));
 
         if (etape === 1) { // prénom
@@ -282,7 +296,7 @@
             aller(() => ecranCreation(2));
           };
           champ.addEventListener('keydown', e => { if (e.key === 'Enter') suite(); });
-          ecran('ecran-creation', consigne, progression(), entete('✏️', 'Ton prénom'), champ, erreur,
+          ecran('ecran-creation', consigne, progression(), entete('✏️', 'Ton prénom', null, 'mascotte-lecture'), champ, erreur,
             el('div', { class: 'pied' }, retour(), el('button', { type: 'button', class: 'btn btn-principal', onclick: suite }, 'Suivant →')));
           champ.focus();
         } else if (etape === 2) { // classe
@@ -321,7 +335,7 @@
           const pave = creerPave(async (code) => {
             if (code !== etatCreation.code) {
               pave.secouer(); pave.reinitialiser();
-              pave.message('Ce n\'est pas le même code. Recommence !', 'erreur');
+              pave.message('Oups, ce n\'est pas le même code. Recommence !', 'erreur');
               return;
             }
             pave.desactiver(true);

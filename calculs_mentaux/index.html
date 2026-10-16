@@ -3,114 +3,88 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Calculs Mentaux</title>
+    <title>Calcul</title>
     <link rel="icon" type="image/png" href="../images/logo_transparant.png">
     <link rel="stylesheet" href="../style/commun.css" />
-    <link rel="stylesheet" href="../style/missions-liste.css" />
+    <link rel="stylesheet" href="../style/calculs.css" />
     <script src="../js/profils.js"></script>
     <script src="../js/composants/header.js" defer></script>
   </head>
-  <body>
+  <body class="calc-body calc-body-liste">
     <script>gestionnaireProfils.verifierAccesOuRediriger('../');</script>
     <app-header base-path="../"></app-header>
-    <main>
-      <section class="entete-missions">
-        <h2>Choisis ta mission !</h2>
-        <p>Quelle opération souhaites-tu maîtriser aujourd'hui ?</p>
+    <main class="calc-page">
+      <section class="calc-liste-entete">
+        <img class="calc-liste-img" src="../images/univers-calcul.svg" alt="" />
+        <div>
+          <h1 class="titre">Calcul</h1>
+          <p>Choisis une opération !</p>
+        </div>
       </section>
 
-      <section class="choix-calculs" id="choix-calculs">
-        <article class="carte-mission" data-op="additions">
-          <div class="badge-difficulte"></div>
-          <a href="additions/additions.html">
-            <figure>
-              <img src="../images/addition.png" alt="Illustration d'une addition" />
-              <figcaption>
-                <h3>Additions</h3>
-                <span class="btn-lancer">GO !</span>
-              </figcaption>
-            </figure>
-          </a>
-        </article>
-
-        <article class="carte-mission" data-op="soustractions">
-          <div class="badge-difficulte"></div>
-          <a href="soustractions/soustractions.html">
-            <figure>
-              <img src="../images/soustraction.png" alt="Illustration d'une soustraction" />
-              <figcaption>
-                <h3>Soustractions</h3>
-                <span class="btn-lancer">GO !</span>
-              </figcaption>
-            </figure>
-          </a>
-        </article>
-
-        <article class="carte-mission" data-op="multiplications">
-          <div class="badge-difficulte"></div>
-          <a href="multiplications/multiplications.html">
-            <figure>
-              <img src="../images/multiplication.png" alt="Illustration d'une multiplication" />
-              <figcaption>
-                <h3>Multiplications</h3>
-                <span class="btn-lancer">GO !</span>
-              </figcaption>
-            </figure>
-          </a>
-        </article>
-
-        <article class="carte-mission" data-op="divisions">
-          <div class="badge-difficulte"></div>
-          <a href="divisions/divisions.html">
-            <figure>
-              <img src="../images/division.png" alt="Illustration d'une division" />
-              <figcaption>
-                <h3>Divisions</h3>
-                <span class="btn-lancer">GO !</span>
-              </figcaption>
-            </figure>
-          </a>
-        </article>
+      <section class="calc-ops" id="choix-calculs">
+        <a class="calc-op calc-op-additions" data-op="additions" href="additions/additions.html">
+          <img class="calc-op-img" src="../images/op-addition.svg" alt="" />
+          <span class="calc-op-nom">Additions</span>
+          <span class="calc-op-palier" role="img" aria-label="Palier"></span>
+          <span class="calc-op-go">Jouer</span>
+        </a>
+        <a class="calc-op calc-op-soustractions" data-op="soustractions" href="soustractions/soustractions.html">
+          <img class="calc-op-img" src="../images/op-soustraction.svg" alt="" />
+          <span class="calc-op-nom">Soustractions</span>
+          <span class="calc-op-palier" role="img" aria-label="Palier"></span>
+          <span class="calc-op-go">Jouer</span>
+        </a>
+        <a class="calc-op calc-op-multiplications" data-op="multiplications" href="multiplications/multiplications.html">
+          <img class="calc-op-img" src="../images/op-multiplication.svg" alt="" />
+          <span class="calc-op-nom">Multiplications</span>
+          <span class="calc-op-palier" role="img" aria-label="Palier"></span>
+          <span class="calc-op-go">Jouer</span>
+        </a>
+        <a class="calc-op calc-op-divisions" data-op="divisions" href="divisions/divisions.html">
+          <img class="calc-op-img" src="../images/op-division.svg" alt="" />
+          <span class="calc-op-nom">Divisions</span>
+          <span class="calc-op-palier" role="img" aria-label="Palier"></span>
+          <span class="calc-op-go">Jouer</span>
+        </a>
       </section>
     </main>
-    <style>
-      .carte-mission.inactive { opacity: 0.55; filter: grayscale(1); }
-      .carte-mission.inactive a { cursor: not-allowed; pointer-events: none; }
-      .carte-mission .consigne-carte { margin: 6px 0 0; font-size: 1rem; color: var(--text-muted); text-align: center; }
-    </style>
     <script>
       (function () {
         var gp = (typeof gestionnaireProfils !== 'undefined') ? gestionnaireProfils : null;
         var classe = gp && gp.getNiveauClasse ? gp.getNiveauClasse() : null;
         var prog = (gp && gp.getProgramme && gp.getProgramme()) || (window.PROGRAMMES && (window.PROGRAMMES[classe || 'cm1'] || window.PROGRAMMES.cm1)) || null;
         if (!prog || !prog.calcul) return;
-        document.querySelectorAll('.carte-mission[data-op]').forEach(function (carte) {
+        function etoiles(actives, total) {
+          var h = '';
+          for (var i = 1; i <= total; i++) {
+            h += '<img class="calc-etoile' + (i <= actives ? ' on' : '') + '" src="../images/etoile.svg" alt="" />';
+          }
+          return h;
+        }
+        document.querySelectorAll('.calc-op[data-op]').forEach(function (carte) {
           var op = carte.getAttribute('data-op');
           var def = prog.calcul[op];
-          var titre = carte.querySelector('h3');
-          var badge = carte.querySelector('.badge-difficulte');
-          var btn = carte.querySelector('.btn-lancer');
-          var lien = carte.querySelector('a');
+          var titre = carte.querySelector('.calc-op-nom');
+          var zone = carte.querySelector('.calc-op-palier');
+          var btn = carte.querySelector('.calc-op-go');
           if (!def || def.actif === false) {
             carte.classList.add('inactive');
-            lien.removeAttribute('href');
-            lien.setAttribute('aria-disabled', 'true');
-            lien.setAttribute('tabindex', '-1');
+            carte.removeAttribute('href');
+            carte.setAttribute('aria-disabled', 'true');
+            carte.setAttribute('tabindex', '-1');
             if (def && def.libelle) titre.textContent = def.libelle;
-            badge.textContent = prog.libelle;
-            btn.textContent = 'Pas encore au programme';
+            zone.remove();
+            btn.textContent = 'Plus tard';
             return;
           }
           titre.textContent = def.libelle || titre.textContent;
           var palier = 1;
           try { var pr = gp && gp.getProgression ? gp.getProgression(op) : null; palier = (pr && pr.niveau) || 1; } catch (e) {}
-          badge.textContent = 'PALIER ' + palier + '/' + def.niveaux.length;
-          if (def.consigne) {
-            var p = document.createElement('p');
-            p.className = 'consigne-carte';
-            p.textContent = def.consigne;
-            titre.insertAdjacentElement('afterend', p);
-          }
+          var total = def.niveaux.length;
+          palier = Math.min(total, Math.max(1, palier));
+          zone.innerHTML = etoiles(palier, total);
+          zone.setAttribute('aria-label', 'Palier ' + palier + ' sur ' + total);
         });
       })();
     </script>

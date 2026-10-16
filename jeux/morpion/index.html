@@ -6,104 +6,40 @@
     <title>Morpion - Mathémagie</title>
     <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
     <link rel="stylesheet" href="../../style/commun.css">
-    <link rel="stylesheet" href="../../style/exercice-commun.css">
+    <link rel="stylesheet" href="../../style/jeux.css">
     <script src="../../js/profils.js"></script>
     <link rel="stylesheet" href="../commun.css">
     <script src="../commun.js"></script>
     <script src="../../js/composants/header.js" defer></script>
-    <style>
-      .jeu-conteneur { text-align: center; }
-      .grille-morpion {
-        display: grid; grid-template-columns: repeat(3, 1fr);
-        gap: 8px; max-width: 320px; margin: 20px auto;
-      }
-      .case-morpion {
-        width: 100px; height: 100px; border-radius: 16px;
-        background: #F8FAFC; border: 3px solid #E2E8F0;
-        font-size: 2.8rem; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        font-family: 'Lexend', sans-serif; font-weight: 800;
-      }
-      .case-morpion:hover:not(.jouee) {
-        transform: scale(1.05); border-color: var(--secondary-color);
-        background: white; box-shadow: 0 6px 15px rgba(65, 182, 230, 0.2);
-      }
-      .case-morpion.jouee { cursor: default; }
-      .case-morpion.x { color: var(--secondary-color); }
-      .case-morpion.o { color: var(--accent-color); }
-      .case-morpion.gagnante {
-        background: var(--success-color) !important; color: white !important;
-        border-color: var(--success-color) !important;
-        animation: pulseWin 0.6s ease;
-      }
-      @keyframes pulseWin {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-      }
-      .tour-info {
-        font-size: 1.4rem; font-weight: 700; margin: 10px 0;
-        font-family: 'Lexend', sans-serif; color: var(--text-muted);
-        min-height: 45px;
-      }
-      .tour-info .symbole { font-size: 1.6rem; }
-      .score-board {
-        display: flex; justify-content: center; gap: 30px; margin-top: 15px;
-      }
-      .score-item {
-        font-family: 'Lexend', sans-serif; font-weight: 700;
-        font-size: 1.1rem; color: var(--text-muted);
-      }
-      .score-item span { font-size: 1.5rem; color: #475569; }
-      .mode-selector {
-        display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;
-      }
-      .mode-btn {
-        padding: 8px 20px; border-radius: 20px; border: 2px solid #E2E8F0;
-        background: #F8FAFC; font-family: 'Lexend', sans-serif; font-weight: 700;
-        font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease;
-      }
-      .mode-btn:hover { border-color: var(--secondary-color); background: white; }
-      .mode-btn.actif {
-        background: var(--secondary-color); color: white;
-        border-color: var(--secondary-color); box-shadow: 0 3px 10px rgba(65, 182, 230, 0.3);
-      }
-      .ia-reflexion {
-        display: inline-block; animation: pulse 0.8s ease infinite;
-      }
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.4; }
-      }
-      @media (max-width: 400px) {
-        .case-morpion { width: 85px; height: 85px; font-size: 2.2rem; }
-        .grille-morpion { max-width: 280px; }
-      }
-    </style>
 </head>
-<body>
+
+<body class="jeu-page jeu-morpion">
     <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
     <app-header base-path="../../"></app-header>
     <main>
-      <a href="../index.html" class="lien-retour">← Salle de Jeux</a>
-      <h2 class="titre">❌⭕ Morpion</h2>
+      <a href="../index.html" class="lien-retour">← Jeux</a>
+      <h2 class="titre"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><g stroke="#2B2D5B" stroke-width="5" stroke-linecap="round"><line x1="44" y1="14" x2="44" y2="106"/><line x1="76" y1="14" x2="76" y2="106"/><line x1="14" y1="44" x2="106" y2="44"/><line x1="14" y1="76" x2="106" y2="76"/></g>
+<g stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="18" y1="18" x2="36" y2="36"/><line x1="36" y1="18" x2="18" y2="36"/><line x1="84" y1="84" x2="102" y2="102"/><line x1="102" y1="84" x2="84" y2="102"/><line x1="51" y1="51" x2="69" y2="69"/><line x1="69" y1="51" x2="51" y2="69"/></g>
+<g fill="none" stroke="#BE123C" stroke-width="8"><circle cx="60" cy="27" r="9"/><circle cx="27" cy="60" r="9"/><circle cx="93" cy="93" r="9" stroke-opacity="0"/><circle cx="93" cy="60" r="9"/></g></svg> Morpion</h2>
       <div class="presentation">
         <div class="cadre">
           <div class="jeu-conteneur">
             <div class="mode-selector">
-              <button class="mode-btn actif" id="btn-2j" onclick="changerMode(false)">👫 2 Joueurs</button>
-              <button class="mode-btn" id="btn-ia" onclick="changerMode(true)">🤖 vs IA</button>
+              <button class="mode-btn actif" id="btn-2j" onclick="changerMode(false)">2 joueurs</button>
+              <button class="mode-btn" id="btn-ia" onclick="changerMode(true)">Contre l'IA</button>
             </div>
             <div id="zone-defi"></div>
-            <p id="tour-info" class="tour-info">Tour de <span class="symbole" style="color:var(--secondary-color)">❌</span></p>
+            <div class="jeu-parole">
+              <img class="jeu-mascotte" src="../../images/mascotte-neutre.svg" data-dossier="../../images/" data-etat="neutre" alt="" width="76" height="76" onerror="this.style.display='none'">
+              <p id="tour-info" class="tour-info">Tour de <span class="symbole x">X</span></p>
+            </div>
             <div class="grille-morpion" id="grille"></div>
             <div class="score-board">
-              <div class="score-item score-x">❌ : <span id="score-x">0</span></div>
-              <div class="score-item">Nul : <span id="score-nul">0</span></div>
-              <div class="score-item score-o">⭕ : <span id="score-o">0</span></div>
+              <div class="score-item score-x"><b class="pion x">X</b><span id="score-x">0</span></div>
+              <div class="score-item">Nul <span id="score-nul">0</span></div>
+              <div class="score-item score-o"><b class="pion o">O</b><span id="score-o">0</span></div>
             </div>
-            <button id="changer" onclick="reinitialiser()" style="margin-top:15px;">🔄 Rejouer</button>
+            <button id="changer" onclick="reinitialiser()">Rejouer</button>
           </div>
         </div>
       </div>
@@ -124,6 +60,11 @@
         [0,3,6], [1,4,7], [2,5,8],
         [0,4,8], [2,4,6]
       ];
+
+      function dire(html, cls) {
+        tourInfoEl.className = 'tour-info' + (cls ? ' ' + cls : '');
+        tourInfoEl.innerHTML = html;
+      }
 
       function changerMode(ia) {
         modeIA = ia;
@@ -157,15 +98,19 @@
         plateau[index] = joueur;
 
         const cases = grilleEl.children;
-        cases[index].textContent = tourX ? '❌' : '⭕';
+        cases[index].textContent = tourX ? 'X' : 'O';
         cases[index].classList.add('jouee', tourX ? 'x' : 'o');
 
         const combo = verifierGagnant(joueur);
         if (combo) {
           partieTerminee = true;
           combo.forEach(i => cases[i].classList.add('gagnante'));
-          const gagnant = tourX ? '❌' : '⭕';
-          tourInfoEl.innerHTML = `🎉 ${gagnant} a gagné !`;
+          const gagnant = tourX ? 'X' : 'O';
+          const perduIA = modeIA && !tourX;
+          dire(perduIA
+            ? `L'IA a gagné ! On rejoue ?`
+            : `<span class="pion ${tourX ? 'x' : 'o'}">${gagnant}</span> a gagné ! Bravo !`, perduIA ? 'fin-ko' : 'fin-ok');
+          JeuxNiveau.mascotte(perduIA ? 'triste' : 'contente');
           cadre.classList.add('succes');
           if (tourX) scores.x++; else scores.o++;
           majScores();
@@ -175,20 +120,19 @@
 
         if (plateau.every(c => c !== 0)) {
           partieTerminee = true;
-          tourInfoEl.textContent = '🤝 Match nul !';
+          dire('Match nul ! Bien joué !', 'fin-nul');
+          JeuxNiveau.mascotte('neutre');
           scores.nul++;
           majScores();
           return;
         }
 
         tourX = !tourX;
-        const couleur = tourX ? 'var(--secondary-color)' : 'var(--accent-color)';
-        const symbole = tourX ? '❌' : '⭕';
-        tourInfoEl.innerHTML = `Tour de <span class="symbole" style="color:${couleur}">${symbole}</span>`;
+        dire(`Tour de <span class="symbole ${tourX ? 'x' : 'o'}">${tourX ? 'X' : 'O'}</span>`);
 
         // Tour de l'IA
         if (modeIA && !tourX) {
-          tourInfoEl.innerHTML = '<span class="ia-reflexion">🤖 L\'IA réfléchit...</span>';
+          dire('<span class="ia-reflexion">L\'IA réfléchit…</span>');
           setTimeout(() => {
             const coupIA = minimax(plateau, 2, true).index;
             jouer(coupIA);
@@ -235,7 +179,8 @@
         tourX = true;
         partieTerminee = false;
         cadre.classList.remove('succes', 'erreur');
-        tourInfoEl.innerHTML = 'Tour de <span class="symbole" style="color:var(--secondary-color)">❌</span>';
+        dire('Tour de <span class="symbole x">X</span>');
+        JeuxNiveau.mascotte('neutre');
         creerGrille();
       }
 

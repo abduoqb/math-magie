@@ -6,27 +6,25 @@
     <title>Missions Géométrie - Mathémagie</title>
     <link rel="icon" type="image/png" href="../images/logo_transparant.png" />
     <link rel="stylesheet" href="../style/commun.css" />
-    <link rel="stylesheet" href="../style/missions-liste.css" />
+    <link rel="stylesheet" href="../style/geometrie.css" />
     <script src="../js/profils.js"></script>
     <script src="../js/composants/header.js" defer></script>
     <script src="js/programme_geo.js"></script>
-    <style>
-      .carte-mission.carte-inactive { opacity: 0.55; filter: grayscale(1); cursor: not-allowed; }
-      .carte-mission.carte-inactive:hover { transform: none; }
-      .carte-mission.carte-inactive .btn-lancer { background: #94a3b8; color: #fff; }
-      .carte-mission.carte-inactive .bloc-inactif { pointer-events: none; }
-    </style>
+    <script src="js/icones_geo.js"></script>
   </head>
-  <body>
+  <body class="geo-index">
     <script>gestionnaireProfils.verifierAccesOuRediriger('../');</script>
     <app-header base-path="../"></app-header>
     <main>
-      <section class="entete-missions">
-        <h2>Académie de Géométrie</h2>
-        <p id="sous-titre">Relève les défis pour devenir un Grand Archimage !</p>
+      <section class="entete-missions geo-hero">
+        <img class="geo-hero-img" src="../images/univers-geometrie.svg" alt="" width="128" height="128" onerror="this.style.display='none'" />
+        <div class="geo-hero-texte">
+          <h2>Académie de Géométrie</h2>
+          <p id="sous-titre">Relève les défis pour devenir un Grand Archimage !</p>
+        </div>
       </section>
 
-      <section class="choix-calculs grille-flexible" id="liste-missions" aria-live="polite"></section>
+      <section class="choix-calculs geo-grille" id="liste-missions" aria-live="polite"></section>
     </main>
     <script>
       (function () {
@@ -41,36 +39,71 @@
           { id: 'geometrie-quadrilateres', page: 'quadrilateres.html', titre: 'Tapis Volants' },
           { id: 'geometrie-patrons', page: 'patrons.html', titre: 'Les Patrons Magiques' }
         ];
-        var liste = document.getElementById('liste-missions');
-        var nbActives = 0;
-        MISSIONS.forEach(function (m, i) {
-          var actif = GeoProgramme.actif(m.id);
-          var titre = m.titre;
+        var CADENAS = '<svg class="geo-cadenas" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="10" width="16" height="11" rx="3" fill="#94A3B8" stroke="#475569" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#475569" stroke-width="2.4" stroke-linecap="round"/></svg>';
+        var estCP = GeoProgramme.estCP();
+        if (estCP) document.body.classList.add('geo-cp');
+
+        function etoilesPour(m, actif) {
+          // 1 étoile par palier du moteur ; remplie quand le palier est validé (>= 8/10)
+          var max = GeoProgramme.maxNiveau(m.id);
+          var niveau = 1;
+          try {
+            var prog = gestionnaireProfils.getProgression(m.id);
+            if (prog && prog.niveau) niveau = prog.niveau;
+          } catch (e) {}
+          var faites = Math.max(0, Math.min(max, niveau - 1));
+          var html = '';
+          for (var i = 0; i < max; i++) html += GeoIcones.etoile(i < faites);
+          return { html: html, faites: faites, max: max };
+        }
+
+        function creerCarte(m, actif) {
           var carte = document.createElement('article');
-          carte.className = 'carte-mission' + (actif ? '' : ' carte-inactive');
-          var badge = document.createElement('div');
-          badge.className = 'badge-difficulte';
-          badge.textContent = 'NIVEAU ' + (i + 1);
-          carte.appendChild(badge);
-          var lien = document.createElement('a'); // <a> sans href quand inactif : garde la mise en page .carte-mission a
-          if (actif) { lien.href = 'missions/' + m.page; nbActives++; }
-          else { lien.className = 'bloc-inactif'; lien.setAttribute('aria-disabled', 'true'); lien.setAttribute('role', 'link'); }
-          var fig = document.createElement('figure');
-          var cap = document.createElement('figcaption');
-          var h3 = document.createElement('h3');
-          h3.textContent = titre;
-          var btn = document.createElement('span');
-          btn.className = 'btn-lancer';
-          btn.textContent = actif ? 'Jouer' : 'Pas encore au programme';
-          cap.appendChild(h3);
-          cap.appendChild(btn);
-          fig.appendChild(cap);
+          carte.className = 'carte-mission geo-carte' + (actif ? '' : ' carte-inactive');
+          var lien = document.createElement('a'); // <a> sans href quand inactif
+          lien.className = 'geo-carte-lien';
+          if (actif) { lien.href = 'missions/' + m.page; }
+          else { lien.classList.add('bloc-inactif'); lien.setAttribute('aria-disabled', 'true'); lien.setAttribute('role', 'link'); }
+          var fig = document.createElement('div');
+          fig.className = 'geo-carte-icone';
+          fig.innerHTML = GeoIcones.svg(m.id);
           lien.appendChild(fig);
+          var h3 = document.createElement('h3');
+          h3.textContent = m.titre;
+          lien.appendChild(h3);
+          if (actif) {
+            var et = etoilesPour(m, actif);
+            var rang = document.createElement('div');
+            rang.className = 'geo-etoiles';
+            rang.setAttribute('role', 'img');
+            rang.setAttribute('aria-label', et.faites + ' étoile' + (et.faites > 1 ? 's' : '') + ' sur ' + et.max);
+            rang.innerHTML = et.html;
+            lien.appendChild(rang);
+          }
+          var btn = document.createElement('span');
+          btn.className = 'btn-lancer geo-cta';
+          if (actif) btn.textContent = 'Jouer';
+          else btn.innerHTML = CADENAS + '<span>Pas encore au programme</span>';
+          lien.appendChild(btn);
           carte.appendChild(lien);
-          liste.appendChild(carte);
-        });
+          return carte;
+        }
+
+        var liste = document.getElementById('liste-missions');
+        var actives = MISSIONS.filter(function (m) { return GeoProgramme.actif(m.id); });
+        var inactives = MISSIONS.filter(function (m) { return !GeoProgramme.actif(m.id); });
+        actives.forEach(function (m) { liste.appendChild(creerCarte(m, true)); });
+        if (inactives.length) {
+          if (actives.length) {
+            var sep = document.createElement('p');
+            sep.className = 'geo-separateur';
+            sep.textContent = 'Plus tard';
+            liste.appendChild(sep);
+          }
+          inactives.forEach(function (m) { liste.appendChild(creerCarte(m, false)); });
+        }
         var st = document.getElementById('sous-titre');
-        if (st) st.textContent = 'Relève les ' + nbActives + ' défis pour devenir un Grand Archimage !';
+        if (st) st.textContent = estCP ? 'Choisis une mission !' : 'Relève les ' + actives.length + ' défis pour devenir un Grand Archimage !';
       })();
     </script>
   </body>

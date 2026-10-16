@@ -2,7 +2,7 @@
 // (programme.calcul.multiplications.niveaux[palier - 1]) via GenerateurCalcul.
 const configMultiplications = {
   nomOperation: "multiplications",
-  operationSign: "x"
+  operationSign: "×"
 };
 
 document.addEventListener("DOMContentLoaded", () => {

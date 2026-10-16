@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Accueil</title>
-    <link rel="icon" type="image/png" href="images/logo_transparant.png" />
+    <title>Accueil — Mathémagie</title>
+    <link rel="icon" type="image/svg+xml" href="images/mascotte-neutre.svg" />
     <link rel="stylesheet" href="style/commun.css" />
     <link rel="stylesheet" href="style/accueil.css" />
     <script src="js/profils.js"></script>
@@ -15,70 +15,52 @@
     <app-header base-path=""></app-header>
     <main>
       <section class="hero-text">
-        <h2 class="titre-anime" id="titre-bienvenue">Prêt pour l'aventure ? ✨</h2>
-        <p id="texte-bienvenue">
-          Deviens un véritable champion des chiffres et des formes en relevant
-          nos super défis !
-        </p>
+        <img class="mascotte-accueil" id="mascotte-accueil" src="images/mascotte-neutre.svg" alt="" width="120" height="120" onerror="this.style.visibility='hidden'" />
+        <div class="hero-bulle">
+          <h2 class="titre-anime" id="titre-bienvenue">Salut ! ✨</h2>
+          <p id="texte-bienvenue">Choisis ton aventure !</p>
+        </div>
         <button type="button" class="btn-lecture" id="btn-lecture" hidden aria-label="Écouter le texte à voix haute">🔊</button>
       </section>
 
-      <section class="activites-grid">
+      <section class="activites-grid" aria-label="Les univers">
         <article class="carte-activite carte-calcul" id="carte-calcul">
           <a href="calculs_mentaux/index.html" class="lien-carte">
-            <div class="badge-nouveau">MISSION 1</div>
+            <span class="icone-univers" aria-hidden="true">➕</span>
             <div class="image-conteneur">
-              <img
-                src="images/addition.png"
-                alt="Illustration d'une addition représentant le calcul mental"
-              />
+              <img src="images/univers-calcul.svg" alt="" onerror="this.style.visibility='hidden'" />
             </div>
             <div class="contenu-carte">
-              <h3>Calcul Mental</h3>
-              <p>
-                Récupère un maximum de points en répondant aux calculs le plus
-                vite possible !
-              </p>
-              <span class="bouton-action">Commencer</span>
+              <h3>Calcul</h3>
+              <p>Calcule vite !</p>
+              <span class="bouton-action">Jouer</span>
             </div>
           </a>
         </article>
 
         <article class="carte-activite carte-geometrie" id="carte-geometrie">
           <a href="geometrie/index.html" class="lien-carte">
-            <div class="badge-nouveau">MISSION 2</div>
+            <span class="icone-univers" aria-hidden="true">📐</span>
             <div class="image-conteneur">
-              <img
-                src="images/geometrie.png"
-                alt="Illustration de formes pour la géométrie"
-              />
+              <img src="images/univers-geometrie.svg" alt="" onerror="this.style.visibility='hidden'" />
             </div>
             <div class="contenu-carte">
-              <h3>Géométrie</h3>
-              <p>
-                Apprends à reconnaître les formes et les solides avec des
-                exercices simples.
-              </p>
-              <span class="bouton-action">Commencer</span>
+              <h3>Formes</h3>
+              <p>Découvre les formes !</p>
+              <span class="bouton-action">Jouer</span>
             </div>
           </a>
         </article>
 
         <article class="carte-activite carte-jeux" id="carte-jeux">
           <a href="jeux/index.html" class="lien-carte">
-            <div class="badge-nouveau" style="background-color: #E07800; box-shadow: 0 4px 10px rgba(224, 120, 0, 0.4);">BONUS</div>
+            <span class="icone-univers" aria-hidden="true">🎲</span>
             <div class="image-conteneur">
-              <img
-                src="images/jeux.png"
-                alt="Illustration de jeux pour la salle de jeux"
-              />
+              <img src="images/univers-jeux.svg" alt="" onerror="this.style.visibility='hidden'" />
             </div>
             <div class="contenu-carte">
-              <h3>Salle de Jeux</h3>
-              <p>
-                Morpion, Puissance 4, Pendu et plus encore... Amuse-toi entre
-                deux missions !
-              </p>
+              <h3>Jeux</h3>
+              <p>Joue et amuse-toi !</p>
               <span class="bouton-action">Jouer</span>
             </div>
           </a>
@@ -99,7 +81,7 @@
         const texte = document.getElementById('texte-bienvenue');
         if (prenom) {
           titre.innerHTML = 'Bonjour ' + esc(prenom) + ' ! ✨';
-          if (!estCP) texte.textContent = "Prêt pour l'aventure ? Relève nos super défis et deviens un champion des chiffres et des formes !";
+          if (!estCP) texte.textContent = "Prêt pour l'aventure ? Choisis ton univers !";
         }
 
         // Cartes sans mission active pour ce niveau: grisées
@@ -124,19 +106,10 @@
           if (btn) btn.textContent = 'Bientôt';
         }
 
-        // Mode CP: textes courts + lecture à voix haute
+        // Mode CP: icônes d'abord, texte minimal + lecture à voix haute
         if (estCP) {
           document.body.classList.add('niveau-cp');
           texte.textContent = 'Choisis ton aventure !';
-          const courts = {
-            'carte-calcul': 'Calcule vite !',
-            'carte-geometrie': 'Découvre les formes !',
-            'carte-jeux': 'Joue et amuse-toi !'
-          };
-          for (const [id, t] of Object.entries(courts)) {
-            const p = document.querySelector('#' + id + ' .contenu-carte p');
-            if (p) p.textContent = t;
-          }
           const btnLecture = document.getElementById('btn-lecture');
           if ('speechSynthesis' in window && window.SpeechSynthesisUtterance) {
             btnLecture.hidden = false;

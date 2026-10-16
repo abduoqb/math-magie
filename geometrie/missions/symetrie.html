@@ -3,33 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Symétrie</title>
-    <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
+    <title>Symétrie - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png" />
+    <link rel="stylesheet" href="../../style/commun.css" />
+    <link rel="stylesheet" href="../../style/geometrie.css" />
+    <script src="../../js/profils.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
     <script src="../js/programme_geo.js" defer></script>
+    <script src="../js/icones_geo.js" defer></script>
     <script src="../js/moteur_geometrie.js" defer></script>
     <script src="../js/symetrie.js" defer></script>
-    <script src="../../js/composants/header.js" defer></script>
-    <script src="../../js/profils.js"></script>
-    <link rel="stylesheet" href="../../style/exercice-commun.css" />
-    <link rel="stylesheet" href="../../style/commun.css" />
-    <style>
-      #forme-conteneur svg { width: 100%; height: 250px; display: block; margin: 0 auto; }
-      /* Boutons : styles hérités de exercice-commun.css */
-      #zone-reponse { display: flex; flex-direction: column; align-items: center; min-height: 200px; margin-top: 10px; }
-      #instructions { margin: 15px 0; font-size: 1.2rem; }
-    </style>
   </head>
-  <body>
+  <body class="geo-page">
     <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
     <app-header base-path="../../"></app-header>
-    <main>
-      <h1 class="titre">Est-ce bien le miroir ?</h1>
+    <main class="geo-main">
+      <h1 class="titre">Symétrie</h1>
       <section class="presentation">
         <div class="cadre">
           <div id="forme-conteneur"></div>
           <div id="instructions"></div>
           <div id="zone-reponse"></div>
-          <p style="margin-top: 30px; font-weight: bold;">Question : <span>0 / 10</span></p>
+          <p id="geo-stats" class="geo-stats">Question <span id="geo-stat">0 / 10</span></p>
         </div>
       </section>
     </main>

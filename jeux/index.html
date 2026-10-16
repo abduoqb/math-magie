@@ -6,69 +6,74 @@
     <title>Salle de Jeux - Mathémagie</title>
     <link rel="icon" type="image/png" href="../images/logo_transparant.png" />
     <link rel="stylesheet" href="../style/commun.css" />
-    <link rel="stylesheet" href="../style/missions-liste.css" />
+    <link rel="stylesheet" href="../style/jeux.css" />
     <script src="../js/profils.js"></script>
     <script src="../js/composants/header.js" defer></script>
   </head>
-  <body>
+  <body class="jeu-index">
     <script>gestionnaireProfils.verifierAccesOuRediriger('../');</script>
     <app-header base-path="../"></app-header>
     <main>
-      <section class="entete-missions">
-        <h2>Salle de Jeux</h2>
-        <p>Défie tes amis ou joue seul !</p>
+      <section class="entete-missions jeu-hero">
+        <img class="jeu-hero-img" src="../images/univers-jeux.svg" alt="" width="128" height="128" onerror="this.style.display='none'" />
+        <div class="jeu-hero-texte">
+          <h2>Salle de Jeux</h2>
+          <p>Défie tes amis ou joue seul !</p>
+        </div>
       </section>
 
-      <section class="choix-calculs">
-        <article class="carte-mission" data-jeu="morpion">
-          <div class="badge-difficulte">2 JOUEURS</div>
-          <a href="morpion/index.html">
-            <figure>
-              <span style="font-size: 5rem; line-height: 1;">❌⭕</span>
-              <figcaption>
-                <h3>Morpion</h3>
-                <span class="btn-lancer">Jouer</span>
-              </figcaption>
-            </figure>
+      <section class="choix-calculs jeu-grille">
+        <article class="carte-mission jeu-carte" data-jeu="morpion">
+          <a class="jeu-carte-lien" href="morpion/index.html">
+            <div class="jeu-carte-image"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><g stroke="#2B2D5B" stroke-width="5" stroke-linecap="round"><line x1="44" y1="14" x2="44" y2="106"/><line x1="76" y1="14" x2="76" y2="106"/><line x1="14" y1="44" x2="106" y2="44"/><line x1="14" y1="76" x2="106" y2="76"/></g>
+<g stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="18" y1="18" x2="36" y2="36"/><line x1="36" y1="18" x2="18" y2="36"/><line x1="84" y1="84" x2="102" y2="102"/><line x1="102" y1="84" x2="84" y2="102"/><line x1="51" y1="51" x2="69" y2="69"/><line x1="69" y1="51" x2="51" y2="69"/></g>
+<g fill="none" stroke="#BE123C" stroke-width="8"><circle cx="60" cy="27" r="9"/><circle cx="27" cy="60" r="9"/><circle cx="93" cy="93" r="9" stroke-opacity="0"/><circle cx="93" cy="60" r="9"/></g></svg></div>
+            <div class="jeu-texte">
+              <h3>Morpion</h3>
+              <span class="jeu-badge"><i></i><i></i> 2 joueurs</span>
+            </div>
+            <span class="btn-lancer jeu-cta">Jouer</span>
           </a>
         </article>
-
-        <article class="carte-mission" data-jeu="puissance4">
-          <div class="badge-difficulte">2 JOUEURS</div>
-          <a href="puissance4/index.html">
-            <figure>
-              <span style="font-size: 5rem; line-height: 1;">🔴🟡</span>
-              <figcaption>
-                <h3>Puissance 4</h3>
-                <span class="btn-lancer">Jouer</span>
-              </figcaption>
-            </figure>
+        <article class="carte-mission jeu-carte" data-jeu="puissance4">
+          <a class="jeu-carte-lien" href="puissance4/index.html">
+            <div class="jeu-carte-image"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><rect x="8" y="14" width="104" height="92" rx="14" fill="#2563EB" stroke="#2B2D5B" stroke-width="5"/>
+<g stroke="#2B2D5B" stroke-width="3.5">
+<circle cx="30" cy="36" r="11" fill="#fff"/><circle cx="60" cy="36" r="11" fill="#fff"/><circle cx="90" cy="36" r="11" fill="#fff"/>
+<circle cx="30" cy="62" r="11" fill="#fff"/><circle cx="60" cy="62" r="11" fill="#EF4444"/><circle cx="90" cy="62" r="11" fill="#fff"/>
+<circle cx="30" cy="88" r="11" fill="#FACC15"/><circle cx="60" cy="88" r="11" fill="#EF4444"/><circle cx="90" cy="88" r="11" fill="#FACC15"/></g></svg></div>
+            <div class="jeu-texte">
+              <h3>Puissance 4</h3>
+              <span class="jeu-badge"><i></i><i></i> 2 joueurs</span>
+            </div>
+            <span class="btn-lancer jeu-cta">Jouer</span>
           </a>
         </article>
-
-        <article class="carte-mission" data-jeu="pendu">
-          <div class="badge-difficulte">SOLO</div>
-          <a href="pendu/index.html">
-            <figure>
-              <span style="font-size: 5rem; line-height: 1;">🔤</span>
-              <figcaption>
-                <h3>Le Pendu</h3>
-                <span class="btn-lancer">Jouer</span>
-              </figcaption>
-            </figure>
+        <article class="carte-mission jeu-carte" data-jeu="pendu">
+          <a class="jeu-carte-lien" href="pendu/index.html">
+            <div class="jeu-carte-image"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><g stroke="#B45309" stroke-width="7" stroke-linecap="round" fill="none"><line x1="16" y1="68" x2="62" y2="68"/><line x1="30" y1="68" x2="30" y2="8"/><line x1="30" y1="8" x2="62" y2="8"/><line x1="62" y1="8" x2="62" y2="18"/></g>
+<circle cx="62" cy="28" r="9" fill="#FDE68A" stroke="#2B2D5B" stroke-width="4"/>
+<g stroke="#2B2D5B" stroke-width="4" stroke-linecap="round"><line x1="62" y1="37" x2="62" y2="54"/><line x1="62" y1="43" x2="52" y2="50"/><line x1="62" y1="43" x2="72" y2="50"/></g>
+<g stroke="#2B2D5B" stroke-width="3.5"><rect x="14" y="84" width="22" height="26" rx="6" fill="#BBF7D0"/><rect x="49" y="84" width="22" height="26" rx="6" fill="#fff"/><rect x="84" y="84" width="22" height="26" rx="6" fill="#BBF7D0"/></g>
+<g font-family="Lexend,sans-serif" font-weight="800" font-size="19" fill="#2B2D5B" text-anchor="middle"><text x="25" y="104">A</text><text x="95" y="104">E</text></g></svg></div>
+            <div class="jeu-texte">
+              <h3>Le Pendu</h3>
+              <span class="jeu-badge"><i></i> Solo</span>
+            </div>
+            <span class="btn-lancer jeu-cta">Jouer</span>
           </a>
         </article>
-
-        <article class="carte-mission" data-jeu="trouver-le-chiffre">
-          <div class="badge-difficulte">SOLO</div>
-          <a href="trouver-le-chiffre/index.html">
-            <figure>
-              <span style="font-size: 5rem; line-height: 1;">🔢</span>
-              <figcaption>
-                <h3>Trouver le chiffre</h3>
-                <span class="btn-lancer">Jouer</span>
-              </figcaption>
-            </figure>
+        <article class="carte-mission jeu-carte" data-jeu="trouver-le-chiffre">
+          <a class="jeu-carte-lien" href="trouver-le-chiffre/index.html">
+            <div class="jeu-carte-image"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><rect x="30" y="34" width="60" height="52" rx="14" fill="#FDE68A" stroke="#2B2D5B" stroke-width="5"/>
+<text x="60" y="76" font-family="Lexend,sans-serif" font-weight="800" font-size="46" fill="#2B2D5B" text-anchor="middle">?</text>
+<polygon points="60,6 80,28 40,28" fill="#EA580C" stroke="#2B2D5B" stroke-width="4" stroke-linejoin="round"/>
+<polygon points="60,114 80,92 40,92" fill="#2563EB" stroke="#2B2D5B" stroke-width="4" stroke-linejoin="round"/></svg></div>
+            <div class="jeu-texte">
+              <h3>Trouver le chiffre</h3>
+              <span class="jeu-badge"><i></i> Solo</span>
+            </div>
+            <span class="btn-lancer jeu-cta">Jouer</span>
           </a>
         </article>
       </section>
@@ -80,7 +85,7 @@
       });
       if (JeuxNiveau.niveau() === 'cp') {
         document.querySelector('.entete-missions p').textContent = 'Choisis un jeu !';
-        document.querySelectorAll('.btn-lancer').forEach(function (b) { b.style.minHeight = '64px'; });
+        document.body.classList.add('jeu-cp');
       }
     </script>
   </body>

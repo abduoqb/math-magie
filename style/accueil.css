@@ -1,277 +1,259 @@
-/* --- NOUVELLES SECTIONS ACCUEIL LUDIQUES --- */
+/* Accueil — « Académie magique en autocollants » : 3 énormes cartes d'univers */
 
+/* --- Salutation avec mascotte --- */
 .hero-text {
-  text-align: center;
-  margin: 60px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  text-align: left;
+  margin: 28px 0 8px;
+}
+
+.mascotte-accueil {
+  width: 120px;
+  height: 120px;
+  flex: none;
+  animation: float 3.2s ease-in-out infinite;
+}
+
+.hero-bulle {
+  position: relative;
+  background: var(--carte, #fff);
+  border: var(--contour, 3px solid #2B2D5B);
+  border-radius: var(--rayon-grand, 32px);
+  box-shadow: var(--ombre-pleine, 0 5px 0 #2B2D5B);
+  padding: 14px 26px;
+  max-width: 560px;
+}
+/* petite pointe de bulle vers la mascotte */
+.hero-bulle::before {
+  content: "";
+  position: absolute;
+  left: -13px;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  background: var(--carte, #fff);
+  border-left: var(--contour, 3px solid #2B2D5B);
+  border-bottom: var(--contour, 3px solid #2B2D5B);
+  transform: translateY(-50%) rotate(45deg);
 }
 
 .hero-text h2 {
-  font-size: 3rem; 
-  color: var(--primary-color); /* Violet Sage */
-  margin-bottom: 15px;
-  text-transform: uppercase;
-  /* Retrait du text-shadow dur, ajout d'une lueur douce */
-  text-shadow: 0 4px 10px rgba(160, 119, 238, 0.3);
+  font-size: 2.4rem;
+  color: var(--encre, #2B2D5B);
+  margin: 0 0 4px;
+  text-transform: none;
+  line-height: 1.15;
 }
 
-.titre-anime {
-  display: inline-block;
-  animation: float 4s ease-in-out infinite; /* Flottaison plus lente et apaisante */
-}
+.titre-anime { display: inline-block; }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
 
 .hero-text p {
-  font-size: 1.3rem; 
-  color: var(--text-muted);
-  font-weight: normal;
-  max-width: 600px;
-  margin: 0 auto;
+  font-size: 1.25rem;
+  color: var(--texte, #334155);
+  margin: 0;
 }
 
-/* Grille d'activités */
+/* --- Les 3 univers --- */
 .activites-grid {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  margin-bottom: 80px;
-  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  margin: 30px 0 60px;
 }
 
 .carte-activite {
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius);
-  overflow: visible;
-  max-width: 360px;
-  border: 4px solid #E2E8F0; /* Bordure douce */
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: var(--shadow);
+  --u: var(--calcul, #8B5CF6);
+  --u-clair: var(--calcul-clair, #EDE4FF);
   position: relative;
-  /* Effet 3D léger biseauté */
-  border-bottom-width: 8px;
-  border-bottom-color: #CBD5E1;
+  background: var(--u);
+  border: var(--contour, 3px solid #2B2D5B);
+  border-radius: var(--rayon-grand, 32px);
+  box-shadow: 0 8px 0 var(--encre, #2B2D5B);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+.carte-calcul { --u: var(--calcul, #8B5CF6); --u-clair: var(--calcul-clair, #EDE4FF); }
+.carte-geometrie { --u: var(--geometrie, #14B8A6); --u-clair: var(--geometrie-clair, #D5F5F0); }
+.carte-jeux { --u: var(--jeux, #F97316); --u-clair: var(--jeux-clair, #FFE6D2); }
 
 .lien-carte {
   display: flex;
   flex-direction: column;
   height: 100%;
-  width: 100%;
+  min-height: 360px;
   text-decoration: none;
   color: inherit;
+  border-radius: inherit;
+}
+.lien-carte:focus-visible {
+  outline: 5px solid var(--encre, #2B2D5B);
+  outline-offset: 4px;
 }
 
-.carte-activite:hover {
-  transform: translateY(-8px);
-  border-color: var(--secondary-color);
-  border-bottom-color: var(--secondary-color);
-  box-shadow: 0 20px 30px rgba(65, 182, 230, 0.2);
-}
+.carte-activite:hover { transform: translateY(-6px); box-shadow: 0 14px 0 var(--encre, #2B2D5B); }
+.carte-activite:active { transform: translateY(6px); box-shadow: 0 2px 0 var(--encre, #2B2D5B); }
 
-.carte-activite:hover .bouton-action {
-  background-color: #FFA533; 
-  transform: translateY(-2px);
-  box-shadow: 0 8px 0px #B56800, 0 12px 25px rgba(224, 120, 0, 0.4);
-}
-
-.carte-activite:active .bouton-action {
-  transform: translateY(6px);
-  box-shadow: 0 0px 0px #B56800, 0 2px 5px rgba(224, 120, 0, 0.3);
-}
-
-.badge-nouveau {
+/* Icône d'univers (pastille sticker en coin) */
+.icone-univers {
   position: absolute;
-  top: -20px;
-  left: -20px;
-  background-color: var(--secondary-color); /* Bleu Calme */
-  color: #FFF;
-  padding: 10px 20px;
-  border-radius: 20px;
-  font-family: 'Lexend', sans-serif;
-  font-weight: 800;
-  font-size: 0.9rem;
+  top: -18px;
+  left: -14px;
+  z-index: 5;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  background: #fff;
+  border: var(--contour, 3px solid #2B2D5B);
+  border-radius: 50%;
+  box-shadow: 0 4px 0 var(--encre, #2B2D5B);
   transform: rotate(-8deg);
-  box-shadow: 0 4px 10px rgba(65, 182, 230, 0.4);
-  z-index: 20;
-  border: 3px solid #FFF;
   pointer-events: none;
 }
 
 .image-conteneur {
-  background: radial-gradient(circle at top, #F8FAFC, #E2E8F0); /* Fond lumineux */
-  padding: 40px; 
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 20px 20px 0 0;
-  border-bottom: 2px dashed #CBD5E1;
-  min-height: 200px;
+  padding: 26px 20px 6px;
+  min-height: 210px;
 }
 
 .image-conteneur img {
-  height: 120px;
-  width: auto;
-  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); /* Ombre douce sur l'image */
+  width: 100%;
+  max-width: 230px;
+  height: auto;
+  aspect-ratio: 1;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-
-.carte-activite:hover .image-conteneur img {
-  transform: scale(1.15) translateY(-5px);
-}
+.carte-activite:hover .image-conteneur img { transform: scale(1.08) rotate(-3deg); }
 
 .contenu-carte {
-  padding: 30px 25px; 
+  margin: 0 10px 10px;
+  padding: 14px 16px 18px;
+  background: #fff;
+  border: var(--contour, 3px solid #2B2D5B);
+  border-radius: calc(var(--rayon-grand, 32px) - 8px);
   text-align: center;
-  flex: 1;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 
 .contenu-carte h3 {
-  font-size: 1.8rem; 
-  margin-bottom: 12px;
-  color: var(--primary-color);
-  text-transform: none; /* Moins agressif que tout en majuscules */
+  font-size: 2.3rem;
+  margin: 0;
+  color: var(--encre, #2B2D5B);
+  text-transform: none;
+  line-height: 1.1;
 }
 
 .contenu-carte p {
-  color: var(--text-muted);
-  margin-bottom: 30px;
-  line-height: 1.5;
-  font-size: 1.05rem; 
-  flex: 1;
+  margin: 0;
+  color: var(--texte, #334155);
+  font-weight: 600;
+  font-size: 1.1rem;
 }
 
+/* Bouton d'action: plein, contour encre, s'enfonce */
 .bouton-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px; /* Accessibilité tactile */
-  padding: 12px 32px; 
-  background-color: var(--accent-color); /* Orange stratégique pour l'action principale */
-  color: white;
-  border-radius: 50px;
+  gap: 8px;
+  min-height: 56px;
+  min-width: 150px;
+  margin-top: 10px;
+  padding: 10px 30px;
+  background: var(--u-clair);
+  color: var(--encre, #2B2D5B);
+  border: var(--contour, 3px solid #2B2D5B);
+  border-radius: 999px;
+  box-shadow: var(--ombre-pleine, 0 5px 0 #2B2D5B);
   font-family: 'Lexend', sans-serif;
   font-weight: 800;
-  font-size: 1.1rem; 
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: all 0.2s ease;
-  /* Effet 3D du bouton */
-  box-shadow: 0 6px 0px #B56800, 0 10px 20px rgba(224, 120, 0, 0.3);
-  border: none;
-  cursor: pointer;
-  text-decoration: none;
-  margin: 0 auto;
+  font-size: 1.25rem;
+  transition: transform 0.12s, box-shadow 0.12s;
 }
+.bouton-action::before { content: "▶"; font-size: 0.9em; }
+.carte-activite:hover .bouton-action { transform: translateY(-2px); box-shadow: var(--ombre-pleine-hover, 0 8px 0 #2B2D5B); }
+.carte-activite:active .bouton-action { transform: translateY(4px); box-shadow: 0 1px 0 var(--encre, #2B2D5B); }
 
-.bouton-action:hover {
-  background-color: #FFA533; 
-  transform: translateY(-2px);
-  box-shadow: 0 8px 0px #B56800, 0 12px 25px rgba(224, 120, 0, 0.4);
-}
-
-.bouton-action:active {
-  transform: translateY(6px);
-  box-shadow: 0 0px 0px #B56800, 0 2px 5px rgba(224, 120, 0, 0.3);
-}
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .hero-text {
-    margin: 40px 0;
-  }
-  
-  .hero-text h2 {
-    font-size: 2.2rem;
-  }
-  
-  .activites-grid {
-    flex-direction: column;
-    align-items: center;
-    gap: 30px; /* Réduit de 40px */
-  }
-
-  .carte-activite {
-    max-width: 100%;
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-text {
-    margin: 30px 0;
-  }
-
-  .hero-text h2 {
-    font-size: 1.8rem;
-  }
-
-  .hero-text p {
-    font-size: 1.1rem;
-  }
-
-  .badge-nouveau {
-    top: -15px;
-    left: 5px; /* Ramené vers l'intérieur pour éviter le débordement */
-    padding: 8px 15px;
-    font-size: 0.8rem;
-  }
-
-  .image-conteneur {
-    padding: 30px 20px;
-    min-height: 160px;
-  }
-
-  .image-conteneur img {
-    height: 100px;
-  }
-
-  .contenu-carte {
-    padding: 20px 15px;
-  }
-}
-
-/* --- ACCUEIL ADAPTÉ AU NIVEAU --- */
+/* --- Bouton lecture à voix haute --- */
 .btn-lecture {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 48px;
-  min-height: 48px;
-  margin-left: 10px;
-  border: 3px solid var(--secondary-color);
+  min-width: 64px;
+  min-height: 64px;
+  border: var(--contour, 3px solid #2B2D5B);
   border-radius: 50%;
-  background: #FFF;
-  font-size: 1.5rem;
+  background: var(--trophees, #FACC15);
+  box-shadow: var(--ombre-pleine, 0 5px 0 #2B2D5B);
+  font-size: 1.9rem;
   cursor: pointer;
-  vertical-align: middle;
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition: transform 0.12s, box-shadow 0.12s;
 }
 .btn-lecture[hidden] { display: none; }
-.btn-lecture:hover { background: #F0F9FF; transform: scale(1.1); }
-.btn-lecture:focus-visible { outline: 3px solid var(--accent-color); outline-offset: 3px; }
+.btn-lecture:hover { transform: translateY(-2px); }
+.btn-lecture:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--encre, #2B2D5B); }
+.btn-lecture:focus-visible { outline: 4px solid var(--encre, #2B2D5B); outline-offset: 4px; }
 
-.carte-activite.indisponible {
-  opacity: 0.55;
-  filter: grayscale(1);
-}
+/* --- Univers indisponible pour ce niveau --- */
+.carte-activite.indisponible { filter: grayscale(1); opacity: 0.6; box-shadow: 0 4px 0 var(--encre, #2B2D5B); }
 .carte-activite.indisponible .lien-carte { pointer-events: none; cursor: default; }
-.carte-activite.indisponible:hover { transform: none; border-color: #E2E8F0; box-shadow: var(--shadow); }
-.carte-activite.indisponible:hover .bouton-action { transform: none; background-color: var(--accent-color); }
+.carte-activite.indisponible:hover { transform: none; box-shadow: 0 4px 0 var(--encre, #2B2D5B); }
+.carte-activite.indisponible .bouton-action::before { content: "🔒"; }
 
-/* Mode CP: textes courts, plus gros */
-body.niveau-cp .hero-text h2 { font-size: 3.4rem; }
-body.niveau-cp .hero-text p { font-size: 1.8rem; font-weight: 600; max-width: 700px; }
-body.niveau-cp .contenu-carte h3 { font-size: 2.2rem; }
-body.niveau-cp .contenu-carte p { font-size: 1.5rem; line-height: 1.4; }
-body.niveau-cp .bouton-action { min-height: 64px; font-size: 1.5rem; padding: 14px 40px; }
-body.niveau-cp .btn-lecture { min-width: 56px; min-height: 56px; font-size: 1.8rem; }
+/* --- Mode CP: icônes d'abord, texte minimal, très gros --- */
+body.niveau-cp .hero-text h2 { font-size: 2.8rem; }
+body.niveau-cp .hero-text p { font-size: 1.6rem; font-weight: 700; }
+body.niveau-cp .icone-univers { width: 84px; height: 84px; font-size: 2.7rem; }
+body.niveau-cp .contenu-carte h3 { font-size: 2.8rem; }
+body.niveau-cp .contenu-carte p { display: none; }
+body.niveau-cp .bouton-action { min-height: 72px; font-size: 1.6rem; padding: 12px 40px; }
+body.niveau-cp .btn-lecture { min-width: 76px; min-height: 76px; font-size: 2.3rem; }
+body.niveau-cp .lien-carte { min-height: 400px; }
 
-@media (max-width: 768px) {
-  body.niveau-cp .hero-text h2 { font-size: 2.4rem; }
-  body.niveau-cp .hero-text p { font-size: 1.4rem; }
+/* --- Responsive --- */
+@media (max-width: 900px) {
+  .activites-grid { grid-template-columns: 1fr; gap: 34px; max-width: 520px; margin-left: auto; margin-right: auto; }
+  .lien-carte, body.niveau-cp .lien-carte { min-height: 0; flex-direction: row; align-items: center; }
+  .image-conteneur { flex: none; width: 42%; min-height: 0; padding: 14px 4px 14px 14px; }
+  .image-conteneur img { max-width: 150px; }
+  .contenu-carte { flex: 1; margin: 10px 10px 10px 0; padding: 10px; }
+  .contenu-carte h3, body.niveau-cp .contenu-carte h3 { font-size: 2rem; }
+  .bouton-action { min-width: 0; padding: 8px 22px; }
+  .icone-univers { width: 54px; height: 54px; font-size: 1.7rem; top: -16px; }
+  body.niveau-cp .icone-univers { width: 64px; height: 64px; font-size: 2rem; }
+}
+
+@media (max-width: 520px) {
+  .hero-text { flex-direction: column; text-align: center; gap: 10px; margin-top: 16px; }
+  .hero-bulle::before { left: 50%; top: -13px; transform: translateX(-50%) rotate(135deg); }
+  .hero-bulle { padding: 12px 18px; }
+  .hero-text h2, body.niveau-cp .hero-text h2 { font-size: 1.8rem; }
+  .hero-text p, body.niveau-cp .hero-text p { font-size: 1.1rem; }
+  .mascotte-accueil { width: 96px; height: 96px; }
+  .contenu-carte h3, body.niveau-cp .contenu-carte h3 { font-size: 1.7rem; }
+  .contenu-carte p { font-size: 0.95rem; }
+  .bouton-action, body.niveau-cp .bouton-action { font-size: 1.1rem; min-height: 56px; padding: 8px 16px; }
+  body.niveau-cp .bouton-action { min-height: 72px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascotte-accueil, .titre-anime { animation: none; }
+  .carte-activite, .bouton-action, .image-conteneur img, .btn-lecture { transition: none; }
 }

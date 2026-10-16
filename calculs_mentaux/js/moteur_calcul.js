@@ -21,12 +21,15 @@ class MoteurCalcul {
     this.estCP = this.niveauClasse === "cp";
     this.genererCalcul = config.genererCalcul || ((palier) =>
       GenerateurCalcul.generer(this.nomOperation, this.programme, palier, this.niveauClasse));
-    
+
     this.score = 0;
     this.erreurs = 0;
     this.limiteErreurs = 5;
     this.consecutifs = 0; // série d'invincibilité
     this.erreursConsecutives = 0;
+    this.verrou = false;      // true pendant l'affichage du retour (réponse déjà donnée)
+    this.minuteur = null;
+    this.decimal = false;
 
     // Chargement de la progression du joueur actif
     let progressionSauvegardee = null;
@@ -35,103 +38,164 @@ class MoteurCalcul {
     this.niveauSauvegarde = this.niveau;
 
     // Elements DOM
-    this.elCalcul = document.getElementById("calcul");
-    this.elSaisie = document.getElementById("saisieReponse");
-    this.elInstructions = document.getElementById("instructions");
-    this.elBoutonChanger = document.getElementById("changer");
-    this.elStatistique = document.querySelector(".cadre span");
-    this.elCadre = document.querySelector(".cadre");
-    
-    // Injection de la Mascotte et de la Barre de Mana
-    this.injecterElementsMagiques();
+    const $ = (id) => document.getElementById(id);
+    this.elCalcul = $("calcul");
+    this.elSaisie = $("saisieReponse");
+    this.elInstructions = $("instructions");
+    this.elBoutonValider = $("valider");
+    this.elCadre = $("zone-jeu");
+    this.elFin = $("zone-fin");
+    this.elMascotte = $("mascotte");
+    this.elPalier = $("palier");
+    this.elSerie = $("serie");
+    this.elScore = $("score");
+    this.elEssais = $("essais");
+    this.elSelectNiveau = $("selectNiveau");
+    this.elPave = $("pave");
+    this.elBascule = $("bascule-pave");
+    this.elCarte = document.querySelector(".calc-carte");
 
-    // Ajout d'un sélecteur de niveau
-    this.elNiveauConteneur = document.getElementById("niveau-selection");
-    if (!this.elNiveauConteneur) {
-        this.elNiveauConteneur = document.createElement("div");
-        this.elNiveauConteneur.id = "niveau-selection";
-        this.elNiveauConteneur.style = "margin-bottom: 25px; display: flex; justify-content: center; align-items: center; gap: 15px; font-weight: bold; font-size: 1.5rem;";
-        this.elNiveauConteneur.innerHTML = `
-            <label for="selectNiveau" style="color: var(--primary-color);">Niveau :</label>
-            <select id="selectNiveau" aria-label="Sélection du niveau de difficulté" style="padding: 5px 15px; border-radius: 10px; border: 3px solid var(--primary-color); background: white; color: var(--primary-color); font-weight: bold; font-size: 1.5rem; cursor: pointer;">
-                ${Array.from({ length: this.nbPaliers }, (_, i) => i + 1).map(n => `<option value="${n}">${n}</option>`).join("")}
-            </select>
-        `;
-        // On l'insère avant le calcul
-        this.elCadre.insertBefore(this.elNiveauConteneur, this.elCalcul);
-    }
-    this.elSelectNiveau = document.getElementById("selectNiveau");
-    this.elSelectNiveau.value = this.niveau;
-
-    this.currentResultat = null;
-
-    this.initEvents();
-    
-    // Add ARIA label to existing input field if present
-    if (this.elSaisie) {
-        this.elSaisie.setAttribute('aria-label', 'Saisis ta réponse ici');
-    }
-
+    document.body.classList.toggle("calc-cp", this.estCP);
+    this.construireSelecteur();
+    this.construirePave();
+    this.construireSerie();
     this.injecterTitreEtVoix();
+    this.initPave();
+    this.initEvents();
+    this.majStatistiques();
+    this.majAffichageNiveau();
     this.nouveauCalcul();
+  }
 
-    // Bouton retour
-    const titreEl = document.querySelector('.titre');
-    if (titreEl) {
-      const lienRetour = document.createElement('a');
-      lienRetour.href = '../index.html';
-      lienRetour.className = 'lien-retour';
-      lienRetour.textContent = '← Retour aux missions';
-      titreEl.parentNode.insertBefore(lienRetour, titreEl);
+  /* ---------- utilitaires d'affichage ---------- */
+
+  static img(nom) { return `../../images/${nom}.svg`; }
+
+  etoilesHTML(actives, total) {
+    let h = "";
+    for (let i = 1; i <= total; i++) {
+      h += `<img class="calc-etoile${i <= actives ? " on" : ""}${i === actives ? " courant" : ""}" src="${MoteurCalcul.img("etoile")}" alt="" />`;
     }
+    return h;
   }
 
-  static getMascotteSVG() {
-    return `
-      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 10C50 10 30 40 30 60C30 71.0457 38.9543 80 50 80C61.0457 80 70 71.0457 70 60C70 40 50 10 50 10Z" fill="#41B6E6" opacity="0.8">
-          <animate attributeName="d" dur="3s" repeatCount="indefinite" values="M50 10C50 10 30 40 30 60C30 71.0457 38.9543 80 50 80C61.0457 80 70 71.0457 70 60C70 40 50 10 50 10Z;M50 5C50 5 25 40 25 60C25 73.8071 36.1929 85 50 85C63.8071 85 75 73.8071 75 60C75 40 50 5 50 5Z;M50 10C50 10 30 40 30 60C30 71.0457 38.9543 80 50 80C61.0457 80 70 71.0457 70 60C70 40 50 10 50 10Z" />
-        </path>
-        <circle cx="43" cy="55" r="3" fill="white" />
-        <circle cx="57" cy="55" r="3" fill="white" />
-        <path d="M45 65 Q50 70 55 65" stroke="white" stroke-width="2" fill="none" />
-      </svg>
-    `;
+  setMascotte(etat) {
+    if (!this.elMascotte) return;
+    this.elMascotte.src = MoteurCalcul.img("mascotte-" + etat);
+    this.elMascotte.dataset.etat = etat;
+    this.elMascotte.classList.remove("rebond", "secoue");
+    void this.elMascotte.offsetWidth;
+    if (etat === "contente") this.elMascotte.classList.add("rebond");
+    if (etat === "triste") this.elMascotte.classList.add("secoue");
   }
 
-  injecterElementsMagiques() {
-    const mascotte = document.createElement("div");
-    mascotte.className = "mascotte-guide";
-    mascotte.innerHTML = MoteurCalcul.getMascotteSVG();
-    const presentation = document.querySelector(".presentation");
-    if (presentation) presentation.appendChild(mascotte);
+  construireSelecteur() {
+    this.elSelectNiveau.innerHTML = Array.from({ length: this.nbPaliers }, (_, i) => i + 1)
+      .map((n) => `<option value="${n}">${n}</option>`).join("");
+  }
 
-    // Barre de Mana
-    const manaConteneur = document.createElement("div");
-    manaConteneur.className = "mana-conteneur";
-    manaConteneur.innerHTML = `<div class="mana-barre" id="manaBarre"></div>`;
-    this.elCadre.insertBefore(manaConteneur, this.elCadre.firstChild);
-    this.elManaBarre = document.getElementById("manaBarre");
+  construireSerie() {
+    this.elSerie.innerHTML = Array.from({ length: 5 }, () => '<span class="calc-point"></span>').join("");
   }
 
   majMana(valeur) {
-    const pourcentage = Math.min(100, (valeur / 5) * 100);
-    if (this.elManaBarre) {
-      this.elManaBarre.style.width = `${pourcentage}%`;
+    const n = Math.min(5, Math.max(0, valeur));
+    this.elSerie.querySelectorAll(".calc-point").forEach((p, i) => p.classList.toggle("on", i < n));
+    this.elSerie.setAttribute("aria-label", `Série : ${n} sur 5 bonnes réponses`);
+  }
+
+  majAffichageNiveau() {
+    if (this.elSelectNiveau) this.elSelectNiveau.value = this.niveau;
+    this.elPalier.innerHTML = this.etoilesHTML(this.niveau, this.nbPaliers);
+    this.elPalier.setAttribute("aria-label", `Palier ${this.niveau} sur ${this.nbPaliers}`);
+  }
+
+  majStatistiques() {
+    if (this.elScore) this.elScore.textContent = this.score;
+    if (this.elEssais) {
+      let h = "";
+      for (let i = 0; i < this.limiteErreurs; i++) {
+        h += `<span class="calc-essai${i < this.erreurs ? " perdu" : ""}">${i < this.erreurs ? "✕" : ""}</span>`;
+      }
+      this.elEssais.innerHTML = h;
+      const restants = this.limiteErreurs - this.erreurs;
+      this.elEssais.setAttribute("aria-label", `Il te reste ${restants} essai${restants > 1 ? "s" : ""}`);
     }
   }
 
+  /* ---------- pavé numérique ---------- */
+
+  construirePave() {
+    const touche = (cls, txt, attrs) => `<button type="button" class="calc-touche ${cls}" ${attrs}>${txt}</button>`;
+    let h = "";
+    for (let i = 1; i <= 9; i++) h += touche("calc-chiffre", i, `data-k="${i}"`);
+    h += touche("calc-chiffre calc-zero", "0", 'data-k="0"');
+    h += touche("calc-virgule", ",", 'data-k="," aria-label="Virgule"');
+    h += touche("calc-efface", "⌫", 'data-k="del" aria-label="Effacer"');
+    h += touche("calc-ok", "✓", 'id="pave-valider" data-k="ok" aria-label="Valider"');
+    this.elPave.innerHTML = h;
+    this.elVirgule = this.elPave.querySelector(".calc-virgule");
+    this.elPave.setAttribute("role", "group");
+    this.elPave.setAttribute("aria-label", "Pavé numérique");
+  }
+
+  initPave() {
+    let pref = null;
+    try { pref = localStorage.getItem("mathemagie-pave"); } catch (e) { pref = null; }
+    const tactile = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    this.paveActif = pref === "1" ? true : pref === "0" ? false : (tactile || this.estCP);
+    this.appliquerPave();
+  }
+
+  appliquerPave() {
+    const actif = !!this.paveActif;
+    this.elPave.hidden = !actif;
+    this.elBoutonValider.hidden = actif;
+    this.elCarte.classList.toggle("avec-pave", actif);
+    this.elBascule.setAttribute("aria-pressed", actif ? "true" : "false");
+    this.elSaisie.setAttribute("inputmode", actif ? "none" : "decimal");
+    this.elSaisie.setAttribute("enterkeyhint", "done");
+  }
+
+  basculerPave() {
+    this.paveActif = !this.paveActif;
+    try { localStorage.setItem("mathemagie-pave", this.paveActif ? "1" : "0"); } catch (e) { /* ignore */ }
+    this.appliquerPave();
+    this.elSaisie.focus({ preventScroll: true });
+  }
+
+  toucheChoisie(k) {
+    if (k === "ok") { this.validerReponse(); return; }
+    if (this.verrou) return;
+    let v = this.elSaisie.value;
+    if (k === "del") v = v.slice(0, -1);
+    else if (k === ",") {
+      if (!this.decimal || v.includes(",") || v.includes(".")) return;
+      v = (v === "" ? "0" : v) + ",";
+    } else if (v.length < 8) v += k;
+    this.elSaisie.value = v;
+    this.elSaisie.focus({ preventScroll: true });
+  }
+
+  /* ---------- événements ---------- */
+
   initEvents() {
-    this.elSaisie?.addEventListener("keypress", (event) => {
-      if (event.key === "Enter") {
+    this.elSaisie.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.repeat) {
+        event.preventDefault();
         this.validerReponse();
       }
     });
-    this.elBoutonChanger?.addEventListener("click", () => {
-      this.nouveauCalcul();
+    this.elBoutonValider.addEventListener("click", () => this.validerReponse());
+    this.elBascule.addEventListener("click", () => this.basculerPave());
+    // Le focus reste dans le champ : pas de clavier système, pas de saut de page
+    this.elPave.addEventListener("mousedown", (e) => e.preventDefault());
+    this.elPave.addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-k]");
+      if (b) this.toucheChoisie(b.dataset.k);
     });
-    this.elSelectNiveau?.addEventListener("change", (e) => {
-      this.niveau = parseInt(e.target.value);
+    this.elSelectNiveau.addEventListener("change", (e) => {
+      this.niveau = parseInt(e.target.value, 10);
       this.consecutifs = 0;
       this.erreursConsecutives = 0;
       this.majMana(0);
@@ -140,14 +204,9 @@ class MoteurCalcul {
       this.score = 0;
       this.erreurs = 0;
       this.majStatistiques();
+      this.majAffichageNiveau();
       this.nouveauCalcul();
     });
-  }
-
-  majAffichageNiveau() {
-    if (this.elSelectNiveau) {
-        this.elSelectNiveau.value = this.niveau;
-    }
   }
 
   sauvegarderProgression() {
@@ -157,7 +216,11 @@ class MoteurCalcul {
     this.niveauSauvegarde = Math.max(this.niveauSauvegarde || 1, this.niveau);
   }
 
+  /* ---------- déroulement ---------- */
+
   nouveauCalcul() {
+    clearTimeout(this.minuteur);
+    this.verrou = false;
     if (this.erreurs >= this.limiteErreurs) {
       this.afficherResultats();
       return;
@@ -166,69 +229,104 @@ class MoteurCalcul {
     const calcul = this.genererCalcul(this.niveau);
     this.currentResultat = calcul.resultat;
     this.currentVoix = calcul.voix || "";
+    const def = this.defOperation.niveaux[Math.min(this.nbPaliers, this.niveau) - 1] || {};
+    this.decimal = (calcul.decimaux || def.decimaux || 0) > 0;
+    this.elVirgule.hidden = !this.decimal;
+    this.elPave.classList.toggle("avec-virgule", this.decimal);
 
-    this.elCalcul.innerText = calcul.texte || `${calcul.a} ${this.operationSign} ${calcul.b} = `;
-    if(this.elSaisie) this.elSaisie.value = "";
+    const texte = calcul.texte || `${calcul.a} ${this.operationSign} ${calcul.b} = `;
+    const base = String(texte).replace(/\s*=\s*$/, "");
+    this.elCalcul.textContent = "";
+    this.elCalcul.append(document.createTextNode(base + " "));
+    const egal = document.createElement("span");
+    egal.className = "calc-egal";
+    egal.textContent = "= ?";
+    this.elCalcul.append(egal);
 
-    this.elInstructions.innerText = calcul.aide || (this.estCP ? "Écris la réponse." : "Saisis ta réponse et appuie sur Entrée");
-    this.elInstructions.className = "";
-    
+    this.elSaisie.value = "";
+    this.elSaisie.disabled = false;
+    this.elInstructions.textContent = calcul.aide || (this.estCP ? "Trouve le résultat." : "Ta réponse ?");
+    this.elInstructions.className = "calc-neutre";
+
     this.elCadre.classList.remove("succes", "erreur");
+    this.elBoutonValider.disabled = false;
     this.majMana(this.consecutifs % 5);
-    this.elSaisie?.focus();
+    this.setMascotte(this.estCP ? "lecture" : "neutre");
+    this.elSaisie.focus({ preventScroll: true });
   }
 
   afficherResultats() {
-    if(this.elCalcul) this.elCalcul.innerHTML = '<div style="font-size: 3rem;">🏆</div>';
-    if(this.elSaisie) this.elSaisie.style.display = 'none';
-    if(this.elBoutonChanger) this.elBoutonChanger.style.display = 'none';
-    if(this.elNiveauConteneur) this.elNiveauConteneur.style.display = 'none';
-    
-    // Message en fonction du score
-    let message, emoji;
-    if (this.score >= 200) { emoji = "🌟"; message = "Incroyable ! Tu es un vrai mage des nombres !"; }
-    else if (this.score >= 100) { emoji = "🔥"; message = "Excellent ! Très belle performance !"; }
-    else if (this.score >= 50) { emoji = "✨"; message = "Bien joué ! Continue comme ça !"; }
-    else if (this.score > 0) { emoji = "💪"; message = "Pas mal ! Tu peux faire encore mieux !"; }
-    else { emoji = "🎯"; message = "Entraîne-toi encore, tu vas y arriver !"; }
+    clearTimeout(this.minuteur);
+    this.verrou = true;
+    let etoiles, message;
+    if (this.score >= 100) { etoiles = 3; message = "Incroyable ! Tu es un vrai mage des nombres !"; }
+    else if (this.score >= 50) { etoiles = 2; message = "Bien joué ! Continue comme ça !"; }
+    else if (this.score > 0) { etoiles = 1; message = "Joli début ! La prochaine fois sera encore mieux."; }
+    else { etoiles = 0; message = "Pas grave, on s'entraîne et tu vas y arriver !"; }
 
-    if(this.elInstructions) {
-      this.elInstructions.innerHTML = `
-        <div style="font-size: 1.3rem; margin-bottom: 15px;">
-          ${emoji} Partie terminée !<br>
-          <strong style="font-size: 2rem; color: var(--accent-color);">${this.score} pts</strong><br>
-          <span style="color: var(--text-muted); font-size: 0.95rem;">${message}</span>
-        </div>
-      `;
-      this.elInstructions.className = '';
+    let confettis = "";
+    if (etoiles > 0) {
+      for (let i = 0; i < 12; i++) {
+        const gauche = 4 + Math.round(Math.random() * 90);
+        const delai = (Math.random() * 1.6).toFixed(2);
+        const taille = 18 + Math.round(Math.random() * 18);
+        confettis += `<img class="calc-confetti" src="${MoteurCalcul.img("etincelle")}" alt="" style="left:${gauche}%;width:${taille}px;animation-delay:${delai}s" />`;
+      }
     }
-    
-    const btnRejouer = document.createElement('button');
-    btnRejouer.innerText = 'Recommencer';
-    btnRejouer.id = 'changer';
-    btnRejouer.onclick = () => {
-      this.score = 0;
-      this.erreurs = 0;
-      this.consecutifs = 0;
-      this.erreursConsecutives = 0;
-      this.majMana(0);
-      if(this.elSaisie) this.elSaisie.style.display = '';
-      if(this.elBoutonChanger) this.elBoutonChanger.style.display = '';
-      if(this.elNiveauConteneur) this.elNiveauConteneur.style.display = '';
-      btnRejouer.remove();
-      this.nouveauCalcul();
-    };
-    this.elCadre.appendChild(btnRejouer);
+    let grandes = "";
+    for (let i = 1; i <= 3; i++) {
+      grandes += `<img class="calc-grande-etoile${i <= etoiles ? " on" : ""}" src="${MoteurCalcul.img("etoile")}" alt="" style="animation-delay:${(0.15 + i * 0.25).toFixed(2)}s" />`;
+    }
+
+    this.elFin.innerHTML = `
+      <div class="calc-confettis" aria-hidden="true">${confettis}</div>
+      <img class="calc-mascotte calc-mascotte-fin rebond" src="${MoteurCalcul.img("mascotte-" + (etoiles > 0 ? "contente" : "neutre"))}" alt="" />
+      <h2 class="calc-fin-titre">${etoiles > 0 ? "Bravo !" : "Partie terminée"}</h2>
+      <div class="calc-grandes-etoiles" role="img" aria-label="${etoiles} étoile${etoiles > 1 ? "s" : ""} sur 3">${grandes}</div>
+      <p class="calc-fin-score"><strong>${this.score}</strong> pts</p>
+      <p class="calc-fin-message">${message}</p>
+      <button type="button" id="recommencer" class="calc-btn-principal">Recommencer</button>
+      <a class="calc-lien-autres" href="../index.html">Autres missions</a>
+    `;
+    this.elCadre.hidden = true;
+    this.elFin.hidden = false;
+    const btn = document.getElementById("recommencer");
+    btn.addEventListener("click", () => this.recommencer());
+    btn.focus({ preventScroll: true });
+  }
+
+  recommencer() {
+    this.score = 0;
+    this.erreurs = 0;
+    this.consecutifs = 0;
+    this.erreursConsecutives = 0;
+    this.elFin.hidden = true;
+    this.elFin.innerHTML = "";
+    this.elCadre.hidden = false;
+    this.majMana(0);
+    this.majStatistiques();
+    this.majAffichageNiveau();
+    this.nouveauCalcul();
   }
 
   validerReponse() {
+    // Pendant le retour, valider = passer tout de suite au calcul suivant
+    if (this.verrou) {
+      if (this.elFin.hidden) this.nouveauCalcul();
+      return;
+    }
     const inputValue = this.elSaisie.value.trim();
-    if (inputValue === "") return;
+    if (inputValue === "") {
+      this.elInstructions.textContent = this.estCP ? "Écris un nombre." : "Écris ta réponse d'abord.";
+      this.elInstructions.className = "calc-neutre";
+      this.elSaisie.focus({ preventScroll: true });
+      return;
+    }
 
     const valide = /^\d+([.,]\d+)?$/.test(inputValue);
     const saisiResultat = valide ? Number(inputValue.replace(",", ".")) : NaN;
     if (isNaN(saisiResultat)) {
-      this.elInstructions.innerText = "Saisie invalide ! Utilise uniquement des chiffres.";
+      this.elInstructions.textContent = "Écris seulement des chiffres.";
       this.elInstructions.className = "texte-erreur";
       this.elCadre.classList.add("erreur");
       setTimeout(() => this.elCadre.classList.remove("erreur"), 400);
@@ -236,7 +334,9 @@ class MoteurCalcul {
     }
 
     this.elCadre.classList.remove("succes", "erreur");
-    void this.elCadre.offsetWidth; 
+    void this.elCadre.offsetWidth;
+    this.verrou = true;
+    let delai = 1500;
 
     if (Math.abs(saisiResultat - this.currentResultat) < 1e-9) {
       // Points gagnés = niveau × (1 + série d'invincibilité)
@@ -244,29 +344,27 @@ class MoteurCalcul {
       this.score += pointsGagnes;
       this.consecutifs++;
       this.erreursConsecutives = 0;
-      
-      // Afficher les points gagnés avec le détail du combo
-      if (this.consecutifs > 1) {
-        this.elInstructions.innerHTML = `Bien joué ! <strong>+${pointsGagnes} pts</strong> <span style="color: var(--accent-color);">(combo x${this.consecutifs} 🔥)</span>`;
-      } else {
-        this.elInstructions.innerHTML = `Bien joué ! <strong>+${pointsGagnes} pts</strong>`;
-      }
+
+      const combo = this.consecutifs > 1 ? ` <span class="calc-combo">série ×${this.consecutifs}</span>` : "";
+      this.elInstructions.innerHTML = `<span class="calc-pastille">✅</span> Bravo ! <strong>+${pointsGagnes} pts</strong>${combo}`;
       this.elInstructions.className = "texte-succes";
       this.elCadre.classList.add("succes");
+      this.setMascotte("contente");
 
       // Evolution : 5 bonnes réponses de suite = niveau supérieur (la streak continue)
       if (this.consecutifs >= 5 && this.consecutifs % 5 === 0 && this.niveau < this.nbPaliers) {
         this.niveau++;
-        this.majMana(5); // Remplit la barre à 100% brièvement
-        setTimeout(() => this.majMana(0), 500); // Puis redescend à 0
-        this.elInstructions.innerHTML = `🎉 Niveau ${this.niveau} ! <strong>+${pointsGagnes} pts</strong> <span style="color: var(--accent-color);">(combo x${this.consecutifs} 🔥)</span>`;
+        this.majMana(5); // Remplit la série brièvement
+        this.minuteurSerie = setTimeout(() => this.majMana(0), 500);
+        this.elInstructions.innerHTML = `<span class="calc-pastille">✅</span> Palier ${this.niveau} ! <strong>+${pointsGagnes} pts</strong>${combo}`;
         this.majAffichageNiveau();
-        
+        delai = 2000;
+
         if (this.niveau > (this.niveauSauvegarde || 1)) {
-           this.sauvegarderProgression();
+          this.sauvegarderProgression();
         }
       } else {
-         this.majMana(this.consecutifs % 5);
+        this.majMana(this.consecutifs % 5);
       }
     } else {
       // Pénalité : on perd (niveau × 2) points, minimum 0
@@ -276,13 +374,15 @@ class MoteurCalcul {
       this.majMana(0);
       this.erreursConsecutives++;
       this.erreurs++;
-      
-      const erreursRestantes = this.limiteErreurs - this.erreurs;
-      this.elInstructions.innerHTML = `Oups ! C'était ${String(this.currentResultat).replace(".", ",")} <strong style="color:#e74c3c;">−${pointsPerdus} pts</strong> <span style="color: var(--text-muted);">(${erreursRestantes} erreur${erreursRestantes > 1 ? 's' : ''} restante${erreursRestantes > 1 ? 's' : ''})</span>`;
+
+      const bonne = String(this.currentResultat).replace(".", ",");
+      this.elInstructions.innerHTML = `<span class="calc-pastille">❌</span> Presque ! La réponse est <strong class="calc-bonne">${bonne}</strong>`;
       this.elInstructions.className = "texte-erreur";
       this.elCadre.classList.add("erreur");
+      this.setMascotte("triste");
+      delai = 2600;
 
-      // Régression : 3 erreurs de suite = niveau inférieur (min 1)
+      // Régression : 2 erreurs de suite = niveau inférieur (min 1)
       if (this.erreursConsecutives >= 2 && this.niveau > 1) {
         this.niveau--;
         this.erreursConsecutives = 0;
@@ -291,37 +391,35 @@ class MoteurCalcul {
       }
     }
 
-    setTimeout(() => this.nouveauCalcul(), 1500);
     this.majStatistiques();
+    clearTimeout(this.minuteur);
+    this.minuteur = setTimeout(() => this.nouveauCalcul(), delai);
   }
 
+  /* ---------- titre, consigne, voix (CP) ---------- */
+
   injecterTitreEtVoix() {
-    const titre = document.querySelector(".titre");
+    const titre = document.getElementById("titre-texte");
     if (titre && this.defOperation.libelle) {
       titre.textContent = this.defOperation.libelle;
       document.title = this.defOperation.libelle;
     }
-    if (titre && this.defOperation.consigne) {
-      const p = document.createElement("p");
-      p.className = "consigne-mission";
-      p.style.cssText = "text-align:center;font-size:1.2rem;color:var(--text-muted);margin:0 0 15px;";
-      p.textContent = this.defOperation.consigne;
-      titre.insertAdjacentElement("afterend", p);
+    const consigne = document.getElementById("consigne");
+    if (consigne) {
+      if (this.defOperation.consigne) consigne.textContent = this.defOperation.consigne;
+      else consigne.hidden = true;
     }
-    if (this.elSaisie) {
-      this.elSaisie.type = "text";
-      this.elSaisie.setAttribute("inputmode", "decimal");
-      this.elSaisie.setAttribute("autocomplete", "off");
-    }
+    this.elSaisie.type = "text";
+    this.elSaisie.setAttribute("autocomplete", "off");
     if (this.estCP && "speechSynthesis" in window) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.id = "btn-voix";
+      btn.className = "calc-voix";
       btn.textContent = "🔊";
       btn.setAttribute("aria-label", "Écouter le calcul");
-      btn.style.cssText = "min-width:56px;min-height:56px;font-size:1.8rem;border-radius:50%;cursor:pointer;margin:0 0 12px;";
       btn.addEventListener("click", () => this.lire());
-      this.elCadre.insertBefore(btn, this.elCalcul);
+      this.elCalcul.parentNode.insertAdjacentElement("afterend", btn);
     }
   }
 
@@ -332,11 +430,5 @@ class MoteurCalcul {
     u.rate = 0.85;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
-  }
-
-  majStatistiques() {
-    if (this.elStatistique) {
-      this.elStatistique.innerHTML = `${this.score} pts — ❌ ${this.erreurs}/${this.limiteErreurs}`;
-    }
   }
 }

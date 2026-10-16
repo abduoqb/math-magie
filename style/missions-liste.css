@@ -1,108 +1,104 @@
-/* Menu des choix de calculs - Style "Tableau de Missions" */
+/* Menus de choix (calculs, géométrie…) — cartes « autocollant » par univers.
+   Couleur: poser class="u-calcul|u-geometrie|u-jeux" ou style="--u:…;--u-clair:…" sur .carte-mission. */
 
 .entete-missions {
   text-align: center;
-  margin: 50px 0;
+  margin: 40px 0;
 }
-
-@media (max-width: 768px) {
-  .entete-missions {
-    margin: 30px 0;
-  }
-  .entete-missions h2 {
-    font-size: 2.2rem;
-  }
-}
-
 .entete-missions h2 {
-  font-size: 3rem;
-  color: var(--primary-color);
-  text-transform: uppercase;
-  text-shadow: 0 4px 10px rgba(160, 119, 238, 0.2);
-  margin-bottom: 15px;
+  font-size: clamp(2rem, 6vw, 3rem);
+  color: var(--encre);
+  margin-bottom: 12px;
 }
-
 .entete-missions p {
   font-size: 1.3rem;
-  color: var(--text-muted);
+  color: var(--texte-doux);
   font-weight: normal;
+}
+@media (max-width: 768px) {
+  .entete-missions { margin: 24px 0; }
+  .entete-missions p { font-size: 1.1rem; }
 }
 
 .choix-calculs {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Par défaut 2 colonnes */
+  grid-template-columns: repeat(2, 1fr);
   gap: 30px;
   padding: 20px 0;
   max-width: 900px;
   margin: 0 auto;
 }
-
-/* Version flexible pour la géométrie */
 .choix-calculs.grille-flexible {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
-
 @media (max-width: 650px) {
   .choix-calculs, .choix-calculs.grille-flexible {
     grid-template-columns: 1fr;
-    padding: 10px;
-    gap: 25px;
+    padding: 10px 4px;
+    gap: 22px;
   }
 }
 
 .carte-mission {
-  background-color: var(--card-bg);
-  border-radius: 30px;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: var(--shadow);
-  border: 4px solid #e2e8f0;
-  border-bottom-width: 8px;
-  border-bottom-color: #cbd5e1;
+  --u: var(--calcul);
+  --u-clair: var(--calcul-clair);
+  background-color: var(--carte);
+  border-radius: var(--rayon-grand);
+  transition: transform .15s ease, box-shadow .15s ease;
+  box-shadow: 0 7px 0 var(--encre);
+  border: 4px solid var(--encre);
   position: relative;
   overflow: visible;
   display: flex;
 }
+.carte-mission.u-calcul { --u: var(--calcul); --u-clair: var(--calcul-clair); }
+.carte-mission.u-geometrie { --u: var(--geometrie); --u-clair: var(--geometrie-clair); }
+.carte-mission.u-jeux { --u: var(--jeux); --u-clair: var(--jeux-clair); }
+/* Couleur par opération (si la page pose data-op) */
+.carte-mission[data-op="addition"] { --u: var(--op-addition); --u-clair: var(--ok-clair); }
+.carte-mission[data-op="soustraction"] { --u: var(--op-soustraction); --u-clair: var(--ko-clair); }
+.carte-mission[data-op="multiplication"] { --u: var(--op-multiplication); --u-clair: #DBEAFE; }
+.carte-mission[data-op="division"] { --u: var(--op-division); --u-clair: #FEF3C7; }
 
 .carte-mission a {
   text-decoration: none;
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 40px 30px;
+  padding: 36px 26px 28px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, var(--u-clair) 0 46%, var(--carte) 46%);
 }
 
 .badge-difficulte {
   position: absolute;
-  top: -15px;
-  right: 20px;
-  background-color: var(--primary-color);
-  color: white;
-  padding: 8px 18px;
-  border-radius: 20px;
-  font-family: "Lexend", sans-serif;
+  top: -18px;
+  right: 18px;
+  background-color: var(--trophees);
+  color: var(--encre);
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-family: var(--police-titre);
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: .9rem;
   z-index: 10;
-  box-shadow: 0 4px 10px rgba(160, 119, 238, 0.4);
-  border: 3px solid #fff;
+  border: 3px solid var(--encre);
+  box-shadow: 0 3px 0 var(--encre);
 }
 
 .choix-calculs figure {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 25px;
+  gap: 18px;
   margin: 0;
   flex: 1;
 }
-
 .choix-calculs figure img {
-  height: 110px;
+  height: 120px;
   width: auto;
-  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+  transition: transform .3s cubic-bezier(.175, .885, .32, 1.275);
 }
-
 .choix-calculs figcaption {
   text-align: center;
   display: flex;
@@ -111,97 +107,72 @@
   flex: 1;
   width: 100%;
 }
-
 .choix-calculs h3 {
-  color: var(--primary-color);
+  color: var(--encre);
   font-size: 1.8rem;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   text-transform: none;
 }
-
 .choix-calculs figcaption p {
-  color: var(--text-muted);
+  color: var(--texte-doux);
   font-size: 1.05rem;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
+/* Bouton « Jouer » (bouton principal de la carte) */
 .btn-lancer {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  padding: 12px 30px;
-  background-color: var(--secondary-color);
-  color: white;
-  border-radius: 30px;
-  font-family: "Lexend", sans-serif;
+  min-height: 60px;
+  padding: 12px 36px;
+  background-color: var(--action);
+  color: var(--encre);
+  border: var(--contour);
+  border-radius: 999px;
+  font-family: var(--police-titre);
   font-weight: 800;
-  font-size: 1.1rem;
-  text-transform: uppercase;
-  box-shadow: 0 5px 0px #2a9bcb, 0 10px 15px rgba(65, 182, 230, 0.3);
-  transition: all 0.2s ease;
-  margin-top: auto; /* Aligne le bouton en bas sans besoin de texte supplémentaire */
+  font-size: 1.2rem;
+  box-shadow: 0 5px 0 var(--encre);
+  transition: transform .12s ease, box-shadow .12s ease;
+  margin-top: auto;
 }
 
-/* --- SURVOL DES CARTES --- */
-
+/* --- Survol / appui --- */
 .carte-mission:hover {
-  transform: translateY(-8px);
-  border-color: var(--secondary-color);
-  border-bottom-color: var(--secondary-color);
-  box-shadow: 0 20px 30px rgba(65, 182, 230, 0.2);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 0 var(--encre);
 }
-
-.carte-mission:hover img {
-  transform: scale(1.15) translateY(-5px);
-}
-
-.carte-mission:hover .btn-lancer {
-  background-color: #5bc3ed;
-  transform: translateY(-2px);
-  box-shadow: 0 7px 0px #2a9bcb, 0 12px 20px rgba(65, 182, 230, 0.4);
-}
-
+.carte-mission:hover img { transform: scale(1.1) rotate(-3deg); }
+.carte-mission:hover .btn-lancer { transform: translateY(-2px); box-shadow: 0 7px 0 var(--encre); }
 .carte-mission:active {
-  transform: translateY(4px);
-  border-bottom-width: 4px;
-  box-shadow: 0 5px 15px rgba(65, 182, 230, 0.2);
-}
-.carte-mission:active .btn-lancer {
   transform: translateY(5px);
-  box-shadow: 0 0px 0px #2a9bcb;
+  box-shadow: 0 2px 0 var(--encre);
 }
+.carte-mission:active .btn-lancer { transform: translateY(4px); box-shadow: 0 1px 0 var(--encre); }
+.carte-mission a:focus-visible { outline-offset: -2px; box-shadow: none; border-radius: 28px; }
 
-/* Les picto SVG des missions géométrie sont en blanc par défaut, on les colore via la CSS Mask */
+/* Picto SVG des missions géométrie (masque coloré par l'univers) */
 .picto {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 15px;
-  background-color: var(--secondary-color) !important;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 10px;
+  background-color: var(--u) !important;
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
   -webkit-mask-size: contain;
-  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform .3s cubic-bezier(.175, .885, .32, 1.275);
 }
-
 .carte-mission:hover .picto {
-  transform: scale(1.15) translateY(-5px);
-  background-color: var(--primary-color) !important;
+  transform: scale(1.12) translateY(-4px);
+  background-color: var(--encre) !important;
 }
 
 @media (max-width: 480px) {
-  .carte-mission a {
-    padding: 30px 20px;
-  }
-  .badge-difficulte {
-    right: 10px !important;
-    padding: 6px 12px !important;
-    font-size: 0.75rem !important;
-  }
-  .choix-calculs h3 {
-    font-size: 1.5rem !important;
-  }
+  .carte-mission a { padding: 30px 18px 24px; }
+  .badge-difficulte { right: 10px !important; padding: 5px 12px !important; font-size: .78rem !important; }
+  .choix-calculs h3 { font-size: 1.5rem !important; }
 }

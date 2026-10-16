@@ -6,88 +6,39 @@
     <title>Puissance 4 - Mathémagie</title>
     <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
     <link rel="stylesheet" href="../../style/commun.css">
-    <link rel="stylesheet" href="../../style/exercice-commun.css">
+    <link rel="stylesheet" href="../../style/jeux.css">
     <script src="../../js/profils.js"></script>
     <link rel="stylesheet" href="../commun.css">
     <script src="../commun.js"></script>
     <script src="../../js/composants/header.js" defer></script>
-    <style>
-      .jeu-conteneur { text-align: center; }
-      .grille-p4 {
-        display: inline-grid; grid-template-columns: repeat(7, 1fr);
-        gap: 4px; background: var(--primary-color); border-radius: 20px;
-        padding: 12px; box-shadow: 0 8px 25px rgba(160, 119, 238, 0.3);
-      }
-      .case-p4 {
-        width: 52px; height: 52px; border-radius: 50%;
-        background: white; border: none; cursor: pointer;
-        transition: all 0.15s ease; position: relative;
-        display: flex; align-items: center; justify-content: center;
-      }
-      .case-p4:hover { background: #F0F9FF; }
-      .case-p4.rouge { background: #EF4444; box-shadow: inset 0 3px 6px rgba(0,0,0,0.2); }
-      .case-p4.jaune { background: #EAB308; box-shadow: inset 0 3px 6px rgba(0,0,0,0.2); }
-      .case-p4.gagnante { animation: pulseWin 0.5s ease infinite alternate; }
-      @keyframes pulseWin {
-        from { transform: scale(1); box-shadow: inset 0 3px 6px rgba(0,0,0,0.2); }
-        to { transform: scale(1.1); box-shadow: 0 0 15px rgba(255,255,255,0.6), inset 0 3px 6px rgba(0,0,0,0.2); }
-      }
-      .case-p4.chute { animation: chute 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-      @keyframes chute {
-        0% { transform: translateY(-300px); opacity: 0; }
-        50% { opacity: 1; }
-        75% { transform: translateY(5px); }
-        100% { transform: translateY(0); }
-      }
-      .col-hover {
-        display: grid; grid-template-columns: repeat(7, 1fr);
-        gap: 4px; max-width: fit-content; margin: 0 auto 5px;
-        padding: 0 12px;
-      }
-      .col-indicateur {
-        width: 52px; height: 30px; display: flex;
-        align-items: center; justify-content: center;
-        font-size: 1.2rem; opacity: 0; transition: opacity 0.2s;
-        cursor: pointer;
-      }
-      .col-indicateur:hover { opacity: 1; }
-      .col-indicateur.rouge { color: #EF4444; }
-      .col-indicateur.jaune { color: #EAB308; }
-      .tour-info {
-        font-size: 1.4rem; font-weight: 700; margin: 10px 0;
-        font-family: 'Lexend', sans-serif; color: var(--text-muted); min-height: 45px;
-      }
-      .score-board {
-        display: flex; justify-content: center; gap: 30px; margin-top: 15px;
-      }
-      .score-item { font-family: 'Lexend', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--text-muted); }
-      .score-item span { font-size: 1.5rem; color: #475569; }
-      @media (max-width: 450px) {
-        .case-p4 { width: 40px; height: 40px; }
-        .col-indicateur { width: 40px; }
-        .grille-p4 { padding: 8px; gap: 3px; }
-      }
-    </style>
 </head>
-<body>
+
+<body class="jeu-page jeu-p4">
     <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
     <app-header base-path="../../"></app-header>
     <main>
-      <a href="../index.html" class="lien-retour">← Salle de Jeux</a>
-      <h2 class="titre">🔴🟡 Puissance 4</h2>
+      <a href="../index.html" class="lien-retour">← Jeux</a>
+      <h2 class="titre"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><rect x="8" y="14" width="104" height="92" rx="14" fill="#2563EB" stroke="#2B2D5B" stroke-width="5"/>
+<g stroke="#2B2D5B" stroke-width="3.5">
+<circle cx="30" cy="36" r="11" fill="#fff"/><circle cx="60" cy="36" r="11" fill="#fff"/><circle cx="90" cy="36" r="11" fill="#fff"/>
+<circle cx="30" cy="62" r="11" fill="#fff"/><circle cx="60" cy="62" r="11" fill="#EF4444"/><circle cx="90" cy="62" r="11" fill="#fff"/>
+<circle cx="30" cy="88" r="11" fill="#FACC15"/><circle cx="60" cy="88" r="11" fill="#EF4444"/><circle cx="90" cy="88" r="11" fill="#FACC15"/></g></svg> Puissance 4</h2>
       <div class="presentation">
         <div class="cadre">
           <div class="jeu-conteneur">
             <div id="zone-defi"></div>
-            <p id="tour-info" class="tour-info">Tour de 🔴</p>
+            <div class="jeu-parole">
+              <img class="jeu-mascotte" src="../../images/mascotte-neutre.svg" data-dossier="../../images/" data-etat="neutre" alt="" width="76" height="76" onerror="this.style.display='none'">
+              <p id="tour-info" class="tour-info">Tour de <i class="jeton rouge"></i> Rouge</p>
+            </div>
             <div class="col-hover" id="col-hover"></div>
             <div class="grille-p4" id="grille"></div>
             <div class="score-board">
-              <div class="score-item score-rouge">🔴 : <span id="score-rouge">0</span></div>
-              <div class="score-item">Nul : <span id="score-nul">0</span></div>
-              <div class="score-item score-jaune">🟡 : <span id="score-jaune">0</span></div>
+              <div class="score-item score-rouge"><i class="jeton rouge"></i><span id="score-rouge">0</span></div>
+              <div class="score-item">Nul <span id="score-nul">0</span></div>
+              <div class="score-item score-jaune"><i class="jeton jaune"></i><span id="score-jaune">0</span></div>
             </div>
-            <button id="changer" onclick="reinitialiser()" style="margin-top:15px;">🔄 Rejouer</button>
+            <button id="changer" onclick="reinitialiser()">Rejouer</button>
           </div>
         </div>
       </div>
@@ -102,12 +53,21 @@
       const tourInfoEl = document.getElementById('tour-info');
       const cadre = document.querySelector('.cadre');
 
+      function nomJoueur(rouge) {
+        return rouge ? '<i class="jeton rouge"></i> Rouge' : '<i class="jeton jaune"></i> Jaune';
+      }
+      function dire(html, cls) {
+        tourInfoEl.className = 'tour-info' + (cls ? ' ' + cls : '');
+        tourInfoEl.innerHTML = html;
+      }
+
       function init() {
         grille = Array.from({ length: LIGNES }, () => Array(COLS).fill(0));
         tourRouge = true;
         partieTerminee = false;
         cadre.classList.remove('succes', 'erreur');
-        tourInfoEl.textContent = 'Tour de 🔴';
+        dire('Tour de ' + nomJoueur(true));
+        JeuxNiveau.mascotte('neutre');
         dessiner();
       }
 
@@ -117,7 +77,7 @@
         for (let c = 0; c < COLS; c++) {
           const ind = document.createElement('div');
           ind.className = 'col-indicateur ' + (tourRouge ? 'rouge' : 'jaune');
-          ind.textContent = tourRouge ? '🔴' : '🟡';
+          ind.setAttribute('aria-label', 'Jouer dans la colonne ' + (c + 1));
           ind.addEventListener('click', () => tenterColonne(c));
           colHoverEl.appendChild(ind);
         }
@@ -163,7 +123,8 @@
           combo.forEach(([l, c]) => {
             grilleEl.children[l * COLS + c].classList.add('gagnante');
           });
-          tourInfoEl.textContent = `🎉 ${tourRouge ? '🔴' : '🟡'} a gagné !`;
+          dire(nomJoueur(tourRouge) + ' a gagné ! Bravo !', 'fin-ok');
+          JeuxNiveau.mascotte('contente');
           cadre.classList.add('succes');
           if (tourRouge) scores.rouge++; else scores.jaune++;
           majScores();
@@ -174,14 +135,14 @@
         // Match nul : si la ligne du haut est pleine, toute la grille est pleine
         if (grille[0].every(v => v !== 0)) {
           partieTerminee = true;
-          tourInfoEl.textContent = '🤝 Match nul !';
+          dire('Match nul ! Bien joué !', 'fin-nul');
           scores.nul++;
           majScores();
           return;
         }
 
         tourRouge = !tourRouge;
-        tourInfoEl.textContent = `Tour de ${tourRouge ? '🔴' : '🟡'}`;
+        dire('Tour de ' + nomJoueur(tourRouge));
       }
 
       function verifierVictoire(l, c, joueur) {

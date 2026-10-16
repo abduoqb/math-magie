@@ -182,7 +182,7 @@
       if (onChange) onChange(defi.actif);
     });
     lab.appendChild(cb);
-    lab.appendChild(document.createTextNode(niveau() === 'cp' ? ' 🧮 Défi calcul' : ' 🧮 Défi calcul (résous un calcul pour jouer)'));
+    lab.appendChild(document.createTextNode(niveau() === 'cp' ? '➕ Défi calcul' : '➕ Défi calcul (résous un calcul pour jouer)'));
     parent.appendChild(lab);
     return lab;
   }
@@ -214,7 +214,7 @@
     function fermer() { defi.ouvert = false; if (ov.parentNode) ov.parentNode.removeChild(ov); }
     function valider() {
       if (reponseJuste(input.value, calc.reponse)) { fermer(); onReussi(); return; }
-      msg.textContent = 'Pas tout à fait ! Essaie ce calcul.';
+      msg.textContent = 'Presque ! Essaie ce calcul.';
       calc = genererCalcul(n);
       afficher();
     }
@@ -225,6 +225,16 @@
       if (e.key === 'Escape') fermer();
     });
     afficher();
+  }
+
+  /* ---------- Mascotte (neutre / contente / triste) ---------- */
+  function mascotte(etat) {
+    if (typeof document === 'undefined') return;
+    var el = document.querySelector('.jeu-mascotte');
+    if (!el) return;
+    el.dataset.etat = etat;
+    el.style.display = '';
+    el.src = (el.dataset.dossier || '../../images/') + 'mascotte-' + etat + '.svg';
   }
 
   function init() {
@@ -238,7 +248,7 @@
     NIVEAUX: NIVEAUX, niveau: niveau, programme: programme, jeuActif: jeuActif,
     plages: plages, plageMax: plageMax, fmt: fmt, motsPendu: motsPendu,
     genererCalcul: genererCalcul, reponseJuste: reponseJuste,
-    lire: lire, creerBoutonVoix: creerBoutonVoix,
+    lire: lire, creerBoutonVoix: creerBoutonVoix, mascotte: mascotte,
     defi: defi, creerBasculeDefi: creerBasculeDefi, demanderCalcul: demanderCalcul
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;

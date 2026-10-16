@@ -19,47 +19,51 @@ class AppHeader extends HTMLElement {
     const badgeClasse = niveauClasse ? String(niveauClasse).toUpperCase() : '';
     const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+    // Univers courant (couleur de l'élément actif)
+    const uJouer = isCalculs ? 'u-calcul' : isGeometrie ? 'u-geometrie' : 'u-jeux';
+    const ico = (e) => `<span class="nav-ico" aria-hidden="true">${e}</span>`;
+
     this.innerHTML = `
       <header>
-        <nav class="barre-navigation">
-          <h1><a href="${basePath}index.html">Mathémagie</a></h1>
+        <nav class="barre-navigation" aria-label="Navigation principale">
+          <h1><a href="${basePath}index.html" aria-label="Mathémagie, accueil"><img class="logo-mascotte" src="${basePath}images/mascotte-neutre.svg" alt=""><span class="logo-texte">Mathémagie</span></a></h1>
           <div>
             <ul class="choix-navigation">
-              <li class="${isAccueil ? 'selected' : ''}"><a href="${basePath}index.html">Accueil</a></li>
+              <li class="u-accueil ${isAccueil ? 'selected' : ''}"><a href="${basePath}index.html"${isAccueil ? ' aria-current="page"' : ''}>${ico('🏠')}<span class="nav-mot">Accueil</span></a></li>
 
-              <li class="nav-dropdown ${isJouer ? 'selected' : ''}">
-                <a href="#" class="nav-dropdown-toggle">Jouer ▾</a>
+              <li class="nav-dropdown ${uJouer} ${isJouer ? 'selected' : ''}">
+                <a href="#" class="nav-dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false">${ico('🎮')}<span class="nav-mot">Jouer</span><span class="nav-chevron" aria-hidden="true">▾</span></a>
                 <ul class="nav-dropdown-menu">
                   <div class="nav-dropdown-menu-inner">
-                    <li class="${isCalculs ? 'selected' : ''}">
-                      <a href="${basePath}calculs_mentaux/index.html">Calculs Mentaux</a>
+                    <li class="u-calcul ${isCalculs ? 'selected' : ''}">
+                      <a href="${basePath}calculs_mentaux/index.html">${ico('➕')}Calcul</a>
                     </li>
-                    <li class="${isGeometrie ? 'selected' : ''}">
-                      <a href="${basePath}geometrie/index.html">Géométrie</a>
+                    <li class="u-geometrie ${isGeometrie ? 'selected' : ''}">
+                      <a href="${basePath}geometrie/index.html">${ico('📐')}Géométrie</a>
                     </li>
-                    <li>
-                      <a href="${basePath}jeux/index.html">Jeux</a>
+                    <li class="u-jeux ${isJeux ? 'selected' : ''}">
+                      <a href="${basePath}jeux/index.html">${ico('🎲')}Jeux</a>
                     </li>
                   </div>
                 </ul>
               </li>
 
-              <li class="${isTrophees ? 'selected' : ''}"><a href="${basePath}trophees.html">Trophées</a></li>
+              <li class="u-trophees ${isTrophees ? 'selected' : ''}"><a href="${basePath}trophees.html"${isTrophees ? ' aria-current="page"' : ''}>${ico('🏆')}<span class="nav-mot">Trophées</span></a></li>
 
               ${nomMage ? `
                 <li class="nav-dropdown nav-profil mage-bouton">
-                  <a href="#" class="nav-dropdown-toggle" id="btn-profil" role="button" aria-haspopup="true" aria-expanded="false" aria-label="Menu du profil de ${esc(nomMage)}${badgeClasse ? ', classe ' + badgeClasse : ''}" style="display: flex; align-items: center; gap: 8px;">
+                  <a href="#" class="nav-dropdown-toggle" id="btn-profil" role="button" aria-haspopup="true" aria-expanded="false" aria-label="Menu du profil de ${esc(nomMage)}${badgeClasse ? ', classe ' + badgeClasse : ''}">
                     <span class="mage-avatar" aria-hidden="true" style="background: linear-gradient(135deg, ${couleurMage}, ${ajusterCouleurHeader(couleurMage, 40)})">${avatarMage}</span>
                     <span class="mage-info">
-                      <span class="mage-nom">${esc(nomMage)}</span>
+                      <span class="mage-nom nav-mot">${esc(nomMage)}</span>
                     </span>
                     ${badgeClasse ? `<span class="badge-classe" aria-hidden="true">${badgeClasse}</span>` : ''}
-                    <span aria-hidden="true">▾</span>
+                    <span class="nav-chevron" aria-hidden="true">▾</span>
                   </a>
                   <ul class="nav-dropdown-menu nav-dropdown-menu-droite">
                     <div class="nav-dropdown-menu-inner">
-                      <li><a href="${basePath}connexion.html" id="btn-changer-profil">🔄 Changer de profil</a></li>
-                      <li><a href="${basePath}connexion.html" id="btn-deconnexion">🚪 Se déconnecter</a></li>
+                      <li><a href="${basePath}connexion.html" id="btn-changer-profil">${ico('🔄')}Changer de profil</a></li>
+                      <li><a href="${basePath}connexion.html" id="btn-deconnexion">${ico('🚪')}Se déconnecter</a></li>
                     </div>
                   </ul>
                 </li>

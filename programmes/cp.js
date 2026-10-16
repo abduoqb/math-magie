@@ -107,7 +107,7 @@
       morpion: true,
       puissance4: true,
       pendu: true,
-      "trouver-le-chiffre": true
+      "trouver-le-chiffre": true, "eclair": true, "compte-magique": true, "suites-magiques": true, "ranger": true, "memory-nombres": true, "horloge": true, "marche": true, "fractions": true
     },
     sourceReperes: SRC_REPERES
   };

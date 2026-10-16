@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mémoire Magique - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
+    <link rel="stylesheet" href="../../style/commun.css">
+    <link rel="stylesheet" href="../../style/jeux.css">
+    <script src="../../js/profils.js"></script>
+    <link rel="stylesheet" href="../commun.css">
+    <link rel="stylesheet" href="memory-nombres.css">
+    <script src="../commun.js"></script>
+    <script src="memory-nombres.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
+</head>
+
+<body class="jeu-page jeu-memory-nombres">
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
+    <app-header base-path="../../"></app-header>
+    <main>
+      <a href="../index.html" class="lien-retour">← Jeux</a>
+      <h2 class="titre"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><rect x="14" y="30" width="46" height="62" rx="9" fill="#C4B5FD" stroke="#2B2D5B" stroke-width="5" transform="rotate(-10 37 61)"/>
+<rect x="58" y="28" width="46" height="62" rx="9" fill="#FDE68A" stroke="#2B2D5B" stroke-width="5" transform="rotate(8 81 59)"/>
+<text x="81" y="73" font-family="Lexend,sans-serif" font-weight="800" font-size="34" fill="#2B2D5B" text-anchor="middle" transform="rotate(8 81 59)">=</text></svg> Mémoire Magique</h2>
+      <div class="presentation">
+        <div class="cadre">
+          <div class="jeu-conteneur">
+
+            <!-- Écran de choix du niveau de difficulté -->
+            <div id="ecran-difficulte">
+              <p class="invite-mission">Choisis ta mission ! <span id="zone-voix"></span></p>
+              <p class="memory-nombres-regle" id="regle"></p>
+              <div class="choix-difficulte" id="choix-difficulte"></div>
+            </div>
+
+            <!-- Écran de jeu -->
+            <div id="ecran-jeu" class="jeu-principal">
+              <div class="jeu-parole">
+                <img class="jeu-mascotte" src="../../images/mascotte-neutre.svg" data-dossier="../../images/" data-etat="neutre" alt="" width="76" height="76" onerror="this.style.display='none'">
+                <p id="bulle" class="tour-info" aria-live="polite"></p>
+              </div>
+              <div class="memory-nombres-infos" id="infos">
+                <span class="memory-nombres-info">Coups : <b id="coups">0</b></span>
+                <span class="memory-nombres-info">Paires : <b id="trouvees">0</b> / <b id="total">0</b></span>
+                <span class="memory-nombres-info memory-nombres-serie" id="serie" hidden></span>
+              </div>
+              <div class="memory-nombres-grille" id="grille" role="group" aria-label="Les cartes"></div>
+              <div class="memory-nombres-actions">
+                <button type="button" class="btn-magique" id="btn-abandon">Changer de niveau</button>
+              </div>
+            </div>
+
+            <!-- Écran de fin -->
+            <div id="ecran-fin" class="memory-nombres-fin" hidden>
+              <div class="jeu-parole">
+                <img class="jeu-mascotte" src="../../images/mascotte-contente.svg" data-dossier="../../images/" data-etat="contente" alt="" width="76" height="76" onerror="this.style.display='none'">
+                <p id="fin-titre" class="tour-info fin-ok" aria-live="polite"></p>
+              </div>
+              <p class="memory-nombres-etoiles" id="fin-etoiles" role="img"></p>
+              <p class="memory-nombres-bilan" id="fin-bilan"></p>
+              <p class="memory-nombres-defi" id="fin-defi" hidden></p>
+              <div class="memory-nombres-actions">
+                <button type="button" class="btn-magique" id="btn-rejouer">Rejouer</button>
+                <button type="button" class="btn-magique memory-nombres-secondaire" id="btn-niveau">Changer de niveau</button>
+                <a class="btn-magique memory-nombres-secondaire" href="../index.html">Retour aux jeux</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      (function () {
+        'use strict';
+        var DELAI_ERREUR = 1000;   // les cartes restent visibles 1 s en cas d'erreur
+        var M = MemoireMagique;
+        var niveau = JeuxNiveau.niveau();
+        var ID_JEU = 'memory-nombres';
+
+        var $ = function (id) { return document.getElementById(id); };
+        var ecranDiff = $('ecran-difficulte'), ecranJeu = $('ecran-jeu'), ecranFin = $('ecran-fin');
+        var grille = $('grille'), bulle = $('bulle');
+
+        var partie = null, etat = null, diffCourante = 0;
+        var boutons = [];
+        var timerErreur = null, timerFin = null, termine = false;
+
+        /* ---------- Écran de démarrage ---------- */
+        $('regle').textContent = M.consigne(niveau);
+        var classes = ['facile', 'moyen', 'difficile'];
+        M.MODES.forEach(function (mode, i) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'btn-difficulte ' + classes[i];
+          b.appendChild(document.createTextNode(mode.nom + ' '));
+          var sp = document.createElement('span');
+          sp.textContent = mode.paires + ' paires';
+          b.appendChild(sp);
+          b.addEventListener('click', function () { demarrer(i); });
+          $('choix-difficulte').appendChild(b);
+        });
+        var voix = JeuxNiveau.creerBoutonVoix(function () { return M.texteVocal(niveau); });
+        if (voix) $('zone-voix').appendChild(voix);
+
+        function montrer(ecran) {
+          ecranDiff.style.display = ecran === 'diff' ? 'block' : 'none';
+          ecranJeu.style.display = ecran === 'jeu' ? 'block' : 'none';
+          ecranFin.hidden = ecran !== 'fin';
+        }
+        function annulerTimers() {
+          if (timerErreur) { clearTimeout(timerErreur); timerErreur = null; }
+          if (timerFin) { clearTimeout(timerFin); timerFin = null; }
+        }
+
+        /* ---------- Dessin d'une constellation (points rangés par 5) ---------- */
+        var NS = 'http://www.w3.org/2000/svg';
+        function dessinerPoints(n) {
+          var colonnes = n <= 3 ? 3 : (n === 4 ? 2 : 5), lignes = Math.ceil(n / colonnes), pas = 20;
+          var svg = document.createElementNS(NS, 'svg');
+          svg.setAttribute('viewBox', '0 0 ' + (colonnes * pas) + ' ' + (lignes * pas));
+          svg.setAttribute('class', 'memory-nombres-points');
+          svg.setAttribute('aria-hidden', 'true');
+          svg.setAttribute('focusable', 'false');
+          for (var i = 0; i < n; i++) {
+            var ligne = Math.floor(i / colonnes);
+            var dansLigne = Math.min(colonnes, n - ligne * colonnes);   // chaque ligne est centrée
+            var c = document.createElementNS(NS, 'circle');
+            c.setAttribute('cx', (colonnes - dansLigne) * pas / 2 + (i % colonnes) * pas + pas / 2);
+            c.setAttribute('cy', ligne * pas + pas / 2);
+            c.setAttribute('r', 7.2);
+            svg.appendChild(c);
+          }
+          return svg;
+        }
+
+        /* ---------- Plateau ---------- */
+        /* Taille du texte : largeur du mot le plus long, puis hauteur (nombre de lignes estimé). */
+        function nbLignes(mots, capacite) {
+          var lignes = 1, courant = 0;
+          mots.forEach(function (m) {
+            if (courant && courant + 1 + m.length > capacite) { lignes++; courant = m.length; }
+            else courant += (courant ? 1 : 0) + m.length;
+          });
+          return lignes;
+        }
+        function tailleTexte(texte) {
+          var mots = texte.split(/ +|(?<=-)/);
+          var mx = 1;
+          mots.forEach(function (m) { if (m.length > mx) mx = m.length; });
+          var f = Math.min(niveau === 'cp' ? 1.9 : 1.5, 6 / mx);
+          // la carte fait environ 3,7 rem de large pour 3,6 rem de haut (360 px, 4 colonnes)
+          while (f > 0.68 && nbLignes(mots, Math.floor(3.7 / (f * 0.6))) * f * 1.15 > 3.5) f -= 0.04;
+          return Math.max(0.68, f);
+        }
+        function construireGrille() {
+          grille.textContent = '';
+          boutons = [];
+          grille.style.setProperty('--mm-colonnes', partie.mode.colonnes);
+          grille.className = 'memory-nombres-grille memory-nombres-c' + partie.mode.colonnes;
+          partie.cartes.forEach(function (carte, i) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'memory-nombres-carte';
+            var interieur = document.createElement('span');
+            interieur.className = 'memory-nombres-interieur';
+            interieur.setAttribute('aria-hidden', 'true');
+            var dos = document.createElement('span');
+            dos.className = 'memory-nombres-dos';
+            dos.textContent = '?';
+            var face = document.createElement('span');
+            face.className = 'memory-nombres-face';
+            if (carte.points) face.appendChild(dessinerPoints(carte.points));
+            else { face.textContent = carte.texte; face.style.setProperty('--mm-t', tailleTexte(carte.texte).toFixed(2) + 'rem'); }
+            interieur.appendChild(dos);
+            interieur.appendChild(face);
+            b.appendChild(interieur);
+            b.addEventListener('click', function () { cliquer(i); });
+            grille.appendChild(b);
+            boutons.push(b);
+            majCarte(i);
+          });
+        }
+        function majCarte(i) {
+          var b = boutons[i], s = etat.statuts[i], c = partie.cartes[i];
+          b.classList.toggle('retournee', s !== 'cachee');
+          b.classList.toggle('trouvee', s === 'trouvee');
+          b.setAttribute('aria-disabled', s === 'trouvee' ? 'true' : 'false');
+          var num = 'Carte ' + (i + 1) + ' sur ' + partie.cartes.length;
+          b.setAttribute('aria-label', s === 'cachee' ? num + ', cachée' : num + ' : ' + c.texte.replace(/ /g, ' ') + (s === 'trouvee' ? ', trouvée' : ''));
+        }
+        function majInfos() {
+          $('coups').textContent = etat.coups;
+          $('trouvees').textContent = etat.trouvees;
+          $('total').textContent = etat.nbPaires;
+          var sr = $('serie');
+          if (etat.serie >= 2) { sr.hidden = false; sr.textContent = '🔥 Série : ' + etat.serie; }
+          else sr.hidden = true;
+        }
+        function dire(texte, classe) {
+          bulle.textContent = texte;
+          bulle.className = 'tour-info' + (classe ? ' ' + classe : '');
+        }
+        function lisible(t) { return t.replace(/ /g, ' '); }
+
+        /* ---------- Déroulement ---------- */
+        function demarrer(diff) {
+          annulerTimers();
+          diffCourante = diff;
+          partie = M.genererPartie(niveau, diff);
+          etat = M.creerEtat(partie);
+          termine = false;
+          construireGrille();
+          majInfos();
+          JeuxNiveau.mascotte('neutre');
+          dire(M.consigne(niveau));
+          montrer('jeu');
+          if (boutons[0]) boutons[0].focus();
+        }
+
+        function refermerErreur() {
+          if (timerErreur) { clearTimeout(timerErreur); timerErreur = null; }
+          M.refermer(etat).forEach(majCarte);
+          JeuxNiveau.mascotte('neutre');
+        }
+
+        function cliquer(i) {
+          if (termine) return;
+          if (etat.ouvertes.length === 2) {
+            // erreur en cours : on laisse finir la mémorisation sauf si l'enfant veut continuer
+            if (etat.ouvertes.indexOf(i) >= 0) return;
+            refermerErreur();
+          }
+          var r = M.retourner(etat, i);
+          if (r.action === 'ignore') return;
+          majCarte(i);
+          if (r.action === 'premiere') { dire('Cherche la carte qui va avec !'); return; }
+          majInfos();
+          if (r.action === 'paire') {
+            r.cartes.forEach(majCarte);
+            JeuxNiveau.mascotte('contente');
+            var cp = niveau === 'cp';
+            var points = function (c) { return c.points ? c.points + ' points' : lisible(c.texte); };
+            var ta = points(partie.cartes[r.cartes[0]]), tb = points(partie.cartes[r.cartes[1]]);
+            dire((etat.serie >= 3 ? 'Super série ! ' : 'Bravo ! ') + ta + (cp ? ' et ' : ' = ') + tb, 'fin-ok');
+            if (r.fin) finir();
+          } else {
+            JeuxNiveau.mascotte('triste');
+            dire('Pas encore… regarde bien ces deux cartes, puis réessaie !', 'fin-ko');
+            timerErreur = setTimeout(function () {
+              timerErreur = null;
+              refermerErreur();
+              dire('On essaie une autre paire ?');
+            }, DELAI_ERREUR);
+          }
+        }
+
+        function finir() {
+          termine = true;
+          var coups = etat.coups, n = etat.nbPaires;
+          var gagnee = M.partieGagnee(coups, n);
+          var etoiles = M.etoiles(coups, n);
+          var retour = JeuxNiveau.enregistrerPartie(ID_JEU, { gagnee: gagnee, score: coups, meilleur: 'min' });
+          timerFin = setTimeout(function () {
+            timerFin = null;
+            $('fin-titre').textContent = etoiles === 3 ? 'Mémoire de magicien !' : (gagnee ? 'Bravo, tu as tout retrouvé !' : 'Tu as trouvé toutes les paires !');
+            $('fin-etoiles').textContent = '★'.repeat(etoiles) + '☆'.repeat(3 - etoiles);
+            $('fin-etoiles').setAttribute('aria-label', etoiles + ' étoile' + (etoiles > 1 ? 's' : '') + ' sur 3');
+            $('fin-bilan').textContent = n + ' paires en ' + coups + ' coup' + (coups > 1 ? 's' : '') + (etat.meilleureSerie >= 3 ? ' • meilleure série : ' + etat.meilleureSerie : '');
+            var msg = JeuxNiveau.messageDefi(retour);
+            $('fin-defi').hidden = !msg;
+            $('fin-defi').textContent = msg;
+            montrer('fin');
+            $('btn-rejouer').focus();
+          }, 900);
+        }
+
+        $('btn-rejouer').addEventListener('click', function () { demarrer(diffCourante); });
+        $('btn-niveau').addEventListener('click', function () { annulerTimers(); montrer('diff'); });
+        $('btn-abandon').addEventListener('click', function () { annulerTimers(); termine = true; montrer('diff'); });
+
+        montrer('diff');
+      })();
+    </script>
+</body>
+</html>

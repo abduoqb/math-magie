@@ -22,7 +22,7 @@ Ouvrir les fichiers directement (`file://`) marche pour la plupart des pages, ma
 | `trophees.html` | Liste des trophées, filtrée sur `programme.calcul / geometrie / jeux`. |
 | `calculs_mentaux/` | Moteur de calcul (`js/moteur_calcul.js`) + générateur pur (`js/generateur_calcul.js`) + une page par opération. |
 | `geometrie/` | Moteur (`js/moteur_geometrie.js`), lecture du programme (`js/programme_geo.js`), une page par mission. |
-| `jeux/` | Morpion, Puissance 4, Pendu, Trouver le chiffre. Helpers partagés dans `jeux/commun.js`. |
+| `jeux/` | 4 classiques (Morpion, Puissance 4, Pendu, Trouver le chiffre) et 8 « jeux magiques » solo qui adaptent leur contenu à chaque classe (un dossier par jeu : page, générateur pur, CSS, test Node). Helpers partagés, catalogue et défi du jour dans `jeux/commun.js`. |
 | `programmes/` | Un fichier par classe (`cp.js` … `cm2.js`). C'est la seule source de vérité pour ce que chaque classe voit. |
 | `js/profils.js` | Chargeur : il injecte les scripts dans le bon ordre. Toutes les pages le incluent. |
 | `js/profils-core.js` | `GestionnaireProfils` : état, persistance, progression, codes, migration. |
@@ -111,9 +111,19 @@ Fonctionnement :
 
 Pour modifier le schéma : ajouter une nouvelle migration dans `supabase/migrations/` et l'appliquer au projet. Ne jamais modifier une migration déjà appliquée.
 
+## Jeux magiques et défi du jour
+
+Les 8 jeux solo (`eclair`, `compte-magique`, `suites-magiques`, `ranger`, `memory-nombres`, `horloge`, `marche`, `fractions`) sont décrits dans `JeuxNiveau.CATALOGUE` (`jeux/commun.js`) : titre, emoji, catégorie, trophée. La liste des jeux, l'accueil et la page des trophées se construisent depuis ce catalogue.
+
+- Chaque jeu a un générateur pur (`jeux/<id>/<id>.js`, `rng` injectable, exporté pour Node) et un test : `node jeux/<id>/test-<id>.js`. Le contenu dépend de la classe (`JeuxNiveau.niveau()`).
+- Fin de partie : `JeuxNiveau.enregistrerPartie(id, { gagnee, score, meilleur })` met à jour `jeu-<id>` (`partiesJouees`, `partiesGagnees`, `meilleurScore`) et valide le **défi du jour**.
+- **Défi du jour** : un jeu du catalogue, le même toute la journée (choisi par la date, parmi les jeux ouverts à la classe). Sa réussite alimente `defi-du-jour` (`derniereDate`, `serie`, `meilleureSerie`, `partiesDefis`) et la série de jours d'affilée. Affiché sur l'accueil et sur la liste des jeux.
+- Trophées : un par jeu (5, 10, 20 parties), plus des personnages à débloquer (jeux essayés, série de défis).
+- Ajouter un jeu : créer `jeux/<id>/`, l'ajouter au catalogue **et** à `JEUX_MAGIQUES` (`js/profils-core.js`), puis mettre `'<id>': true` dans la section `jeux` de chaque `programmes/<classe>.js`.
+
 ## Tests
 
-Les tests ne sont pas encore dans le dépôt. Ce qui a été vérifié par scripts :
+Les tests des jeux magiques sont dans le dépôt (`jeux/*/test-*.js`, Node sans dépendance). Pour le reste, ce qui a été vérifié par scripts hors dépôt :
 
 - génération : 10 paliers × 4 opérations × 5 classes, 300 tirages chacun, bornes et résultats contrôlés ;
 - géométrie : 85 combinaisons mission × palier × classe, 200 questions chacune, réponse toujours présente dans les choix ;

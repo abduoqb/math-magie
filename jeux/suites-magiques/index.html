@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suites Magiques - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
+    <link rel="stylesheet" href="../../style/commun.css">
+    <link rel="stylesheet" href="../../style/jeux.css">
+    <script src="../../js/profils.js"></script>
+    <link rel="stylesheet" href="../commun.css">
+    <script src="../commun.js"></script>
+    <link rel="stylesheet" href="suites-magiques.css">
+    <script src="suites-magiques.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
+</head>
+
+<body class="jeu-page jeu-suites-magiques">
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
+    <app-header base-path="../../"></app-header>
+    <main>
+      <a href="../index.html" class="lien-retour">← Jeux</a>
+      <h2 class="titre"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><rect x="6" y="40" width="30" height="40" rx="9" fill="#FDE68A" stroke="#2B2D5B" stroke-width="5"/>
+<rect x="45" y="40" width="30" height="40" rx="9" fill="#BFDBFE" stroke="#2B2D5B" stroke-width="5"/>
+<rect x="84" y="40" width="30" height="40" rx="9" fill="#FDBA74" stroke="#2B2D5B" stroke-width="5" stroke-dasharray="7 5"/>
+<text x="99" y="68" font-family="Lexend,sans-serif" font-weight="800" font-size="26" fill="#2B2D5B" text-anchor="middle">?</text>
+<path d="M36 60h9M75 60h9" stroke="#2B2D5B" stroke-width="5" stroke-linecap="round"/></svg> Suites Magiques</h2>
+      <div class="presentation">
+        <div class="cadre">
+          <div class="jeu-conteneur suites-conteneur">
+
+            <!-- Écran de démarrage : choix de la mission -->
+            <section id="suites-accueil" aria-label="Choix de la difficulté">
+              <p class="invite-mission">Choisis ta mission ! <span id="zone-voix"></span></p>
+              <div class="choix-difficulte" id="choix-difficulte"></div>
+            </section>
+
+            <!-- Écran de jeu -->
+            <section id="suites-jeu" hidden aria-label="Partie en cours">
+              <div class="suites-barre">
+                <ol class="suites-points" id="suites-points" aria-hidden="true"></ol>
+                <p class="suites-compteur"><span id="suites-progres">Suite 1 sur 10</span> <span class="suites-serie" id="suites-serie" hidden></span></p>
+              </div>
+
+              <div class="jeu-parole">
+                <img class="jeu-mascotte" src="../../images/mascotte-neutre.svg" data-dossier="../../images/" data-etat="neutre" alt="" width="76" height="76" onerror="this.style.display='none'">
+                <p id="suites-bulle" class="tour-info" aria-live="polite"></p>
+              </div>
+              <div id="zone-voix-jeu"></div>
+
+              <div id="suites-zone-suite">
+                <ol class="suites-rail" id="suites-rail" aria-label="La suite de nombres"></ol>
+
+                <div id="suites-reponse">
+                  <div class="suites-choix" id="suites-choix" role="group" aria-label="Propositions"></div>
+                  <form class="suites-saisie-ligne" id="suites-form" hidden autocomplete="off">
+                    <input type="text" id="suites-saisie" inputmode="decimal" autocomplete="off" aria-label="Ta réponse" placeholder="?">
+                    <button type="submit" class="btn-magique">Valider</button>
+                  </form>
+                </div>
+
+                <p class="suites-regle" id="suites-regle" hidden></p>
+                <button type="button" class="btn-magique suites-suivant" id="suites-suivant" hidden>Suite suivante ➜</button>
+              </div>
+
+              <!-- Fin de partie -->
+              <div class="suites-fin" id="suites-fin" hidden>
+                <p class="suites-etoiles" id="suites-etoiles"></p>
+                <p class="suites-score" id="suites-score"></p>
+                <p class="suites-defi" id="suites-defi" hidden></p>
+                <div class="suites-boutons">
+                  <button type="button" class="btn-magique" id="suites-rejouer">Rejouer</button>
+                  <button type="button" class="btn-magique suites-lien-jeux" id="suites-changer">Changer de mission</button>
+                  <a class="btn-magique suites-lien-jeux" href="../index.html">Retour aux jeux</a>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      (function () {
+        'use strict';
+        var S = SuitesMagiques;
+        var niveau = JeuxNiveau.niveau();
+        var estCP = niveau === 'cp';
+        var $ = function (id) { return document.getElementById(id); };
+        var el = {
+          accueil: $('suites-accueil'), jeu: $('suites-jeu'), points: $('suites-points'), progres: $('suites-progres'),
+          serie: $('suites-serie'), bulle: $('suites-bulle'), zoneSuite: $('suites-zone-suite'), rail: $('suites-rail'),
+          choix: $('suites-choix'), form: $('suites-form'), saisie: $('suites-saisie'), regle: $('suites-regle'),
+          suivant: $('suites-suivant'), fin: $('suites-fin'), etoiles: $('suites-etoiles'), score: $('suites-score'),
+          defi: $('suites-defi')
+        };
+        var etat = null;
+        var classes = ['facile', 'moyen', 'difficile'];
+
+        var BRAVO = estCP ? ['Bravo !', 'Super !', 'Génial !'] : ['Bravo !', 'Bien vu !', 'Excellent !', 'Super !'];
+        var voixCourante = '';
+
+        // Écran de démarrage
+        S.DIFFICULTES.forEach(function (d, i) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'btn-difficulte ' + classes[i];
+          b.appendChild(document.createTextNode(d.nom + ' '));
+          var sp = document.createElement('span');
+          sp.textContent = i === 2 ? '2 trous' : '1 trou';
+          b.appendChild(sp);
+          b.addEventListener('click', function () { demarrer(i); });
+          $('choix-difficulte').appendChild(b);
+        });
+        var voixAccueil = JeuxNiveau.creerBoutonVoix(function () { return 'Trouve le nombre qui manque dans la suite.'; });
+        if (voixAccueil) $('zone-voix').appendChild(voixAccueil);
+        var voixJeu = JeuxNiveau.creerBoutonVoix(function () { return voixCourante; });
+        if (voixJeu) $('zone-voix-jeu').appendChild(voixJeu);
+
+        function vider(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+        function dire(texte, classe) {
+          el.bulle.textContent = texte;
+          el.bulle.className = 'tour-info' + (classe ? ' ' + classe : '');
+        }
+        function suiteCourante() { return etat.suites[etat.i]; }
+
+        function demarrer(difficulte) {
+          etat = { difficulte: difficulte, suites: S.genererPartie(niveau, difficulte), i: 0, score: 0, serie: 0, h: 0, erreurs: 0, premier: true, resultats: [] };
+          el.accueil.hidden = true;
+          el.fin.hidden = true;
+          el.zoneSuite.hidden = false;
+          el.jeu.hidden = false;
+          afficherSuite();
+        }
+
+        function majPoints() {
+          vider(el.points);
+          for (var k = 0; k < S.NB_SUITES; k++) {
+            var li = document.createElement('li');
+            var r = etat.resultats[k];
+            li.className = 'suites-point' + (r === true ? ' ok' : r === false ? ' ko' : (k === etat.i && !etat.fini ? ' en-cours' : ''));
+            el.points.appendChild(li);
+          }
+          el.progres.textContent = 'Suite ' + Math.min(etat.i + 1, S.NB_SUITES) + ' sur ' + S.NB_SUITES;
+          if (etat.serie >= 2) { el.serie.hidden = false; el.serie.textContent = '🔥 Série : ' + etat.serie; }
+          else el.serie.hidden = true;
+        }
+
+        function afficherSuite() {
+          var s = suiteCourante();
+          etat.h = 0; etat.erreurs = 0; etat.premier = true; etat.fini = false;
+          el.regle.hidden = true;
+          el.suivant.hidden = true;
+          majPoints();
+          var deux = s.trous.length > 1;
+          if (estCP) dire(deux ? 'Trouve les 2 nombres qui manquent.' : 'Quel nombre manque ?');
+          else dire(deux ? 'Trouve les 2 nombres cachés, un par un.' : 'Quel nombre se cache sous le ❓ ?');
+          voixCourante = (deux ? 'Trouve les deux nombres qui manquent. ' : 'Trouve le nombre qui manque. ') + S.texteLecture(s);
+          JeuxNiveau.mascotte('neutre');
+          dessinerRail();
+          dessinerReponse(true);
+        }
+
+        function dessinerRail() {
+          var s = suiteCourante();
+          vider(el.rail);
+          s.termes.forEach(function (v, i) {
+            var li = document.createElement('li');
+            var t = s.trous.indexOf(i);
+            li.className = 'suites-carte';
+            if (t < 0) {
+              li.textContent = S.formater(v);
+            } else if (t < etat.h || (etat.fini && t <= etat.h)) {
+              li.textContent = S.formater(v);
+              li.classList.add(etat.reveles && etat.reveles[t] ? 'revele' : 'trouve');
+            } else {
+              li.textContent = '❓';
+              li.classList.add('mystere');
+              if (t === etat.h) li.classList.add('actif');
+              li.setAttribute('aria-label', 'nombre caché');
+            }
+            el.rail.appendChild(li);
+          });
+        }
+
+        function dessinerReponse(focus) {
+          var s = suiteCourante();
+          el.choix.hidden = s.saisie;
+          el.form.hidden = !s.saisie;
+          if (s.saisie) {
+            el.saisie.value = '';
+            if (focus) el.saisie.focus();
+            return;
+          }
+          vider(el.choix);
+          s.choix[etat.h].forEach(function (v, k) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = S.formater(v);
+            b.dataset.valeur = String(v);
+            b.setAttribute('aria-label', 'Proposition ' + (k + 1) + ' : ' + S.formater(v));
+            b.addEventListener('click', function () { repondre(v, b); });
+            el.choix.appendChild(b);
+          });
+          if (focus && el.choix.firstChild) el.choix.firstChild.focus();
+        }
+
+        function repondre(valeur, bouton) {
+          if (!etat || etat.fini) return;
+          var s = suiteCourante();
+          var bonne = s.reponses[etat.h];
+          if (Math.abs(valeur - bonne) < 1e-9) trouve(bouton, false);
+          else rate(bouton, bonne);
+        }
+
+        function rate(bouton, bonne) {
+          var s = suiteCourante();
+          etat.premier = false;
+          etat.erreurs++;
+          etat.serie = 0;
+          majPoints();
+          JeuxNiveau.mascotte('triste');
+          if (bouton) { bouton.disabled = true; bouton.classList.add('faux'); }
+          if (s.saisie && etat.erreurs >= 3) {
+            // pas de punition cruelle : on montre la réponse et on continue
+            dire('Pas grave ! C’était ' + S.formater(bonne) + '.', 'fin-ko');
+            etat.reveles = etat.reveles || {};
+            etat.reveles[etat.h] = true;
+            trouve(null, true);
+            return;
+          }
+          var texte = 'Pas tout à fait. ' + s.indice;
+          if (etat.erreurs >= 2) texte += ' ' + s.indice2;
+          dire(texte, 'fin-ko');
+          voixCourante = texte;
+          if (s.saisie) { el.saisie.select(); el.saisie.focus(); }
+        }
+
+        function trouve(bouton, revele) {
+          var s = suiteCourante();
+          if (bouton) bouton.classList.add('juste');
+          etat.h++;
+          etat.erreurs = 0;
+          if (etat.h < s.trous.length) {
+            if (!revele) dire(BRAVO[etat.i % BRAVO.length] + ' Et l’autre ?');
+            JeuxNiveau.mascotte(revele ? 'neutre' : 'contente');
+            dessinerRail();
+            dessinerReponse(true);
+            return;
+          }
+          // suite terminée
+          etat.fini = true;
+          dessinerRail();
+          el.choix.hidden = true;
+          el.form.hidden = true;
+          var ok = etat.premier;
+          etat.resultats[etat.i] = ok;
+          if (ok) { etat.score++; etat.serie++; }
+          if (!revele) {
+            dire(ok ? BRAVO[etat.i % BRAVO.length] + (etat.serie >= 3 ? ' ' + etat.serie + ' d’affilée !' : '') : 'Tu as trouvé ! Bien joué !', ok ? 'fin-ok' : '');
+          }
+          JeuxNiveau.mascotte(ok ? 'contente' : 'neutre');
+          el.regle.textContent = '🪄 ' + s.regle;
+          el.regle.hidden = false;
+          voixCourante = s.regle;
+          el.suivant.textContent = etat.i + 1 >= S.NB_SUITES ? 'Voir mon résultat ➜' : 'Suite suivante ➜';
+          el.suivant.hidden = false;
+          majPoints();
+          el.suivant.focus();
+        }
+
+        el.suivant.addEventListener('click', function () {
+          etat.reveles = null;
+          etat.i++;
+          if (etat.i >= S.NB_SUITES) terminer();
+          else afficherSuite();
+        });
+
+        el.form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          if (!etat || etat.fini) return;
+          var txt = el.saisie.value;
+          if (!txt.trim()) return;
+          var bonne = suiteCourante().reponses[etat.h];
+          if (S.verifierSaisie(txt, bonne)) trouve(null, false);
+          else rate(null, bonne);
+        });
+
+        // Raccourcis clavier 1 à 4 pour les propositions
+        document.addEventListener('keydown', function (e) {
+          if (!etat || etat.fini || el.jeu.hidden || el.choix.hidden) return;
+          if (e.altKey || e.ctrlKey || e.metaKey) return;
+          var k = parseInt(e.key, 10);
+          if (k >= 1 && k <= 4) {
+            var b = el.choix.children[k - 1];
+            if (b && !b.disabled) b.click();
+          }
+        });
+
+        function terminer() {
+          var gagnee = S.estGagnee(etat.score);
+          var retour = JeuxNiveau.enregistrerPartie('suites-magiques', { gagnee: gagnee, score: etat.score, meilleur: 'max' });
+          var nb = S.etoiles(etat.score);
+          el.zoneSuite.hidden = true;
+          el.fin.hidden = false;
+          vider(el.etoiles);
+          for (var k = 0; k < 3; k++) {
+            var sp = document.createElement('span');
+            sp.textContent = k < nb ? '⭐' : '☆';
+            if (k >= nb) sp.className = 'vide';
+            el.etoiles.appendChild(sp);
+          }
+          el.etoiles.setAttribute('role', 'img');
+          el.etoiles.setAttribute('aria-label', nb + ' étoile' + (nb > 1 ? 's' : '') + ' sur 3');
+          el.score.textContent = etat.score + ' bonne' + (etat.score > 1 ? 's' : '') + ' réponse' + (etat.score > 1 ? 's' : '') + ' du premier coup sur ' + S.NB_SUITES;
+          var msg = etat.score >= 9 ? 'Quel talent de magicien !' : etat.score >= 7 ? 'Très joli travail !' : gagnee ? 'Bien joué, tu as gagné !' : 'Courage, on réessaie ? Tu vas y arriver !';
+          dire(msg, gagnee ? 'fin-ok' : 'fin-nul');
+          voixCourante = msg;
+          JeuxNiveau.mascotte(gagnee ? 'contente' : 'neutre');
+          var md = JeuxNiveau.messageDefi(retour);
+          el.defi.hidden = !md;
+          el.defi.textContent = md;
+          majPoints();
+          $('suites-rejouer').focus();
+        }
+
+        $('suites-rejouer').addEventListener('click', function () { demarrer(etat.difficulte); });
+        $('suites-changer').addEventListener('click', function () {
+          el.jeu.hidden = true;
+          el.accueil.hidden = false;
+          etat = null;
+          JeuxNiveau.mascotte('neutre');
+        });
+      })();
+    </script>
+</body>
+</html>

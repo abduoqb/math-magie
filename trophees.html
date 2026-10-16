@@ -7,6 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="images/mascotte-neutre.svg">
     <link rel="stylesheet" href="style/commun.css">
     <script src="js/profils.js"></script>
+    <script src="jeux/commun.js"></script>
     <script src="js/composants/header.js" defer></script>
     <style>
         .vitrine-titre { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; margin: 24px 0 18px; text-align: center; }
@@ -223,6 +224,16 @@
                   suffixe: 'parties jouées', action: 'Joue 5 parties de Puissance 4'
                 }
             ];
+            // Jeux magiques : un trophée par jeu du catalogue (jeux/commun.js)
+            if (window.JeuxNiveau) {
+                JeuxNiveau.CATALOGUE.forEach((j) => {
+                    missionsJeux.push({
+                        id: j.id, nom: j.trophee.nom, icones: j.trophee.icones,
+                        checkProgress: () => (statsGlobales._parJeu || {})[j.id] || 0,
+                        suffixe: 'parties jouées', action: j.trophee.action
+                    });
+                });
+            }
 
             // Garde d'accès
             gestionnaireProfils.verifierAccesOuRediriger('');

@@ -135,5 +135,5 @@ window.PROGRAMMES.cm2 = {
       notes: 'Vérifié : patrons du cube et du pavé droit. Pyramide et cylindre : à valider. Prisme triangulaire et tétraèdre exclus.'
     }
   },
-  jeux: { morpion: true, puissance4: true, pendu: true, 'trouver-le-chiffre': true }
+  jeux: { morpion: true, puissance4: true, pendu: true, 'trouver-le-chiffre': true, 'eclair': true, 'compte-magique': true, 'suites-magiques': true, 'ranger': true, 'memory-nombres': true, 'horloge': true, 'marche': true, 'fractions': true }
 };

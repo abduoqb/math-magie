@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Range les nombres - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
+    <link rel="stylesheet" href="../../style/commun.css">
+    <link rel="stylesheet" href="../../style/jeux.css">
+    <script src="../../js/profils.js"></script>
+    <link rel="stylesheet" href="../commun.css">
+    <link rel="stylesheet" href="ranger.css">
+    <script src="../commun.js"></script>
+    <script src="ranger.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
+</head>
+
+<body class="jeu-page jeu-ranger">
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
+    <app-header base-path="../../"></app-header>
+    <main>
+      <a href="../index.html" class="lien-retour">← Jeux</a>
+      <h2 class="titre"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><rect x="18" y="64" width="24" height="40" rx="6" fill="#BBF7D0" stroke="#2B2D5B" stroke-width="5"/>
+<rect x="48" y="44" width="24" height="60" rx="6" fill="#FDE68A" stroke="#2B2D5B" stroke-width="5"/>
+<rect x="78" y="20" width="24" height="84" rx="6" fill="#FDBA74" stroke="#2B2D5B" stroke-width="5"/></svg> Range les nombres</h2>
+      <div class="presentation">
+        <div class="cadre">
+          <div class="jeu-conteneur ranger-conteneur">
+
+            <!-- Choix de la mission -->
+            <div id="ranger-ecran-debut">
+              <p class="invite-mission">Choisis ta mission ! <span id="ranger-voix-debut"></span></p>
+              <div class="choix-difficulte" id="ranger-choix-difficulte"></div>
+              <p class="ranger-regle">8 manches : range, compare, trouve le plus proche. Gagne avec 5 manches sans erreur !</p>
+            </div>
+
+            <!-- Partie -->
+            <div id="ranger-ecran-jeu" hidden>
+              <div class="jeu-parole">
+                <img class="jeu-mascotte" src="../../images/mascotte-neutre.svg" data-dossier="../../images/" data-etat="neutre" alt="" width="76" height="76" onerror="this.style.display='none'">
+                <p id="ranger-consigne" class="tour-info"></p>
+                <span id="ranger-voix"></span>
+              </div>
+
+              <div id="ranger-partie">
+                <div class="ranger-entete">
+                  <p class="ranger-manche" id="ranger-manche">Manche 1 / 8</p>
+                  <p class="ranger-stats"><span id="ranger-etoiles">⭐ 0</span><span id="ranger-combo">🔥 0</span></p>
+                </div>
+                <ol class="ranger-points" id="ranger-points" aria-label="Avancée de la partie"></ol>
+
+                <div id="ranger-zone" class="ranger-zone"></div>
+
+                <p id="ranger-retour" class="ranger-retour" aria-live="polite"></p>
+                <p id="ranger-detail" class="ranger-detail" aria-live="polite"></p>
+                <button type="button" id="ranger-suivant" class="btn-magique" hidden>Manche suivante ➜</button>
+              </div>
+
+              <!-- Fin de partie -->
+              <div id="ranger-fin" class="ranger-fin" aria-live="polite" hidden>
+                <p class="ranger-fin-etoiles" id="ranger-fin-etoiles" aria-hidden="true"></p>
+                <p class="ranger-fin-score" id="ranger-fin-score"></p>
+                <p class="ranger-fin-serie" id="ranger-fin-serie"></p>
+                <p class="ranger-fin-defi" id="ranger-fin-defi"></p>
+                <div class="ranger-fin-boutons">
+                  <button type="button" id="ranger-rejouer" class="btn-magique">Rejouer</button>
+                  <button type="button" id="ranger-changer" class="btn-magique ranger-second">Autre mission</button>
+                  <a href="../index.html" class="btn-magique ranger-second">Retour aux jeux</a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      (function () {
+        var R = RangerNombres;
+        var niveau = JeuxNiveau.niveau();
+        var $ = function (id) { return document.getElementById(id); };
+        var ecranDebut = $('ranger-ecran-debut'), ecranJeu = $('ranger-ecran-jeu');
+        var partieEl = $('ranger-partie'), finEl = $('ranger-fin'), zone = $('ranger-zone');
+        var consigneEl = $('ranger-consigne'), retourEl = $('ranger-retour'), detailEl = $('ranger-detail');
+        var suivantBtn = $('ranger-suivant'), pointsEl = $('ranger-points');
+
+        // état de la partie
+        var etat = null;
+
+        /* ---------- Écran de démarrage ---------- */
+        var classes = ['facile', 'moyen', 'difficile'];
+        R.niveauxDifficulte(niveau).forEach(function (d, i) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'btn-difficulte ' + classes[i];
+          b.appendChild(document.createTextNode(d.nom + ' '));
+          var s = document.createElement('span');
+          s.textContent = d.detail;
+          b.appendChild(s);
+          b.addEventListener('click', function () { demarrer(i); });
+          $('ranger-choix-difficulte').appendChild(b);
+        });
+        var voixDebut = JeuxNiveau.creerBoutonVoix(function () { return 'Choisis ta mission. Range les nombres, compare-les, ou trouve le plus proche.'; });
+        if (voixDebut) $('ranger-voix-debut').appendChild(voixDebut);
+        var voixJeu = JeuxNiveau.creerBoutonVoix(function () { return etat && etat.manche ? etat.manche.consigneVoix : ''; });
+        if (voixJeu) $('ranger-voix').appendChild(voixJeu);
+
+        /* ---------- Écriture d'un nombre (les fractions s'écrivent l'une sur l'autre) ---------- */
+        function ecrire(el, texte) {
+          var m = /^(\d+)\/(\d+)$/.exec(texte);
+          el.textContent = '';
+          if (m) {
+            var f = document.createElement('span'), n = document.createElement('span'), d = document.createElement('span'), sr = document.createElement('span');
+            f.className = 'ranger-frac'; f.setAttribute('aria-hidden', 'true');
+            n.className = 'ranger-num'; n.textContent = m[1];
+            d.className = 'ranger-den'; d.textContent = m[2];
+            f.appendChild(n); f.appendChild(d);
+            sr.className = 'ranger-sr'; sr.textContent = m[1] + ' sur ' + m[2];
+            el.appendChild(f); el.appendChild(sr);
+          } else {
+            el.textContent = texte;
+          }
+          if (texte.length > 9) el.classList.add('ranger-long');
+        }
+        function bouton(classe, texte) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = classe;
+          ecrire(b, texte);
+          return b;
+        }
+        function secouer(el) {
+          el.classList.remove('ranger-secoue');
+          void el.offsetWidth;
+          el.classList.add('ranger-secoue');
+          setTimeout(function () { el.classList.remove('ranger-secoue'); }, 500);
+        }
+        function focaliser(el) { if (el && el.focus) { try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); } } }
+
+        /* ---------- Déroulement ---------- */
+        function demarrer(diff) {
+          etat = { diff: diff, manches: R.genererPartie(niveau, diff), i: 0, reussies: 0, combo: 0, meilleurCombo: 0, resultats: [], enregistre: false };
+          ecranDebut.hidden = true;
+          ecranJeu.hidden = false;
+          finEl.hidden = true;
+          partieEl.hidden = false;
+          pointsEl.textContent = '';
+          for (var k = 0; k < R.NB_MANCHES; k++) {
+            var li = document.createElement('li');
+            li.className = 'ranger-point';
+            pointsEl.appendChild(li);
+          }
+          afficherManche();
+        }
+
+        function majEntete() {
+          $('ranger-manche').textContent = 'Manche ' + (etat.i + 1) + ' / ' + R.NB_MANCHES;
+          $('ranger-etoiles').textContent = '⭐ ' + etat.reussies;
+          $('ranger-combo').textContent = '🔥 ' + etat.combo;
+          var pts = pointsEl.children;
+          for (var k = 0; k < pts.length; k++) {
+            var r = etat.resultats[k];
+            pts[k].className = 'ranger-point' + (r === true ? ' ok' : (r === false ? ' ko' : (k === etat.i && !etat.fini ? ' courante' : '')));
+          }
+          pointsEl.setAttribute('aria-label', 'Manche ' + (etat.i + 1) + ' sur ' + R.NB_MANCHES + ', ' + etat.reussies + ' réussie' + (etat.reussies > 1 ? 's' : '') + ' sans erreur');
+        }
+
+        function afficherManche() {
+          var m = etat.manche = etat.manches[etat.i];
+          etat.erreurs = 0; etat.placees = 0; etat.fini = false;
+          zone.textContent = ''; retourEl.textContent = ''; detailEl.textContent = '';
+          suivantBtn.hidden = true;
+          consigneEl.textContent = m.consigne;
+          JeuxNiveau.mascotte('neutre');
+          majEntete();
+          if (m.type === 'ordre') monterOrdre(m);
+          else if (m.type === 'comparer') monterComparer(m);
+          else monterProche(m);
+        }
+
+        function dire(texte) { retourEl.textContent = texte; }
+
+        /* ----- Manche « ordre » ----- */
+        function monterOrdre(m) {
+          var sens = document.createElement('p');
+          sens.className = 'ranger-sens';
+          sens.textContent = m.sens === 'croissant' ? 'plus petit ➜ plus grand' : 'plus grand ➜ plus petit';
+          var file = document.createElement('ol');
+          file.className = 'ranger-file';
+          file.setAttribute('aria-label', 'File magique');
+          m.items.forEach(function (it, k) {
+            var li = document.createElement('li');
+            li.className = 'ranger-case';
+            li.textContent = String(k + 1);
+            file.appendChild(li);
+          });
+          var cartes = document.createElement('div');
+          cartes.className = 'ranger-cartes';
+          m.items.forEach(function (it) {
+            var b = bouton('ranger-carte', it.texte);
+            b.dataset.id = String(it.id);
+            b.addEventListener('click', function () { toucherCarte(m, it, b, file, cartes); });
+            cartes.appendChild(b);
+          });
+          zone.appendChild(sens); zone.appendChild(file); zone.appendChild(cartes);
+          focaliser(cartes.firstChild);
+        }
+        function montrerAide(m, cartes) {
+          if (etat.erreurs < R.ERREURS_AVANT_AIDE || etat.placees >= m.ordre.length) return;
+          var b = cartes.querySelector('[data-id="' + m.ordre[etat.placees] + '"]');
+          if (b) b.classList.add('ranger-aide');
+        }
+        function toucherCarte(m, it, btn, file, cartes) {
+          if (etat.fini) return;
+          if (R.verifierOrdre(m, etat.placees, it.id)) {
+            var caseEl = file.children[etat.placees];
+            ecrire(caseEl, it.texte);
+            caseEl.classList.add('ranger-pleine');
+            etat.placees++;
+            btn.classList.remove('ranger-aide');
+            btn.hidden = true;
+            JeuxNiveau.mascotte('neutre');
+            if (etat.placees >= m.ordre.length) {
+              finirManche();
+            } else {
+              dire('Bien ! ' + (m.sens === 'croissant' ? 'Et le suivant, plus grand ?' : 'Et le suivant, plus petit ?'));
+              montrerAide(m, cartes);
+              var reste = cartes.querySelector('button:not([hidden])');
+              focaliser(reste);
+            }
+          } else {
+            etat.erreurs++;
+            secouer(btn);
+            JeuxNiveau.mascotte('triste');
+            dire(etat.erreurs >= R.ERREURS_AVANT_AIDE ? 'Regarde la carte qui brille ✨' : 'Pas celui-là. ' + m.indice);
+            montrerAide(m, cartes);
+          }
+        }
+
+        /* ----- Manche « comparer » ----- */
+        var NOMS_SIGNES = { '<': 'plus petit que', '>': 'plus grand que', '=': 'égal à' };
+        function monterComparer(m) {
+          var duel = document.createElement('div');
+          duel.className = 'ranger-duel';
+          var g = document.createElement('div'), d = document.createElement('div'), s = document.createElement('div');
+          g.className = 'ranger-nombre'; d.className = 'ranger-nombre'; s.className = 'ranger-signe-slot';
+          ecrire(g, m.gauche.texte); ecrire(d, m.droite.texte);
+          s.textContent = '?';
+          duel.appendChild(g); duel.appendChild(s); duel.appendChild(d);
+          var signes = document.createElement('div');
+          signes.className = 'ranger-signes ranger-signes-' + m.choix.length;
+          signes.setAttribute('role', 'group');
+          signes.setAttribute('aria-label', 'Choisis le signe');
+          m.choix.forEach(function (c) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'ranger-signe';
+            b.textContent = c;
+            b.setAttribute('aria-label', NOMS_SIGNES[c]);
+            b.addEventListener('click', function () {
+              if (etat.fini) return;
+              if (R.verifierSigne(m, c)) {
+                s.textContent = c;
+                s.classList.add('ranger-pleine');
+                signes.querySelectorAll('button').forEach(function (x) { x.disabled = true; });
+                finirManche();
+              } else {
+                etat.erreurs++;
+                b.disabled = true;
+                secouer(s);
+                JeuxNiveau.mascotte('triste');
+                dire(etat.erreurs === 1 ? 'Pas tout à fait. ' + m.indice : 'Essaie un autre signe !');
+                focaliser(signes.querySelector('button:not(:disabled)'));
+              }
+            });
+            signes.appendChild(b);
+          });
+          zone.appendChild(duel); zone.appendChild(signes);
+          focaliser(signes.firstChild);
+        }
+
+        /* ----- Manche « le plus proche de… » ----- */
+        function monterProche(m) {
+          var cible = document.createElement('div');
+          cible.className = 'ranger-cible';
+          var lab = document.createElement('span');
+          lab.className = 'ranger-cible-lab';
+          lab.textContent = '🎯 Cible';
+          var val = document.createElement('span');
+          val.className = 'ranger-nombre';
+          ecrire(val, m.cible.texte);
+          cible.appendChild(lab); cible.appendChild(val);
+          var liste = document.createElement('div');
+          liste.className = 'ranger-choix';
+          m.choix.forEach(function (it) {
+            var b = bouton('ranger-carte', it.texte);
+            b.addEventListener('click', function () {
+              if (etat.fini) return;
+              if (R.verifierProche(m, it.id)) {
+                b.classList.add('ranger-juste');
+                liste.querySelectorAll('button').forEach(function (x) { x.disabled = true; });
+                detailEl.textContent = 'Écarts avec ' + m.cible.texte + ' : ' + m.choix.map(function (c) { return c.texte + ' → ' + c.ecart; }).join(' ; ') + '.';
+                finirManche();
+              } else {
+                etat.erreurs++;
+                b.disabled = true;
+                secouer(b);
+                JeuxNiveau.mascotte('triste');
+                dire(etat.erreurs === 1 ? 'Pas le plus proche. ' + m.indice : 'Regarde bien l’écart !');
+                focaliser(liste.querySelector('button:not(:disabled)'));
+              }
+            });
+            liste.appendChild(b);
+          });
+          zone.appendChild(cible); zone.appendChild(liste);
+          focaliser(liste.firstChild);
+        }
+
+        /* ----- Fin d'une manche ----- */
+        function finirManche() {
+          etat.fini = true;
+          var parfaite = etat.erreurs === 0;
+          etat.resultats[etat.i] = parfaite;
+          if (parfaite) {
+            etat.reussies++; etat.combo++;
+            etat.meilleurCombo = Math.max(etat.meilleurCombo, etat.combo);
+            JeuxNiveau.mascotte('contente');
+            dire(etat.combo >= 3 ? '🔥 Série de ' + etat.combo + ' ! Magnifique !' : (etat.combo === 2 ? '✨ Deux de suite, bravo !' : '✨ Parfait, sans erreur !'));
+          } else {
+            etat.combo = 0;
+            JeuxNiveau.mascotte('contente');
+            dire('Bien joué, tu as trouvé ! La prochaine sera parfaite.');
+          }
+          majEntete();
+          var derniere = etat.i >= R.NB_MANCHES - 1;
+          suivantBtn.textContent = derniere ? 'Voir mon score 🏆' : 'Manche suivante ➜';
+          suivantBtn.hidden = false;
+          focaliser(suivantBtn);
+        }
+        suivantBtn.addEventListener('click', function () {
+          if (!etat || !etat.fini) return;
+          etat.i++;
+          if (etat.i >= R.NB_MANCHES) terminer(); else afficherManche();
+        });
+
+        /* ----- Fin de partie ----- */
+        function terminer() {
+          var res = R.resultatPartie(etat.reussies);
+          var retour = {};
+          if (!etat.enregistre) {
+            etat.enregistre = true;
+            try { retour = JeuxNiveau.enregistrerPartie('ranger', { gagnee: res.gagnee, score: etat.reussies, meilleur: 'max' }) || {}; } catch (e) { retour = {}; }
+          }
+          partieEl.hidden = true;
+          finEl.hidden = false;
+          var etoiles = '';
+          for (var k = 0; k < 3; k++) etoiles += k < res.etoiles ? '⭐' : '☆';
+          $('ranger-fin-etoiles').textContent = etoiles;
+          $('ranger-fin-score').textContent = etat.reussies + ' / ' + R.NB_MANCHES + ' manches sans erreur';
+          $('ranger-fin-serie').textContent = etat.meilleurCombo >= 2 ? '🔥 Meilleure série : ' + etat.meilleurCombo + ' manches de suite' : '';
+          $('ranger-fin-defi').textContent = JeuxNiveau.messageDefi(retour);
+          consigneEl.textContent = res.gagnee ? (res.etoiles === 3 ? 'Parfait ! Tu es un grand ordonnateur !' : 'Bravo, tu as gagné !') : 'Bien essayé ! On refait une partie ?';
+          JeuxNiveau.mascotte(res.gagnee ? 'contente' : 'triste');
+          focaliser($('ranger-rejouer'));
+        }
+        $('ranger-rejouer').addEventListener('click', function () { demarrer(etat.diff); });
+        $('ranger-changer').addEventListener('click', function () {
+          ecranJeu.hidden = true;
+          ecranDebut.hidden = false;
+          focaliser(ecranDebut.querySelector('button.btn-difficulte'));
+        });
+      })();
+    </script>
+</body>
+</html>

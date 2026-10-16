@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="style/commun.css" />
     <link rel="stylesheet" href="style/accueil.css" />
     <script src="js/profils.js"></script>
+    <script src="jeux/commun.js"></script>
     <script src="js/composants/header.js" defer></script>
   </head>
   <body>
@@ -66,6 +67,8 @@
           </a>
         </article>
       </section>
+
+      <section class="defi-accueil" id="defi-accueil" aria-label="Défi du jour" hidden></section>
     </main>
     <script>
       (function () {
@@ -105,6 +108,26 @@
           const btn = carte.querySelector('.bouton-action');
           if (btn) btn.textContent = 'Bientôt';
         }
+
+        // Défi du jour : un jeu proposé chaque jour, série de jours d'affilée
+        (function () {
+          const bloc = document.getElementById('defi-accueil');
+          if (!bloc || !window.JeuxNiveau || !prenom) return;
+          const etat = JeuxNiveau.etatDefi();
+          if (!etat.jeu) return;
+          bloc.hidden = false;
+          if (etat.fait) bloc.classList.add('fait');
+          const serie = etat.serie > 0
+            ? '<p class="defi-serie">🔥 ' + etat.serie + ' jour' + (etat.serie > 1 ? 's' : '') + ' d\u2019affilée</p>' : '';
+          const desc = etat.fait
+            ? 'Reviens demain pour un nouveau défi.'
+            : (estCP ? etat.jeu.titre : etat.jeu.titre + ' \u2014 ' + etat.jeu.accroche);
+          bloc.innerHTML =
+            '<span class="defi-emoji" aria-hidden="true">' + (etat.fait ? '✅' : '🔥') + '</span>' +
+            '<div class="defi-corps"><p class="defi-titre">' + (etat.fait ? 'Défi du jour réussi !' : 'Défi du jour') + '</p>' +
+            '<p class="defi-desc">' + esc(desc) + '</p>' + serie + '</div>' +
+            '<a class="defi-bouton" href="jeux/' + esc(etat.jeu.id) + '/index.html">' + (etat.fait ? 'Rejouer' : 'Relever le défi') + '</a>';
+        })();
 
         // Mode CP: icônes d'abord, texte minimal + lecture à voix haute
         if (estCP) {

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizzas Magiques - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
+    <link rel="stylesheet" href="../../style/commun.css">
+    <link rel="stylesheet" href="../../style/jeux.css">
+    <script src="../../js/profils.js"></script>
+    <link rel="stylesheet" href="../commun.css">
+    <script src="../commun.js"></script>
+    <link rel="stylesheet" href="fractions.css">
+    <script src="fractions.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
+</head>
+
+<body class="jeu-page jeu-fractions">
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
+    <app-header base-path="../../"></app-header>
+    <main>
+      <a href="../index.html" class="lien-retour">← Jeux</a>
+      <h2 class="titre"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><circle cx="60" cy="60" r="50" fill="#FACC15" stroke="#2B2D5B" stroke-width="5"/>
+<path d="M60 60 L60 14 A46 46 0 0 1 106 60 Z" fill="#F97316" stroke="#2B2D5B" stroke-width="4" stroke-linejoin="round"/>
+<path d="M60 60 L60 106 A46 46 0 0 1 14 60 Z" fill="#FFE6D2" stroke="#2B2D5B" stroke-width="4" stroke-linejoin="round"/>
+<circle cx="80" cy="40" r="6" fill="#2B2D5B"/></svg> Pizzas Magiques</h2>
+      <div class="presentation">
+        <div class="cadre">
+          <div class="jeu-conteneur">
+
+            <!-- Écran de choix de la difficulté -->
+            <div id="ecran-difficulte">
+              <p class="invite-mission">Choisis ta magie ! <span id="zone-voix-debut"></span></p>
+              <p class="fractions-presentation">8 manches : colorie, lis et partage des pizzas.</p>
+              <div class="choix-difficulte" id="choix-difficulte"></div>
+            </div>
+
+            <!-- Écran de jeu -->
+            <div id="ecran-jeu" hidden>
+              <div class="fractions-haut" id="barre-haut">
+                <span class="fractions-pastille" id="progression"></span>
+                <span class="fractions-pastille" id="score"></span>
+                <span class="fractions-pastille combo" id="combo" hidden></span>
+              </div>
+              <div class="jeu-parole">
+                <img class="jeu-mascotte" src="../../images/mascotte-neutre.svg" data-dossier="../../images/" data-etat="neutre" alt="" width="76" height="76" onerror="this.style.display='none'">
+                <p id="consigne" class="tour-info"></p>
+              </div>
+              <div id="zone-voix" class="fractions-voix"></div>
+
+              <div id="zone-manche">
+                <div id="figure"></div>
+                <div id="reponse"></div>
+                <p id="retour" class="fractions-retour" aria-live="polite"></p>
+                <div class="fractions-actions">
+                  <button type="button" id="btn-suivant" class="btn-magique" hidden>Suivant →</button>
+                </div>
+              </div>
+
+              <div id="zone-fin" class="fractions-fin" aria-live="polite" hidden></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      (function () {
+        'use strict';
+        const PM = PizzasMagiques;
+        const niveau = JeuxNiveau.niveau();
+        const SVGNS = 'http://www.w3.org/2000/svg';
+        const $ = (id) => document.getElementById(id);
+
+        const ecranDifficulte = $('ecran-difficulte'), ecranJeu = $('ecran-jeu');
+        const consigne = $('consigne'), figureEl = $('figure'), reponseEl = $('reponse'), retourEl = $('retour');
+        const btnSuivant = $('btn-suivant'), zoneManche = $('zone-manche'), zoneFin = $('zone-fin');
+        const progressionEl = $('progression'), scoreEl = $('score'), comboEl = $('combo'), barreHaut = $('barre-haut');
+
+        // état de la partie
+        let diff = 0, partie = [], idx = 0, justes = 0, combo = 0, meilleurCombo = 0;
+        let q = null, essai = 0, termine = false, phase = 1, enregistree = false;
+        let partsEls = [], marquesEls = [], selection = new Set(), boutons = [], objetsEls = [];
+
+        /* ---------- Petits outils DOM (texte toujours inséré par textContent) ---------- */
+        function el(tag, cls, txt) {
+          const e = document.createElement(tag);
+          if (cls) e.className = cls;
+          if (txt !== undefined) e.textContent = txt;
+          return e;
+        }
+        function svgEl(tag, attrs) {
+          const e = document.createElementNS(SVGNS, tag);
+          Object.keys(attrs).forEach((k) => e.setAttribute(k, attrs[k]));
+          return e;
+        }
+        function fracEl(num, den) {
+          if (den === 1) return el('span', 'fractions-entier', String(num));
+          const s = el('span', 'fractions-frac');
+          s.setAttribute('role', 'img');
+          s.setAttribute('aria-label', PM.dire(num, den));
+          s.appendChild(el('span', 'fractions-num', String(num)));
+          s.appendChild(el('span', 'fractions-den', String(den)));
+          return s;
+        }
+        /** Remplit un nœud avec un texte contenant des jetons {n/d} affichés en fractions empilées. */
+        function remplir(noeud, texte) {
+          noeud.textContent = '';
+          PM.segments(texte).forEach((seg) => {
+            noeud.appendChild(seg.frac ? fracEl(seg.num, seg.den) : document.createTextNode(seg.txt));
+          });
+        }
+        function alea(t) { return t[Math.floor(Math.random() * t.length)]; }
+
+        /* ---------- Écran de départ ---------- */
+        const classesDiff = ['facile', 'moyen', 'difficile'];
+        PM.difficultes(niveau).forEach((dd, i) => {
+          const b = el('button', 'btn-difficulte ' + classesDiff[i]);
+          b.type = 'button';
+          b.appendChild(document.createTextNode(dd.nom + ' '));
+          b.appendChild(el('span', '', dd.detail));
+          b.addEventListener('click', () => demarrer(i));
+          $('choix-difficulte').appendChild(b);
+        });
+        const voixDebut = JeuxNiveau.creerBoutonVoix(() => 'Choisis ta magie. Colorie, lis et partage des pizzas.');
+        if (voixDebut) $('zone-voix-debut').appendChild(voixDebut);
+        const voixJeu = JeuxNiveau.creerBoutonVoix(() => (q ? PM.enTexteBrut(q.texte) : ''));
+        if (voixJeu) $('zone-voix').appendChild(voixJeu);
+
+        btnSuivant.addEventListener('click', () => {
+          idx++;
+          if (idx >= PM.NB_MANCHES) fin(); else afficherQuestion();
+        });
+
+        function demarrer(d) {
+          diff = d; partie = PM.partie(niveau, d); idx = 0; justes = 0; combo = 0; meilleurCombo = 0; enregistree = false;
+          ecranDifficulte.hidden = true; ecranJeu.hidden = false;
+          zoneFin.hidden = true; zoneManche.hidden = false; barreHaut.hidden = false;
+          afficherQuestion();
+        }
+
+        function majScore() {
+          progressionEl.textContent = 'Manche ' + (idx + 1) + ' / ' + PM.NB_MANCHES;
+          scoreEl.textContent = '⭐ ' + justes;
+          comboEl.hidden = combo < 2;
+          comboEl.textContent = '🔥 Série ×' + combo;
+        }
+
+        /* ---------- Dessin des pizzas et tablettes ---------- */
+        function activerPart(part, i, o) {
+          part.classList.add('interactif');
+          part.setAttribute('tabindex', '0');
+          part.setAttribute('role', 'button');
+          part.setAttribute('aria-label', 'Part ' + (i + 1) + (o.basculable ? ', non coloriée' : ''));
+          if (o.basculable) part.setAttribute('aria-pressed', 'false');
+        }
+        function desactiverPart(part) {
+          part.classList.remove('interactif');
+          part.removeAttribute('tabindex');
+          part.removeAttribute('role');
+          part.removeAttribute('aria-pressed');
+          part.removeAttribute('aria-label');
+        }
+        /** o : { forme, parts, tailles?, actives?, interactif?, basculable?, onPart?(globalIndex), debut?, label } */
+        function dessinerForme(o) {
+          const d = o.parts, svg = svgEl('svg', { class: 'fractions-svg', focusable: 'false' });
+          const tailles = o.tailles || Array.from({ length: d }, () => 1 / d);
+          let cellules;
+          if (o.forme === 'disque') {
+            svg.setAttribute('viewBox', '0 0 220 220');
+            svg.appendChild(svgEl('circle', { class: 'fractions-croute', cx: 110, cy: 110, r: 106 }));
+            cellules = PM.secteurs(tailles, 110, 110, 98).map((s) => ({ tag: 'path', attrs: { d: s.d }, mx: s.mx, my: s.my, r: 7 }));
+          } else {
+            const g = o.tailles ? PM.tranchesBarre(tailles, 290, 70) : PM.grilleBarre(d, 290);
+            svg.setAttribute('viewBox', '0 0 300 ' + (g.hauteur + 10));
+            svg.appendChild(svgEl('rect', { class: 'fractions-chocolat', x: 2, y: 2, width: 296, height: g.hauteur + 6, rx: 10 }));
+            cellules = g.cells.map((c) => ({ tag: 'rect', attrs: { x: c.x + 5, y: c.y + 5, width: c.w, height: c.h, rx: 4 }, mx: c.mx + 5, my: c.my + 5, r: 8 }));
+          }
+          svg.setAttribute('role', o.interactif ? 'group' : 'img');
+          svg.setAttribute('aria-label', o.label || '');
+          const parts = [], marques = [];
+          cellules.forEach((c, i) => {
+            const gi = (o.debut || 0) + i;
+            const part = svgEl(c.tag, Object.assign({ class: 'fractions-part' }, c.attrs));
+            if (o.interactif) activerPart(part, gi, o);
+            if (o.onPart) {
+              part.addEventListener('click', () => o.onPart(gi));
+              part.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); o.onPart(gi); } });
+            }
+            svg.appendChild(part);
+            parts.push(part);
+          });
+          cellules.forEach((c) => {
+            const m = svgEl('circle', { class: 'fractions-marque', cx: c.mx, cy: c.my, r: c.r });
+            svg.appendChild(m);
+            marques.push(m);
+          });
+          return { svg: svg, parts: parts, marques: marques };
+        }
+        /** n formes identiques (ou une seule) ; remplit partsEls / marquesEls avec les index globaux. */
+        function creerFigures(n, fabrique) {
+          const wrap = el('div', 'fractions-formes' + (n === 2 ? ' deux' : n >= 3 ? ' trois' : ''));
+          for (let i = 0; i < n; i++) {
+            const f = dessinerForme(fabrique(i));
+            wrap.appendChild(f.svg);
+            f.parts.forEach((p) => partsEls.push(p));
+            f.marques.forEach((m) => marquesEls.push(m));
+          }
+          return wrap;
+        }
+        function allumer(i, on) {
+          if (!partsEls[i]) return;
+          partsEls[i].classList.toggle('on', on);
+          marquesEls[i].classList.toggle('on', on);
+          if (partsEls[i].hasAttribute('aria-pressed')) {
+            partsEls[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+            partsEls[i].setAttribute('aria-label', 'Part ' + (i + 1) + (on ? ', coloriée' : ', non coloriée'));
+          }
+        }
+        function decrireForme(forme, d, n) {
+          const nom = forme === 'disque' ? 'Pizza' : 'Tablette de chocolat';
+          return nom + ' coupée en ' + d + ' parts' + (n !== undefined ? ', dont ' + n + ' coloriée' + (n > 1 ? 's' : '') : '') + '.';
+        }
+        function etiquetteFrac(f) {
+          const e = el('div', 'fractions-etiquette');
+          if (niveau === 'cp') e.textContent = PM.motFraction(f.num, f.den);
+          else if (niveau === 'ce1') { e.appendChild(fracEl(f.num, f.den)); }
+          else e.appendChild(fracEl(f.num, f.den));
+          return e;
+        }
+
+        /* ---------- Construction d'une manche ---------- */
+        function afficherQuestion() {
+          q = partie[idx]; essai = 0; termine = false; phase = 1;
+          partsEls = []; marquesEls = []; selection = new Set(); boutons = []; objetsEls = [];
+          zoneManche.hidden = false; zoneFin.hidden = true;
+          figureEl.textContent = ''; reponseEl.textContent = '';
+          retourEl.textContent = ''; retourEl.className = 'fractions-retour';
+          btnSuivant.hidden = true;
+          majScore();
+          remplir(consigne, q.texte);
+          JeuxNiveau.mascotte('neutre');
+          const fn = CONSTRUCTEURS[q.type];
+          fn();
+        }
+
+        function afficherChoix(sens) {
+          const g = el('div', 'fractions-choix' + (q.choix.length === 3 && sens !== 'colonne' ? ' trois' : ''));
+          g.setAttribute('role', 'group');
+          g.setAttribute('aria-label', 'Réponses possibles');
+          q.choix.forEach((c, i) => {
+            const b = el('button', 'fractions-btn-choix');
+            b.type = 'button';
+            remplir(b, c.texte);
+            if (c.mot) b.appendChild(el('span', 'fractions-mot', c.mot));
+            b.addEventListener('click', () => choisir(i, b));
+            g.appendChild(b);
+            boutons.push(b);
+          });
+          reponseEl.appendChild(g);
+        }
+
+        const CONSTRUCTEURS = {
+          colorier() {
+            const f = creerFigures(q.nbFormes, (i) => ({
+              forme: q.forme, parts: q.parts, interactif: true, basculable: true, debut: i * q.parts, onPart: basculer,
+              label: decrireForme(q.forme, q.parts) + ' Touche les parts pour les colorier.'
+            }));
+            figureEl.appendChild(f);
+            const cpt = el('p', 'fractions-compteur', 'Parts coloriées : 0');
+            cpt.id = 'compteur';
+            figureEl.appendChild(cpt);
+            const b = el('button', 'btn-magique', 'Valider');
+            b.type = 'button'; b.id = 'btn-valider'; b.disabled = true;
+            b.addEventListener('click', validerColoriage);
+            reponseEl.appendChild(b);
+          },
+          lire() {
+            figureEl.appendChild(creerFigures(q.nbFormes, (i) => ({ forme: q.forme, parts: q.parts, debut: i * q.parts, label: decrireForme(q.forme, q.parts, q.colorees) })));
+            q.indices.forEach((i) => allumer(i, true));
+            afficherChoix();
+          },
+          partage() {
+            figureEl.appendChild(creerFigures(1, () => ({
+              forme: q.forme, parts: q.parts, tailles: q.tailles, onPart: touchePartage, label: decrireForme(q.forme, q.parts)
+            })));
+            afficherChoix('colonne');
+          },
+          comparer() {
+            if (q.figures) {
+              const wrap = el('div', 'fractions-formes');
+              [q.a, q.b].forEach((f, k) => {
+                const bloc = el('div', 'fractions-bloc');
+                const sf = dessinerForme({ forme: q.forme, parts: f.den, label: decrireForme(q.forme, f.den, f.num) });
+                sf.svg.style.width = 'min(38vw, 180px)';
+                for (let i = 0; i < f.num; i++) { sf.parts[i].classList.add('on'); sf.marques[i].classList.add('on'); }
+                bloc.appendChild(sf.svg);
+                bloc.appendChild(etiquetteFrac(f));
+                wrap.appendChild(bloc);
+              });
+              figureEl.appendChild(wrap);
+            } else {
+              const duel = el('div', 'fractions-duel');
+              duel.appendChild(fracEl(q.a.num, q.a.den));
+              duel.appendChild(el('span', '', '?'));
+              duel.appendChild(fracEl(q.b.num, q.b.den));
+              figureEl.appendChild(duel);
+            }
+            afficherChoix(q.choix.length === 3 ? undefined : 'colonne');
+          },
+          quantite() {
+            if (q.grille) {
+              const g = el('div', 'fractions-objets');
+              g.setAttribute('aria-hidden', 'true');
+              for (let i = 0; i < q.total; i++) { const o = el('span', 'fractions-objet', q.objet.emoji); g.appendChild(o); objetsEls.push(o); }
+              figureEl.appendChild(g);
+            }
+            afficherChoix();
+          },
+          egales() {
+            if (q.figure) {
+              figureEl.appendChild(creerFigures(1, () => ({ forme: q.forme, parts: q.ref.den, label: decrireForme(q.forme, q.ref.den, q.ref.num) })));
+              for (let i = 0; i < q.ref.num; i++) allumer(i, true);
+            }
+            afficherChoix();
+          },
+          simplifier() { afficherChoix(); },
+          decimal() { afficherChoix(); },
+          addition() { afficherChoix(); },
+          pourcent() { afficherChoix(); },
+          improprie() {
+            figureEl.appendChild(creerFigures(q.nbFormes, (i) => ({ forme: q.forme, parts: q.parts, debut: i * q.parts, label: decrireForme(q.forme, q.parts) })));
+            q.indices.forEach((i) => allumer(i, true));
+            afficherChoix();
+          }
+        };
+
+        /* ---------- Réponses ---------- */
+        function basculer(i) {
+          if (termine || q.type !== 'colorier') return;
+          if (selection.has(i)) selection.delete(i); else selection.add(i);
+          allumer(i, selection.has(i));
+          const nb = selection.size;
+          $('compteur').textContent = 'Parts coloriées : ' + nb;
+          $('btn-valider').disabled = nb === 0;
+        }
+        function validerColoriage() {
+          if (termine || selection.size === 0) return;
+          if (PM.verifier(q, selection.size)) reussir();
+          else echec('Tu as colorié ' + selection.size + ' part' + (selection.size > 1 ? 's' : '') + '.');
+        }
+        function choisir(i, bouton) {
+          if (termine) return;
+          if (!PM.verifier(q, i)) { bouton.classList.add('faux'); bouton.disabled = true; echec(''); return; }
+          bouton.classList.add('juste');
+          if (q.type === 'partage' && q.reperer) { passerPhase2(); return; }
+          reussir();
+        }
+        function touchePartage(i) {
+          if (termine || phase !== 2) return;
+          if (PM.verifierPart(q, i)) { partsEls[i].classList.add('juste'); reussir(); }
+          else { partsEls[i].classList.add('faux'); echec('Cette part est de la même taille que les autres.'); }
+        }
+        function passerPhase2() {
+          phase = 2;
+          boutons.forEach((b) => { b.disabled = true; });
+          partsEls.forEach((p, i) => { activerPart(p, i, {}); });
+          JeuxNiveau.mascotte('contente');
+          retourEl.className = 'fractions-retour ok';
+          retourEl.textContent = '';
+          retourEl.appendChild(el('span', 'titre-retour', 'Oui, ce n’est pas équitable !'));
+          retourEl.appendChild(document.createTextNode('Touche la part la plus grande.'));
+          if (partsEls[0]) partsEls[0].focus();
+        }
+
+        function afficherRetour(classe, titre, details) {
+          retourEl.className = 'fractions-retour ' + classe;
+          retourEl.textContent = '';
+          retourEl.appendChild(el('span', 'titre-retour', titre));
+          if (details) { const s = el('span'); remplir(s, details); retourEl.appendChild(s); }
+        }
+        function echec(prefixe) {
+          essai++; combo = 0; majScore();
+          JeuxNiveau.mascotte('triste');
+          if (essai >= 2) { reveler(); return; }
+          afficherRetour('indice', 'Presque ! Essaie encore.', (prefixe ? prefixe + ' ' : '') + q.indice);
+          if (q.type === 'colorier' && $('btn-valider')) $('btn-valider').focus();
+          else { const libre = boutons.find((b) => !b.disabled); if (libre) libre.focus(); }
+        }
+        function reussir() {
+          termine = true;
+          const premier = essai === 0;
+          if (premier) { justes++; combo++; meilleurCombo = Math.max(meilleurCombo, combo); } else combo = 0;
+          JeuxNiveau.mascotte('contente');
+          majScore();
+          afficherRetour('ok', premier ? alea(['Bravo !', 'Super !', 'Magique !', 'Excellent !']) + (combo >= 3 ? ' Série de ' + combo + ' !' : '') : 'Bien vu, à la deuxième chance !', q.explication);
+          montrerSolution(true);
+          terminerManche();
+        }
+        function reveler() {
+          termine = true;
+          JeuxNiveau.mascotte('triste');
+          afficherRetour('ko', 'Voici la solution.', q.explication);
+          montrerSolution(false);
+          terminerManche();
+        }
+        function montrerSolution(dejaMontree) {
+          boutons.forEach((b, i) => {
+            b.disabled = true;
+            if (i === q.reponse) b.classList.add('juste');
+          });
+          if (q.type === 'colorier') {
+            partsEls.forEach((p, i) => { allumer(i, i < q.cible); desactiverPart(p); });
+            const bv = $('btn-valider'); if (bv) bv.disabled = true;
+          }
+          if (q.type === 'partage') {
+            partsEls.forEach((p, i) => { desactiverPart(p); if (!q.egal && i === q.plusGrande) p.classList.add('juste'); });
+          }
+          if (q.type === 'quantite') objetsEls.forEach((o, i) => { if (i < q.choix[q.reponse].valeur) o.classList.add('pris'); });
+        }
+        function terminerManche() {
+          btnSuivant.hidden = false;
+          btnSuivant.textContent = idx + 1 >= PM.NB_MANCHES ? 'Voir mon score →' : 'Suivant →';
+          btnSuivant.focus();
+        }
+
+        /* ---------- Fin de partie ---------- */
+        function fin() {
+          const gagnee = PM.gagnee(justes);
+          let message = '';
+          if (!enregistree) {
+            enregistree = true;
+            const retour = JeuxNiveau.enregistrerPartie('fractions', { gagnee: gagnee, score: justes, meilleur: 'max' });
+            message = JeuxNiveau.messageDefi(retour);
+          }
+          zoneManche.hidden = true; zoneFin.hidden = false; barreHaut.hidden = true;
+          zoneFin.textContent = '';
+          JeuxNiveau.mascotte(gagnee ? 'contente' : 'triste');
+          consigne.textContent = gagnee ? 'Bravo, quel chef pizzaïolo !' : 'Bien essayé ! Tu y es presque.';
+          const nbEt = PM.etoiles(justes);
+          const et = el('p', 'fractions-etoiles', '★'.repeat(nbEt) + '☆'.repeat(3 - nbEt));
+          et.setAttribute('role', 'img');
+          et.setAttribute('aria-label', nbEt + ' étoile' + (nbEt > 1 ? 's' : '') + ' sur 3');
+          zoneFin.appendChild(et);
+          zoneFin.appendChild(el('p', 'fractions-score', justes + ' manche' + (justes > 1 ? 's' : '') + ' réussie' + (justes > 1 ? 's' : '') + ' du premier coup sur ' + PM.NB_MANCHES));
+          zoneFin.appendChild(el('p', 'fractions-retour', gagnee ? 'Tu as gagné la partie !' : 'Il faut ' + PM.SEUIL_VICTOIRE + ' manches justes du premier coup pour gagner.'));
+          if (meilleurCombo >= 2) zoneFin.appendChild(el('p', 'fractions-retour', '🔥 Meilleure série : ' + meilleurCombo));
+          if (message) zoneFin.appendChild(el('p', 'fractions-defi', message));
+          const act = el('div', 'fractions-actions');
+          const rejouer = el('button', 'btn-magique', 'Rejouer');
+          rejouer.type = 'button';
+          rejouer.addEventListener('click', () => demarrer(diff));
+          const changer = el('button', 'btn-magique', 'Changer de magie');
+          changer.type = 'button';
+          changer.addEventListener('click', () => { ecranJeu.hidden = true; ecranDifficulte.hidden = false; JeuxNiveau.mascotte('neutre'); });
+          const retourJeux = el('a', 'btn-magique', 'Retour aux jeux');
+          retourJeux.href = '../index.html';
+          act.appendChild(rejouer); act.appendChild(changer); act.appendChild(retourJeux);
+          zoneFin.appendChild(act);
+          rejouer.focus();
+        }
+      })();
+    </script>
+</body>
+</html>

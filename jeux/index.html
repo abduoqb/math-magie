@@ -22,6 +22,11 @@
         </div>
       </section>
 
+      <section class="defi-jour" id="defi-jour" aria-label="Défi du jour" hidden></section>
+
+      <div id="jeux-magiques"></div>
+
+      <h3 class="jeu-rubrique-titre" id="titre-classiques">🎲 Les grands classiques</h3>
       <section class="choix-calculs jeu-grille">
         <article class="carte-mission jeu-carte" data-jeu="morpion">
           <a class="jeu-carte-lien" href="morpion/index.html">
@@ -80,10 +85,110 @@
     </main>
     <script src="commun.js"></script>
     <script>
+      var cp = JeuxNiveau.niveau() === 'cp';
+
+      /* Jeux magiques : une rubrique par catégorie, construite depuis le catalogue (jeux/commun.js) */
+      (function () {
+        var racine = document.getElementById('jeux-magiques');
+        var etat = JeuxNiveau.etatDefi();
+        JeuxNiveau.CATEGORIES.forEach(function (cat) {
+          var jeux = JeuxNiveau.CATALOGUE.filter(function (j) { return j.categorie === cat.id && JeuxNiveau.jeuActif(j.id); });
+          if (!jeux.length) return;
+          var titre = document.createElement('h3');
+          titre.className = 'jeu-rubrique-titre';
+          titre.textContent = cat.titre;
+          var grille = document.createElement('section');
+          grille.className = 'choix-calculs jeu-grille';
+          grille.setAttribute('aria-label', cat.titre);
+          jeux.forEach(function (j) {
+            var carte = document.createElement('article');
+            carte.className = 'carte-mission jeu-carte';
+            carte.dataset.jeu = j.id;
+            var lien = document.createElement('a');
+            lien.className = 'jeu-carte-lien';
+            lien.href = j.id + '/index.html';
+            var img = document.createElement('div');
+            img.className = 'jeu-carte-image';
+            var em = document.createElement('span');
+            em.className = 'jeu-emoji';
+            em.setAttribute('aria-hidden', 'true');
+            em.textContent = j.emoji;
+            img.appendChild(em);
+            var texte = document.createElement('div');
+            texte.className = 'jeu-texte';
+            var h = document.createElement('h3');
+            h.textContent = j.titre;
+            var badge = document.createElement('span');
+            badge.className = 'jeu-badge';
+            badge.innerHTML = '<i></i> Solo';
+            texte.appendChild(h);
+            texte.appendChild(badge);
+            if (!cp) {
+              var acc = document.createElement('p');
+              acc.className = 'jeu-accroche';
+              acc.textContent = j.accroche;
+              texte.appendChild(acc);
+            }
+            if (etat.jeu && etat.jeu.id === j.id) {
+              var etiq = document.createElement('span');
+              etiq.className = 'jeu-defi-etiquette';
+              etiq.textContent = etat.fait ? '✅ Défi du jour fait' : '🔥 Défi du jour';
+              texte.appendChild(etiq);
+            }
+            var cta = document.createElement('span');
+            cta.className = 'btn-lancer jeu-cta';
+            cta.textContent = 'Jouer';
+            lien.appendChild(img);
+            lien.appendChild(texte);
+            lien.appendChild(cta);
+            carte.appendChild(lien);
+            grille.appendChild(carte);
+          });
+          racine.appendChild(titre);
+          racine.appendChild(grille);
+        });
+
+        /* Bandeau « Défi du jour » */
+        var bandeau = document.getElementById('defi-jour');
+        if (etat.jeu) {
+          bandeau.hidden = false;
+          bandeau.className = 'defi-jour' + (etat.fait ? ' fait' : '');
+          var emj = document.createElement('span');
+          emj.className = 'defi-jour-emoji';
+          emj.setAttribute('aria-hidden', 'true');
+          emj.textContent = etat.fait ? '✅' : '🔥';
+          var corps = document.createElement('div');
+          corps.className = 'defi-jour-corps';
+          var t = document.createElement('p');
+          t.className = 'defi-jour-titre';
+          t.textContent = etat.fait ? 'Défi du jour réussi !' : 'Défi du jour';
+          var d = document.createElement('p');
+          d.className = 'defi-jour-desc';
+          d.textContent = etat.fait
+            ? 'Reviens demain pour un nouveau défi.'
+            : (cp ? etat.jeu.titre : 'Aujourd\u2019hui : ' + etat.jeu.titre + '. ' + etat.jeu.accroche);
+          corps.appendChild(t);
+          corps.appendChild(d);
+          if (etat.serie > 0) {
+            var s = document.createElement('p');
+            s.className = 'defi-jour-serie';
+            s.textContent = '🔥 ' + etat.serie + ' jour' + (etat.serie > 1 ? 's' : '') + ' d\u2019affilée';
+            corps.appendChild(s);
+          }
+          bandeau.appendChild(emj);
+          bandeau.appendChild(corps);
+          var go = document.createElement('a');
+          go.className = 'defi-jour-bouton';
+          go.href = etat.jeu.id + '/index.html';
+          go.textContent = etat.fait ? 'Rejouer' : 'Relever le défi';
+          bandeau.appendChild(go);
+        }
+      })();
+
       document.querySelectorAll('[data-jeu]').forEach(function (c) {
         if (!JeuxNiveau.jeuActif(c.dataset.jeu)) c.style.display = 'none';
       });
-      if (JeuxNiveau.niveau() === 'cp') {
+      if (cp) {
         document.querySelector('.entete-missions p').textContent = 'Choisis un jeu !';
         document.body.classList.add('jeu-cp');
       }

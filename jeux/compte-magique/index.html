@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Compte Magique - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
+    <link rel="stylesheet" href="../../style/commun.css">
+    <link rel="stylesheet" href="../../style/jeux.css">
+    <script src="../../js/profils.js"></script>
+    <link rel="stylesheet" href="../commun.css">
+    <script src="../commun.js"></script>
+    <link rel="stylesheet" href="compte-magique.css">
+    <script src="compte-magique.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
+</head>
+
+<body class="jeu-page jeu-compte-magique">
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
+    <app-header base-path="../../"></app-header>
+    <main>
+      <a href="../index.html" class="lien-retour">← Jeux</a>
+      <h2 class="titre"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><circle cx="60" cy="60" r="46" fill="#fff" stroke="#2B2D5B" stroke-width="5"/>
+<circle cx="60" cy="60" r="32" fill="#FCA5A5" stroke="#2B2D5B" stroke-width="4"/>
+<circle cx="60" cy="60" r="18" fill="#fff" stroke="#2B2D5B" stroke-width="4"/>
+<circle cx="60" cy="60" r="7" fill="#EA580C" stroke="#2B2D5B" stroke-width="3"/>
+<path d="M60 60 L98 22" stroke="#2B2D5B" stroke-width="5" stroke-linecap="round"/>
+<polygon points="98,22 86,24 96,34" fill="#FACC15" stroke="#2B2D5B" stroke-width="3" stroke-linejoin="round"/></svg> Le Compte Magique</h2>
+      <div class="presentation">
+        <div class="cadre">
+          <div class="jeu-conteneur compte-magique-conteneur">
+
+            <!-- Choix de la difficulté -->
+            <div id="cm-ecran-difficulte">
+              <p class="invite-mission">Choisis ta mission ! <span id="cm-zone-voix"></span></p>
+              <div class="choix-difficulte" id="cm-choix-difficulte"></div>
+              <p class="compte-magique-regle" id="cm-regle"></p>
+            </div>
+
+            <!-- Écran de jeu -->
+            <div id="cm-ecran-jeu" class="compte-magique-jeu" hidden>
+              <div class="compte-magique-entete">
+                <span class="compte-magique-manche" id="cm-manche"></span>
+                <span class="compte-magique-etoiles" id="cm-etoiles"></span>
+              </div>
+              <div class="jeu-parole">
+                <img class="jeu-mascotte" src="../../images/mascotte-neutre.svg" data-dossier="../../images/" data-etat="neutre" alt="" width="76" height="76" onerror="this.style.display='none'">
+                <p id="cm-message" class="tour-info" aria-live="polite"></p>
+              </div>
+              <div class="compte-magique-cible">
+                <span class="compte-magique-cible-titre" id="cm-voix-cible">🎯 Ma cible</span>
+                <strong id="cm-cible" aria-label="Nombre cible"></strong>
+              </div>
+              <div id="cm-cartes" class="compte-magique-cartes" role="group" aria-label="Tes cartes"></div>
+              <p class="compte-magique-expression" id="cm-expression"></p>
+              <div id="cm-operations" class="compte-magique-operations" role="group" aria-label="Opérations"></div>
+              <div class="compte-magique-actions">
+                <button type="button" class="compte-magique-bouton" id="cm-annuler">↩ Annuler</button>
+                <button type="button" class="compte-magique-bouton" id="cm-recommencer">🔄 Recommencer</button>
+                <button type="button" class="compte-magique-bouton compte-magique-aide" id="cm-aide">💡 Un coup d'aide</button>
+                <button type="button" class="compte-magique-bouton" id="cm-passer">⏭ Je passe</button>
+              </div>
+              <button type="button" class="btn-magique" id="cm-suivante" hidden>Manche suivante</button>
+            </div>
+
+            <!-- Écran de fin -->
+            <div id="cm-ecran-fin" class="compte-magique-fin" hidden>
+              <p id="cm-fin-titre" class="tour-info compte-magique-fin-titre" aria-live="polite"></p>
+              <p class="compte-magique-score" id="cm-fin-score"></p>
+              <ol class="compte-magique-bilan" id="cm-bilan"></ol>
+              <p class="compte-magique-defi" id="cm-fin-defi"></p>
+              <div class="compte-magique-fin-boutons">
+                <button type="button" class="btn-magique" id="cm-rejouer">Rejouer</button>
+                <button type="button" class="btn-magique compte-magique-secondaire" id="cm-changer">Autre mission</button>
+                <a class="btn-magique compte-magique-secondaire" href="../index.html">Retour aux jeux</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      (function () {
+        'use strict';
+        const CM = CompteMagique;
+        const niveau = JeuxNiveau.niveau();
+        const cp = niveau === 'cp';
+        const $ = id => document.getElementById(id);
+
+        const ecranDiff = $('cm-ecran-difficulte');
+        const ecranJeu = $('cm-ecran-jeu');
+        const ecranFin = $('cm-ecran-fin');
+        const elMessage = $('cm-message');
+        const elCartes = $('cm-cartes');
+        const elOps = $('cm-operations');
+        const elExpr = $('cm-expression');
+        const btnAnnuler = $('cm-annuler');
+        const btnRecommencer = $('cm-recommencer');
+        const btnAide = $('cm-aide');
+        const btnPasser = $('cm-passer');
+        const btnSuivante = $('cm-suivante');
+
+        // état de la partie
+        let difficulte = 0;
+        let resultats = [];
+        let indicesRestants = CM.NB_INDICES;
+        let indicesManche = 0;
+        let numManche = 0;
+        let manche = null;
+        let etat = null;
+        let selection = null;   // id de la première carte
+        let operation = null;   // opération choisie
+        let aide = null;        // coup suggéré { idA, op, idB }
+        let fini = false;       // manche terminée
+        let partieEnregistree = false;
+        let derniereCible = null;
+        let consigneCourante = '';
+
+        /* ---------- Écran de démarrage ---------- */
+        CM.NOMS_DIFFICULTE.forEach((nom, i) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'btn-difficulte ' + ['facile', 'moyen', 'difficile'][i];
+          b.appendChild(document.createTextNode(nom + ' '));
+          const s = document.createElement('span');
+          s.textContent = CM.descriptionDifficulte(niveau, i);
+          b.appendChild(s);
+          b.addEventListener('click', () => demarrer(i));
+          $('cm-choix-difficulte').appendChild(b);
+        });
+        $('cm-regle').textContent = cp
+          ? 'Touche une carte, un signe, une autre carte.'
+          : 'Touche une carte, une opération, puis une autre carte. Le résultat devient une nouvelle carte. Fais apparaître le nombre cible !';
+        const voixIntro = JeuxNiveau.creerBoutonVoix(() => 'Touche une carte, un signe, puis une autre carte. Fais apparaître le nombre cible.');
+        if (voixIntro) $('cm-zone-voix').appendChild(voixIntro);
+        const voixJeu = JeuxNiveau.creerBoutonVoix(() => consigneCourante);
+        if (voixJeu) $('cm-voix-cible').parentNode.appendChild(voixJeu);
+        if (cp) {
+          btnAide.textContent = '💡 Aide';
+          btnPasser.textContent = '⏭ Passer';
+          btnRecommencer.textContent = '🔄 Encore';
+        }
+
+        function montrer(el) {
+          [ecranDiff, ecranJeu, ecranFin].forEach(e => { e.hidden = e !== el; });
+        }
+
+        function demarrer(d) {
+          difficulte = d;
+          resultats = [];
+          indicesRestants = CM.NB_INDICES;
+          numManche = 0;
+          partieEnregistree = false;
+          derniereCible = null;
+          montrer(ecranJeu);
+          mancheSuivante();
+        }
+
+        function mancheSuivante() {
+          numManche++;
+          let m;
+          let essais = 0;
+          do { m = CM.genererManche(niveau, difficulte); essais++; }
+          while (m.cible === derniereCible && essais < 6);
+          manche = m;
+          derniereCible = m.cible;
+          etat = CM.creerEtat(m);
+          selection = null; operation = null; aide = null; fini = false; indicesManche = 0;
+          btnSuivante.hidden = true;
+          consigneCourante = CM.consigne(niveau, m.cible);
+          dire(consigneCourante, 'neutre');
+          $('cm-cible').textContent = JeuxNiveau.fmt(m.cible);
+          construireOperations();
+          afficher();
+          const premiere = elCartes.querySelector('button');
+          if (premiere) premiere.focus();
+        }
+
+        /* ---------- Affichage ---------- */
+        function dire(texte, humeur, classe) {
+          elMessage.textContent = texte;
+          elMessage.className = 'tour-info' + (classe ? ' ' + classe : '');
+          if (humeur) JeuxNiveau.mascotte(humeur);
+        }
+
+        function construireOperations() {
+          while (elOps.firstChild) elOps.removeChild(elOps.firstChild);
+          manche.cfg.ops.forEach(op => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'compte-magique-op compte-magique-op-' + ({ '+': 'addition', '-': 'soustraction', '*': 'multiplication', '/': 'division' })[op];
+            b.dataset.op = op;
+            b.textContent = CM.SYMBOLES[op];
+            b.setAttribute('aria-label', CM.NOMS_OPERATIONS[op]);
+            b.setAttribute('aria-pressed', 'false');
+            b.addEventListener('click', () => toucherOperation(op));
+            elOps.appendChild(b);
+          });
+        }
+
+        function afficher() {
+          // conserve le focus pendant la reconstruction
+          const actif = document.activeElement;
+          const focusId = actif && actif.dataset && actif.dataset.id !== undefined ? actif.dataset.id : null;
+          while (elCartes.firstChild) elCartes.removeChild(elCartes.firstChild);
+          etat.cartes.forEach(c => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'compte-magique-carte';
+            if (c.v === etat.cible) b.classList.add('compte-magique-carte-cible');
+            if (c.id === selection) b.classList.add('compte-magique-choisie');
+            if (aide && (c.id === aide.idA || c.id === aide.idB)) b.classList.add('compte-magique-indice');
+            if (c.id >= etat.depart.length && c.id === etat.suivant - 1) b.classList.add('compte-magique-nouvelle');
+            b.dataset.id = String(c.id);
+            b.textContent = JeuxNiveau.fmt(c.v);
+            b.setAttribute('aria-pressed', c.id === selection ? 'true' : 'false');
+            b.setAttribute('aria-label', 'Carte ' + c.v);
+            b.disabled = fini;
+            b.addEventListener('click', () => toucherCarte(c.id));
+            elCartes.appendChild(b);
+          });
+          elOps.querySelectorAll('button').forEach(b => {
+            const choisie = b.dataset.op === operation;
+            b.classList.toggle('compte-magique-choisie', choisie);
+            b.classList.toggle('compte-magique-indice', !!aide && aide.op === b.dataset.op);
+            b.setAttribute('aria-pressed', choisie ? 'true' : 'false');
+            b.disabled = fini;
+          });
+          if (focusId !== null) {
+            const cible = elCartes.querySelector('[data-id="' + focusId + '"]') || elCartes.querySelector('button');
+            if (cible && !cible.disabled && actif && actif.dataset && actif.dataset.id !== undefined) cible.focus();
+          }
+
+          const a = selection === null ? null : etat.cartes.find(c => c.id === selection);
+          if (fini) elExpr.textContent = '';
+          else if (!a) elExpr.textContent = cp ? '👆 Une carte' : 'Touche une carte.';
+          else if (!operation) elExpr.textContent = a.v + ' …  ' + (cp ? '👆 Un signe' : 'Choisis une opération.');
+          else elExpr.textContent = a.v + ' ' + CM.SYMBOLES[operation] + ' …  ' + (cp ? '👆 Une carte' : 'Touche l’autre carte.');
+
+          $('cm-manche').textContent = 'Manche ' + numManche + ' / ' + CM.NB_MANCHES;
+          const total = CM.resumerPartie(resultats).etoiles;
+          $('cm-etoiles').textContent = '⭐ ' + total;
+          $('cm-etoiles').setAttribute('aria-label', total + ' étoile' + (total > 1 ? 's' : ''));
+
+          btnAnnuler.disabled = fini || !etat.historique.length;
+          btnRecommencer.disabled = fini || !etat.historique.length;
+          btnAide.disabled = fini || indicesRestants <= 0;
+          btnAide.setAttribute('aria-label', 'Un coup d\'aide, ' + indicesRestants + ' restant' + (indicesRestants > 1 ? 's' : ''));
+          btnAide.textContent = (cp ? '💡 Aide' : '💡 Un coup d\'aide') + ' (' + indicesRestants + ')';
+          btnPasser.disabled = fini;
+        }
+
+        /* ---------- Actions de l’enfant ---------- */
+        function toucherCarte(id) {
+          if (fini) return;
+          aide = null;
+          if (selection === null) { selection = id; }
+          else if (selection === id) { selection = null; operation = null; }
+          else if (operation === null) { selection = id; }
+          else { jouerCoup(selection, operation, id); return; }
+          afficher();
+        }
+
+        function toucherOperation(op) {
+          if (fini) return;
+          aide = null;
+          if (selection === null) {
+            dire(cp ? 'Touche d’abord une carte !' : 'Touche d’abord une carte, puis l’opération.', 'neutre');
+          } else {
+            operation = operation === op ? null : op;
+          }
+          afficher();
+        }
+
+        function jouerCoup(idA, op, idB) {
+          const r = CM.jouer(etat, idA, op, idB);
+          selection = null; operation = null; aide = null;
+          if (!r.ok) {
+            dire(r.message, 'triste');
+            afficher();
+            return;
+          }
+          if (r.gagne) { finManche(true); return; }
+          if (!CM.resoluble(etat)) {
+            dire(cp ? 'Hmm… Touche ↩ Annuler.' : 'Hmm, avec ces cartes on ne peut plus y arriver. Touche « Annuler » !', 'triste');
+          } else {
+            dire(r.texte + (cp ? ' ✔' : '. Continue !'), 'contente');
+          }
+          afficher();
+          const nouv = elCartes.querySelector('.compte-magique-nouvelle');
+          if (nouv) nouv.focus();
+        }
+
+        btnAnnuler.addEventListener('click', () => {
+          if (fini || !CM.annuler(etat)) return;
+          selection = null; operation = null; aide = null;
+          dire('C’est annulé. Essaie autre chose !', 'neutre');
+          afficher();
+        });
+        btnRecommencer.addEventListener('click', () => {
+          if (fini) return;
+          CM.recommencer(etat);
+          selection = null; operation = null; aide = null;
+          dire('On recommence. ' + consigneCourante, 'neutre');
+          afficher();
+        });
+        btnAide.addEventListener('click', () => {
+          if (fini || indicesRestants <= 0) return;
+          const ind = CM.indice(etat);
+          if (!ind) {
+            dire('Avec ces cartes, je ne vois plus de chemin. Touche « Annuler » d’abord (l’aide n’est pas perdue).', 'triste');
+            afficher();
+            return;
+          }
+          indicesRestants--; indicesManche++;
+          selection = null; operation = null; aide = ind;
+          dire('Essaie : ' + ind.a + ' ' + CM.SYMBOLES[ind.op] + ' ' + ind.b + ' 💡', 'contente');
+          afficher();
+        });
+        btnPasser.addEventListener('click', () => { if (!fini) finManche(false); });
+
+        function finManche(reussie) {
+          fini = true;
+          selection = null; operation = null; aide = null;
+          resultats.push({ reussie: reussie, indices: indicesManche });
+          if (reussie) {
+            const n = CM.etoilesManche(true, indicesManche);
+            dire('Bravo ! Le ' + JeuxNiveau.fmt(etat.cible) + ' est apparu ! ' + '⭐'.repeat(n), 'contente', 'fin-ok');
+          } else {
+            const sol = CM.resoudre(CM.valeurs(etat), etat.cible, etat.cfg) || manche.solution;
+            dire('Pas grave ! Une solution : ' + sol.map(CM.ecrirePas).join(' ; '), 'neutre', 'fin-nul');
+          }
+          afficher();
+          btnSuivante.textContent = numManche >= CM.NB_MANCHES ? 'Voir mon score' : 'Manche suivante';
+          btnSuivante.hidden = false;
+          btnSuivante.focus();
+        }
+
+        btnSuivante.addEventListener('click', () => {
+          if (numManche >= CM.NB_MANCHES) finPartie();
+          else mancheSuivante();
+        });
+
+        /* ---------- Fin de partie ---------- */
+        function finPartie() {
+          const r = CM.resumerPartie(resultats);
+          let retour = {};
+          if (!partieEnregistree) {
+            partieEnregistree = true;
+            retour = JeuxNiveau.enregistrerPartie('compte-magique', { gagnee: r.gagnee, score: r.sansIndice, meilleur: 'max' }) || {};
+          }
+          montrer(ecranFin);
+          const t = $('cm-fin-titre');
+          t.className = 'tour-info ' + (r.gagnee ? 'fin-ok' : 'fin-nul');
+          t.textContent = r.gagnee ? '🏆 Bravo, grand magicien !' : '✨ Presque ! Retente ta chance !';
+          $('cm-fin-score').textContent = r.reussies + ' manche' + (r.reussies > 1 ? 's' : '') + ' réussie' + (r.reussies > 1 ? 's' : '') + ' sur ' + CM.NB_MANCHES
+            + ' · ' + r.sansIndice + ' sans aide · ⭐ ' + r.etoiles;
+          const liste = $('cm-bilan');
+          while (liste.firstChild) liste.removeChild(liste.firstChild);
+          resultats.forEach((x, i) => {
+            const li = document.createElement('li');
+            const n = CM.etoilesManche(x.reussie, x.indices);
+            li.textContent = 'Manche ' + (i + 1) + ' : ' + (x.reussie ? '⭐'.repeat(n) : '—');
+            liste.appendChild(li);
+          });
+          $('cm-fin-defi').textContent = JeuxNiveau.messageDefi(retour);
+          $('cm-rejouer').focus();
+        }
+
+        $('cm-rejouer').addEventListener('click', () => demarrer(difficulte));
+        $('cm-changer').addEventListener('click', () => { montrer(ecranDiff); JeuxNiveau.mascotte('neutre'); });
+      })();
+    </script>
+</body>
+</html>

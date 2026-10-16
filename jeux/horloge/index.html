@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L’Horloge Enchantée - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
+    <link rel="stylesheet" href="../../style/commun.css">
+    <link rel="stylesheet" href="../../style/jeux.css">
+    <script src="../../js/profils.js"></script>
+    <link rel="stylesheet" href="../commun.css">
+    <script src="../commun.js"></script>
+    <link rel="stylesheet" href="horloge.css">
+    <script src="horloge.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
+</head>
+
+<body class="jeu-page jeu-horloge">
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
+    <app-header base-path="../../"></app-header>
+    <main>
+      <a href="../index.html" class="lien-retour">← Jeux</a>
+      <h2 class="titre"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><circle cx="60" cy="62" r="42" fill="#FFFFFF" stroke="#2B2D5B" stroke-width="5"/>
+<circle cx="60" cy="62" r="3.5" fill="#2B2D5B"/>
+<line x1="60" y1="62" x2="60" y2="38" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="60" y1="62" x2="78" y2="70" stroke="#EA580C" stroke-width="6" stroke-linecap="round"/>
+<rect x="52" y="10" width="16" height="9" rx="3" fill="#FDE68A" stroke="#2B2D5B" stroke-width="4"/>
+<polygon points="98,14 102,24 112,26 104,32 106,42 98,36 90,42 92,32 84,26 94,24" fill="#FACC15" stroke="#2B2D5B" stroke-width="2.5" stroke-linejoin="round"/></svg> L’Horloge Enchantée</h2>
+      <div class="presentation">
+        <div class="cadre">
+          <div class="jeu-conteneur">
+
+            <!-- Choix de la mission -->
+            <section id="ecran-debut" aria-labelledby="h-invite">
+              <p class="invite-mission" id="h-invite">Choisis ta mission ! <span id="h-zone-voix-debut"></span></p>
+              <p class="horloge-regle" id="h-regle"></p>
+              <div class="choix-difficulte" id="h-difficultes"></div>
+            </section>
+
+            <!-- Partie en cours -->
+            <section id="ecran-jeu" hidden>
+              <div class="horloge-haut">
+                <p class="horloge-manche" id="h-manche">Manche 1 sur 8</p>
+                <div class="horloge-points" id="h-points" aria-hidden="true"></div>
+                <p class="horloge-stats"><span id="h-score">⭐ 0</span><span class="horloge-serie" id="h-serie"></span></p>
+              </div>
+              <div class="jeu-parole">
+                <img class="jeu-mascotte" src="../../images/mascotte-neutre.svg" data-dossier="../../images/" data-etat="neutre" alt="" width="76" height="76" onerror="this.style.display='none'">
+                <p id="h-consigne" class="tour-info"></p>
+              </div>
+              <div class="horloge-voix" id="h-voix"></div>
+              <p class="horloge-enonce" id="h-enonce"></p>
+              <div class="horloge-scene" id="h-scene">
+                <svg id="h-svg" class="horloge-svg" viewBox="0 0 200 200" role="img" aria-label="Horloge"></svg>
+                <p class="horloge-legende" id="h-legende" hidden><b class="l-h">Petite aiguille</b> = les heures &nbsp; <b class="l-m">Grande aiguille</b> = les minutes</p>
+              </div>
+              <div id="h-action"></div>
+              <p id="h-retour" class="horloge-retour" aria-live="polite"></p>
+              <p id="h-sr" class="horloge-sr" aria-live="polite"></p>
+              <button type="button" id="h-suivant" class="btn-magique" hidden>Suivant →</button>
+            </section>
+
+            <!-- Fin de partie -->
+            <section id="ecran-fin" hidden aria-live="polite">
+              <img id="h-fin-mascotte" class="horloge-fin-mascotte" src="../../images/mascotte-contente.svg" alt="" width="96" height="96" onerror="this.style.display='none'">
+              <h3 class="horloge-fin-titre" id="h-fin-titre">Partie terminée !</h3>
+              <div class="horloge-etoiles" id="h-fin-etoiles"></div>
+              <p class="horloge-fin-score" id="h-fin-score"></p>
+              <p class="horloge-fin-msg" id="h-fin-msg"></p>
+              <p class="horloge-fin-defi" id="h-fin-defi" hidden></p>
+              <div class="horloge-fin-boutons">
+                <button type="button" id="h-rejouer" class="btn-magique">Rejouer</button>
+                <button type="button" id="h-changer" class="btn-magique horloge-secondaire">Changer de mission</button>
+                <a href="../index.html" class="btn-magique horloge-secondaire">Retour aux jeux</a>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+    (function () {
+      'use strict';
+      var H = HorlogeMagique, J = JeuxNiveau;
+      var niveau = J.niveau();
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(id) { return document.getElementById(id); }
+      function el(tag, cls, texte) {
+        var e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (texte !== undefined) e.textContent = texte;
+        return e;
+      }
+      function svgEl(tag, attrs, parent) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function pick(tab) { return tab[Math.floor(Math.random() * tab.length)]; }
+
+      var etat = { diff: 0, manches: [], i: 0, score: 0, serie: 0, essais: 0, verrou: true, mode: '', resultats: [], t: 0, cible: 0, pas: [], enregistre: false };
+      var voixCourante = '';
+
+      /* ---------- Horloge SVG ---------- */
+      var svg = $('h-svg');
+      var gH = null, gM = null, angleH = 0, angleM = 0;
+
+      function dessinerCadran(chiffres) {
+        svg.textContent = '';
+        svgEl('circle', { cx: 100, cy: 100, r: 96, 'class': 'horloge-bord' }, svg);
+        svgEl('circle', { cx: 100, cy: 100, r: 91, 'class': 'horloge-cadran' }, svg);
+        for (var i = 0; i < 60; i++) {
+          var a = i * 6 * Math.PI / 180, grand = i % 5 === 0;
+          var r1 = grand ? 76 : 83, r2 = 88;
+          svgEl('line', { x1: 100 + r1 * Math.sin(a), y1: 100 - r1 * Math.cos(a), x2: 100 + r2 * Math.sin(a), y2: 100 - r2 * Math.cos(a), 'class': grand ? 'horloge-trait-h' : 'horloge-trait' }, svg);
+        }
+        for (var n = 1; n <= 12; n++) {
+          if (chiffres === 'quatre' && n % 3 !== 0) continue;
+          var an = n * 30 * Math.PI / 180;
+          var tx = svgEl('text', { x: 100 + 62 * Math.sin(an), y: 100 - 62 * Math.cos(an), 'class': 'horloge-chiffre' }, svg);
+          tx.textContent = String(n);
+        }
+        gH = svgEl('g', { 'class': 'horloge-aig horloge-aig-h' }, svg);
+        svgEl('line', { x1: 100, y1: 108, x2: 100, y2: 56, 'class': 'horloge-contour' }, gH);
+        svgEl('line', { x1: 100, y1: 108, x2: 100, y2: 56, 'class': 'horloge-remplissage' }, gH);
+        gM = svgEl('g', { 'class': 'horloge-aig horloge-aig-m' }, svg);
+        svgEl('line', { x1: 100, y1: 114, x2: 100, y2: 22, 'class': 'horloge-contour' }, gM);
+        svgEl('line', { x1: 100, y1: 114, x2: 100, y2: 22, 'class': 'horloge-remplissage' }, gM);
+        svgEl('circle', { cx: 100, cy: 100, r: 7, 'class': 'horloge-axe-centre' }, svg);
+      }
+      function proche(prev, cible) { return prev + ((cible - prev) % 360 + 540) % 360 - 180; }
+      function poserAiguilles(t, instantane) {
+        var a = H.anglesAiguilles(t);
+        if (instantane) {
+          angleH = a.heure; angleM = a.minute;
+          gH.style.transition = gM.style.transition = 'none';
+        } else {
+          angleH = proche(angleH, a.heure); angleM = proche(angleM, a.minute);
+        }
+        gH.style.transform = 'rotate(' + angleH + 'deg)';
+        gM.style.transform = 'rotate(' + angleM + 'deg)';
+        if (instantane) {
+          void svg.getBoundingClientRect();
+          gH.style.transition = gM.style.transition = '';
+        }
+        svg.setAttribute('aria-label', 'Horloge : ' + H.texteHeure(Math.floor(t / 60), t % 60, 'num12', false));
+      }
+
+      /* ---------- Écran de départ ---------- */
+      var regle = niveau === 'cp' ? 'Lis l’horloge. Règle l’horloge. 8 manches !'
+        : niveau === 'ce1' ? '8 manches : lis l’heure et règle les aiguilles.'
+        : '8 manches : lis l’heure, règle l’horloge et calcule des durées.';
+      $('h-regle').textContent = regle;
+      var classesDiff = ['facile', 'moyen', 'difficile'];
+      H.difficultes(niveau).forEach(function (d, i) {
+        var b = el('button', 'btn-difficulte ' + classesDiff[i]);
+        b.type = 'button';
+        b.appendChild(document.createTextNode(d.nom + ' '));
+        b.appendChild(el('span', '', d.desc));
+        b.addEventListener('click', function () { demarrer(i); });
+        $('h-difficultes').appendChild(b);
+      });
+      var voixDebut = J.creerBoutonVoix(function () { return 'Choisis ta mission. Lis l’horloge, puis règle l’horloge.'; });
+      if (voixDebut) $('h-zone-voix-debut').appendChild(voixDebut);
+      var voixJeu = J.creerBoutonVoix(function () { return voixCourante; });
+      if (voixJeu) $('h-voix').appendChild(voixJeu);
+
+      function montrer(id) {
+        ['ecran-debut', 'ecran-jeu', 'ecran-fin'].forEach(function (e) { $(e).hidden = e !== id; });
+      }
+
+      /* ---------- Déroulement ---------- */
+      function demarrer(d) {
+        etat.diff = d; etat.manches = H.genererPartie(niveau, d);
+        etat.i = 0; etat.score = 0; etat.serie = 0; etat.resultats = []; etat.enregistre = false;
+        var pts = $('h-points'); pts.textContent = '';
+        for (var k = 0; k < H.NB_MANCHES; k++) pts.appendChild(el('span'));
+        montrer('ecran-jeu');
+        afficherManche();
+      }
+
+      function majBandeau() {
+        $('h-manche').textContent = 'Manche ' + (etat.i + 1) + ' sur ' + H.NB_MANCHES;
+        $('h-score').textContent = '⭐ ' + etat.score;
+        $('h-serie').textContent = etat.serie >= 2 ? '🔥 Série ' + etat.serie : '';
+        var pts = $('h-points').children;
+        for (var k = 0; k < pts.length; k++) {
+          pts[k].className = k < etat.resultats.length ? etat.resultats[k] : (k === etat.i ? 'courant' : '');
+        }
+      }
+      function retour(texte, cls) {
+        var r = $('h-retour');
+        r.textContent = texte || '';
+        r.className = 'horloge-retour' + (cls ? ' ' + cls : '');
+      }
+
+      function afficherManche() {
+        var m = etat.manches[etat.i];
+        etat.essais = 0; etat.verrou = false; etat.mode = m.type === 'regler' ? 'regler' : 'qcm';
+        majBandeau();
+        retour('');
+        $('h-sr').textContent = '';
+        $('h-suivant').hidden = true;
+        J.mascotte('neutre');
+        $('h-consigne').textContent = m.consigne;
+        $('h-enonce').textContent = m.enonce || '';
+        voixCourante = m.voix;
+        var scene = $('h-scene');
+        var action = $('h-action');
+        action.textContent = '';
+        if (m.horloge) {
+          scene.hidden = false;
+          dessinerCadran(m.chiffres || 'tous');
+          poserAiguilles(m.horloge.t, true);
+          $('h-legende').hidden = !m.aide;
+        } else {
+          scene.hidden = true;
+        }
+        svg.classList.toggle('horloge-actif', m.type === 'regler');
+        if (m.type === 'regler') {
+          etat.t = m.horloge.t; etat.cible = m.cible.t; etat.pas = m.pas;
+          construireReglage(m);
+        } else {
+          construireChoix(m);
+        }
+      }
+
+      /* ----- QCM ----- */
+      function construireChoix(m) {
+        var grille = el('div', 'horloge-choix-grille');
+        grille.setAttribute('role', 'group');
+        grille.setAttribute('aria-label', 'Réponses possibles');
+        m.choix.forEach(function (txt, i) {
+          var b = el('button', 'horloge-choix');
+          b.type = 'button';
+          b.appendChild(el('span', 'horloge-touche', String(i + 1))).setAttribute('aria-hidden', 'true');
+          b.appendChild(el('span', '', txt));
+          b.addEventListener('click', function () { repondreChoix(i); });
+          grille.appendChild(b);
+        });
+        $('h-action').appendChild(grille);
+      }
+      function repondreChoix(i) {
+        if (etat.verrou) return;
+        var m = etat.manches[etat.i];
+        var boutons = $('h-action').querySelectorAll('.horloge-choix');
+        if (i === m.bonne) {
+          boutons[i].classList.add('juste');
+          reussir(m);
+          boutons.forEach(function (b) { b.disabled = true; });
+        } else {
+          boutons[i].classList.add('faux');
+          boutons[i].disabled = true;
+          rater(m, function () {
+            boutons[m.bonne].classList.add('juste');
+            boutons.forEach(function (b) { b.disabled = true; });
+            retour('Pas de souci ! C’était : ' + m.choix[m.bonne], 'ko');
+          });
+          if (!etat.verrou) {
+            for (var k = 0; k < boutons.length; k++) if (!boutons[k].disabled) { boutons[k].focus(); break; }
+          }
+        }
+      }
+
+      /* ----- Réglage ----- */
+      function construireReglage(m) {
+        var box = el('div', 'horloge-regl');
+        function bouton(parent, cls, fleche, texte, delta, nom) {
+          var b = el('button', 'horloge-btn-reglage ' + cls);
+          b.type = 'button';
+          b.appendChild(el('span', '', fleche)).setAttribute('aria-hidden', 'true');
+          b.appendChild(el('span', '', texte));
+          b.setAttribute('aria-label', nom);
+          b.addEventListener('click', function () { deplacer(delta); });
+          parent.appendChild(b);
+        }
+        var gh = el('div', 'horloge-groupe');
+        gh.appendChild(el('p', 'horloge-groupe-nom', 'Petite aiguille : les heures'));
+        bouton(gh, 'heure', '▼', '− 1 h', -60, 'Reculer d’une heure');
+        bouton(gh, 'heure', '▲', '+ 1 h', 60, 'Avancer d’une heure');
+        box.appendChild(gh);
+        if (m.pas.length) {
+          var gm = el('div', 'horloge-groupe');
+          gm.appendChild(el('p', 'horloge-groupe-nom', 'Grande aiguille : les minutes'));
+          m.pas.forEach(function (p) {
+            bouton(gm, 'minute', '▼', '− ' + p + ' min', -p, 'Reculer de ' + p + ' minutes');
+            bouton(gm, 'minute', '▲', '+ ' + p + ' min', p, 'Avancer de ' + p + ' minutes');
+          });
+          box.appendChild(gm);
+        }
+        var ok = el('button', 'btn-magique', 'Valider ✓');
+        ok.type = 'button';
+        ok.id = 'h-valider';
+        ok.addEventListener('click', validerReglage);
+        box.appendChild(ok);
+        $('h-action').appendChild(box);
+      }
+      function deplacer(delta) {
+        if (etat.verrou) return;
+        etat.t = ((etat.t + delta) % 720 + 720) % 720;
+        majReglage();
+      }
+      function majReglage() {
+        poserAiguilles(etat.t, false);
+        $('h-sr').textContent = 'Horloge réglée sur ' + H.texteHeure(Math.floor(etat.t / 60), etat.t % 60, 'num12', false);
+      }
+      function validerReglage() {
+        if (etat.verrou) return;
+        var m = etat.manches[etat.i];
+        if (etat.t === etat.cible) {
+          reussir(m);
+          $('h-valider').disabled = true;
+          return;
+        }
+        rater(m, function () {
+          etat.t = etat.cible;
+          poserAiguilles(etat.t, false);
+          $('h-valider').disabled = true;
+          retour('Pas de souci ! Regarde : voici ' + m.texteCible + '.', 'ko');
+        }, H.indiceRegler(etat.t, etat.cible));
+      }
+      /* Toucher ou glisser sur le cadran (bonus) */
+      var appuye = false;
+      function pointeur(e) {
+        if (etat.mode !== 'regler' || etat.verrou) return;
+        var r = svg.getBoundingClientRect();
+        var x = (e.clientX - r.left) / r.width * 200 - 100, y = (e.clientY - r.top) / r.height * 200 - 100;
+        var dist = Math.sqrt(x * x + y * y);
+        if (dist < 9) return;
+        var angle = (Math.atan2(x, -y) * 180 / Math.PI + 360) % 360;
+        var pasMin = etat.pas.length ? Math.min.apply(null, etat.pas) : 0;
+        var zone = (dist < 48 || !pasMin) ? 'heure' : 'minute';
+        var t = H.reglerParAngle(etat.t, angle, zone, pasMin);
+        if (t !== etat.t) { etat.t = t; majReglage(); }
+      }
+      svg.addEventListener('pointerdown', function (e) {
+        if (etat.mode !== 'regler') return;
+        appuye = true;
+        try { svg.setPointerCapture(e.pointerId); } catch (x) {}
+        pointeur(e);
+      });
+      svg.addEventListener('pointermove', function (e) { if (appuye) pointeur(e); });
+      ['pointerup', 'pointercancel'].forEach(function (n) { svg.addEventListener(n, function () { appuye = false; }); });
+
+      /* ----- Résultats d’une manche ----- */
+      function reussir(m) {
+        etat.verrou = true;
+        var premier = etat.essais === 0;
+        if (premier) { etat.score++; etat.serie++; etat.resultats.push('bon'); }
+        else { etat.serie = 0; etat.resultats.push('rate'); }
+        J.mascotte('contente');
+        var msg = premier ? pick(niveau === 'cp' ? ['Bravo !', 'Super !', 'Magique !'] : ['Bravo !', 'Bien joué !', 'Magique !', 'Excellent !']) : 'Bien ! Tu as trouvé.';
+        if (premier && etat.serie >= 3) msg += ' ' + etat.serie + ' d’affilée !';
+        if (m.type === 'regler') msg += ' ' + m.texteCible + '.';
+        retour(msg, 'ok');
+        majBandeau();
+        finManche();
+      }
+      /* Première erreur : indice et seconde chance ; deuxième erreur : on montre la solution. */
+      function rater(m, reveler, indiceSpecial) {
+        etat.essais++;
+        etat.serie = 0;
+        J.mascotte('triste');
+        if (etat.essais >= 2) {
+          etat.verrou = true;
+          etat.resultats.push('rate');
+          reveler();
+          majBandeau();
+          finManche();
+        } else {
+          retour((niveau === 'cp' ? 'Essaie encore ! ' : 'Pas tout à fait, essaie encore ! ') + (indiceSpecial || m.indice), 'indice');
+          majBandeau();
+        }
+      }
+      function finManche() {
+        var s = $('h-suivant');
+        s.textContent = etat.i + 1 >= H.NB_MANCHES ? 'Voir mon score →' : 'Suivant →';
+        s.hidden = false;
+        s.focus();
+      }
+      $('h-suivant').addEventListener('click', function () {
+        etat.i++;
+        if (etat.i >= H.NB_MANCHES) terminer(); else afficherManche();
+      });
+
+      /* ---------- Fin de partie ---------- */
+      function terminer() {
+        var gagnee = etat.score >= H.SEUIL_VICTOIRE;
+        var infos = {};
+        if (!etat.enregistre) {
+          etat.enregistre = true;
+          infos = J.enregistrerPartie('horloge', { gagnee: gagnee, score: etat.score, meilleur: 'max' }) || {};
+        }
+        var n = H.etoiles(etat.score);
+        var box = $('h-fin-etoiles'); box.textContent = '';
+        for (var k = 0; k < 3; k++) box.appendChild(el('span', k < n ? '' : 'vide', '⭐')).setAttribute('aria-hidden', 'true');
+        box.setAttribute('role', 'img');
+        box.setAttribute('aria-label', n + ' étoile' + (n > 1 ? 's' : '') + ' sur 3');
+        $('h-fin-titre').textContent = gagnee ? 'Bravo, Gardien du Temps !' : 'Partie terminée !';
+        $('h-fin-score').textContent = etat.score + ' sur ' + H.NB_MANCHES + ' du premier coup';
+        $('h-fin-msg').textContent = etat.score >= 8 ? 'Parfait : tu lis le temps comme un vrai magicien !'
+          : gagnee ? 'Très bien, tes aiguilles sont bien réglées !'
+          : 'Presque ! Rejoue pour gagner tes étoiles.';
+        var md = J.messageDefi(infos);
+        $('h-fin-defi').textContent = md; $('h-fin-defi').hidden = !md;
+        var img = $('h-fin-mascotte');
+        img.style.display = '';
+        img.src = '../../images/mascotte-' + (gagnee ? 'contente' : 'neutre') + '.svg';
+        montrer('ecran-fin');
+        $('h-rejouer').focus();
+      }
+      $('h-rejouer').addEventListener('click', function () { demarrer(etat.diff); });
+      $('h-changer').addEventListener('click', function () { montrer('ecran-debut'); });
+
+      /* Touches 1 à 4 pour répondre */
+      document.addEventListener('keydown', function (e) {
+        if (etat.mode !== 'qcm' || etat.verrou || $('ecran-jeu').hidden) return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        var n = parseInt(e.key, 10);
+        if (n >= 1 && n <= 4) {
+          var b = $('h-action').querySelectorAll('.horloge-choix')[n - 1];
+          if (b && !b.disabled) b.click();
+        }
+      });
+    })();
+    </script>
+</body>
+</html>

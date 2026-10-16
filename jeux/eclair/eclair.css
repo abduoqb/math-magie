@@ -1,0 +1,130 @@
+/* Calcul Éclair : styles propres au jeu (classes préfixées eclair-) */
+
+.eclair-conteneur { max-width: 440px; margin: 0 auto; }
+.eclair-conteneur [hidden] { display: none !important; }
+
+/* Écran de choix */
+.eclair-regle { font-family: var(--pol); font-weight: 600; font-size: 1.1rem; color: var(--e); margin: 4px 0 8px; line-height: 1.35; }
+.eclair-voix { display: flex; justify-content: center; }
+.eclair-voix:empty { display: none; }
+.eclair-modes { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+.eclair-mode {
+  display: flex; align-items: center; gap: 14px; min-height: 76px; padding: 12px 18px; text-align: left; cursor: pointer;
+  color: var(--e); border: 3px solid var(--e); border-radius: 24px; box-shadow: 0 5px 0 var(--e);
+  font-family: var(--pol); transition: transform .12s, box-shadow .12s;
+}
+.eclair-mode-add { background: var(--ok-clair, #DCFCE7); }
+.eclair-mode-tab { background: var(--accueil-clair, #DBEAFE); }
+.eclair-mode-mel { background: var(--trophees-clair, #FFF5C2); }
+.eclair-mode:hover { transform: translateY(-3px); box-shadow: 0 8px 0 var(--e); }
+.eclair-mode:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--e); }
+.eclair-mode-icone { font-size: 1.9rem; line-height: 1; flex: none; }
+.eclair-mode-texte { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.eclair-mode-texte b { font-size: 1.15rem; line-height: 1.2; }
+.eclair-mode-texte small { font-size: .9rem; font-weight: 700; color: var(--texte, #334155); }
+.eclair-record { font-family: var(--pol); font-weight: 800; color: var(--e); margin: 18px 0 0; min-height: 1.4em; }
+
+/* Barre d'état */
+.eclair-hud { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 10px; }
+.eclair-pill {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; min-width: 76px; padding: 4px 14px;
+  background: var(--carte, #fff); border: 3px solid var(--e); border-radius: 999px; box-shadow: 0 3px 0 var(--e);
+  font-family: var(--pol); font-weight: 800; font-size: 1rem; color: var(--e);
+}
+.eclair-pill b { font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.eclair-pill-serie { opacity: .55; transition: opacity .2s, background .2s; }
+.eclair-pill-serie.actif { opacity: 1; background: var(--jeux-clair, #FFE6D2); }
+
+/* Barre de temps (douce : pas de clignotement) */
+.eclair-barre {
+  position: relative; height: 22px; background: var(--carte, #fff); border: 3px solid var(--e); border-radius: 999px; overflow: visible; margin-bottom: 14px;
+}
+.eclair-barre-rempli {
+  width: 100%; height: 100%; background: var(--calcul, #8B5CF6); border-radius: 999px; transform-origin: left center;
+  transition: transform .15s linear, background .6s;
+}
+.eclair-barre.eclair-bas .eclair-barre-rempli { background: var(--action, #FF8A1F); }
+.eclair-bonus {
+  position: absolute; right: 6px; top: -34px; padding: 2px 12px; border-radius: 999px; border: 3px solid var(--e); background: var(--ok-clair, #DCFCE7);
+  font-family: var(--pol); font-weight: 800; color: var(--e); opacity: 0; pointer-events: none;
+}
+.eclair-bonus.montre { animation: eclair-bonus 1.1s ease-out forwards; }
+@keyframes eclair-bonus { 0% { opacity: 0; transform: translateY(8px) scale(.8); } 20% { opacity: 1; transform: translateY(0) scale(1.08); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-6px); } }
+
+/* Question et réponse */
+.eclair-question {
+  font-family: var(--pol); font-weight: 800; font-size: clamp(2.1rem, 9vw, 3rem); line-height: 1.15; color: var(--e);
+  min-height: 1.3em; margin: 2px 0 10px; overflow-wrap: anywhere;
+}
+.eclair-reponse {
+  display: flex; align-items: center; justify-content: center; width: 100%; max-width: 280px; min-height: 68px; margin: 0 auto 14px; padding: 4px 12px;
+  background: var(--carte, #fff); border: 3px solid var(--e); border-radius: 22px; box-shadow: inset 0 4px 0 rgba(43, 45, 91, .1), 0 5px 0 var(--e);
+  font-family: var(--pol); font-weight: 800; font-size: 2.3rem; color: var(--e); font-variant-numeric: tabular-nums; transition: background .2s;
+}
+.eclair-reponse.vide { color: var(--texte-doux, #475569); opacity: .6; }
+.eclair-reponse.ok { background: var(--ok-clair, #DCFCE7); }
+.eclair-reponse.ko { background: var(--ko-clair, #FEE2E2); animation: eclair-secoue .35s; }
+@keyframes eclair-secoue { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+/* Clavier */
+.eclair-clavier { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 340px; margin: 0 auto; }
+.eclair-touche {
+  min-height: 60px; padding: 0; border: 3px solid var(--e); border-radius: 18px; background: var(--carte, #fff); color: var(--e); cursor: pointer;
+  font-family: var(--pol); font-weight: 800; font-size: 1.7rem; box-shadow: 0 4px 0 var(--e); transition: transform .1s, box-shadow .1s, background .1s;
+  display: flex; align-items: center; justify-content: center;
+}
+.eclair-touche:hover { background: var(--jeux-clair, #FFE6D2); }
+.eclair-touche:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--e); }
+.eclair-touche-eff { background: var(--ko-clair, #FEE2E2); }
+.eclair-touche-vir { background: var(--accueil-clair, #DBEAFE); }
+.eclair-touche-ok { background: var(--action, #FF8A1F); font-size: 1.4rem; }
+.eclair-touche-ok:hover { background: var(--action, #FF8A1F); }
+.eclair-touche-large { grid-column: 1 / -1; }
+
+.eclair-abandon, .eclair-secondaire {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 6px 22px; margin-top: 16px; cursor: pointer;
+  background: var(--carte, #fff); color: var(--e); border: 3px solid var(--e); border-radius: 999px; box-shadow: 0 4px 0 var(--e);
+  font-family: var(--pol); font-weight: 800; font-size: 1rem; text-decoration: none;
+}
+.eclair-abandon:active, .eclair-secondaire:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--e); }
+.eclair-abandon { font-size: .9rem; }
+
+/* Fin de partie */
+.eclair-etoiles { display: flex; justify-content: center; gap: 8px; margin: 6px 0 4px; }
+.eclair-etoile { font-size: 4rem; line-height: 1; color: var(--carte, #fff); -webkit-text-stroke: 3px var(--e); opacity: .8; }
+.eclair-etoile.pleine { color: var(--trophees, #FACC15); opacity: 1; animation: eclair-etoile .5s cubic-bezier(.34, 1.56, .64, 1) backwards; }
+.eclair-etoile.pleine:nth-child(2) { animation-delay: .15s; }
+.eclair-etoile.pleine:nth-child(3) { animation-delay: .3s; }
+@keyframes eclair-etoile { from { transform: scale(0) rotate(-40deg); } to { transform: scale(1) rotate(0); } }
+.eclair-grand-score { font-family: var(--pol); font-weight: 800; font-size: 1.3rem; color: var(--e); margin: 6px 0; }
+.eclair-grand-score b { font-size: 3rem; line-height: 1; }
+.eclair-detail { font-family: var(--pol); font-weight: 700; font-size: 1.05rem; color: var(--e); margin: 4px 0; }
+.eclair-detail:empty, .eclair-defi:empty { display: none; }
+.eclair-defi { font-family: var(--pol); font-weight: 800; color: var(--e); background: var(--jeux-clair, #FFE6D2); border: 3px solid var(--e); border-radius: 18px; padding: 8px 14px; margin: 10px 0; }
+.eclair-fin-btns { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 8px; }
+.eclair-fin-btns .btn-magique { margin-top: 10px; }
+
+/* Focus visible */
+.eclair-conteneur button:focus-visible, .eclair-conteneur a:focus-visible { outline: 4px solid var(--focus, #FFE066); outline-offset: 2px; box-shadow: 0 0 0 7px var(--e); }
+
+/* CP : tout plus gros, plus de souffle */
+body.niveau-cp .eclair-touche { min-height: 72px; font-size: 2.1rem; }
+body.niveau-cp .eclair-touche-ok { font-size: 1.7rem; }
+body.niveau-cp .eclair-clavier { max-width: 380px; gap: 12px; }
+body.niveau-cp .eclair-question { font-size: clamp(2.5rem, 11vw, 3.6rem); }
+body.niveau-cp .eclair-reponse { min-height: 80px; font-size: 2.8rem; }
+body.niveau-cp .eclair-mode { min-height: 88px; }
+body.niveau-cp .eclair-mode-texte b { font-size: 1.3rem; }
+body.niveau-cp .eclair-abandon, body.niveau-cp .eclair-secondaire { min-height: 56px; }
+
+@media (max-width: 400px) {
+  .eclair-clavier { gap: 8px; }
+  .eclair-mode { padding: 10px 12px; gap: 10px; }
+  .eclair-pill { min-width: 68px; padding: 4px 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eclair-barre-rempli, .eclair-reponse, .eclair-touche, .eclair-mode, .eclair-pill-serie { transition: none !important; }
+  .eclair-bonus.montre { animation: none; }
+  .eclair-reponse.ko, .eclair-etoile.pleine { animation: none !important; }
+}

@@ -5,6 +5,13 @@ const configTriangles = {
     // Niv1 : Équilatéral / Isocèle (facile à distinguer)
     // Niv2 : + Rectangle
     // Niv3 : + Quelconque (scalène)
+    niveau = Math.max(1, Math.min(niveau, GeoProgramme.maxNiveau(this.nomOperation), 3));
+    const tousTriangles = [
+      { nom: "Équilatéral", points: "50,20 80,72 20,72" },
+      { nom: "Isocèle",     points: "50,15 70,85 30,85" },
+      { nom: "Rectangle",   points: "30,20 30,80 80,80" },
+      { nom: "Quelconque",  points: "20,25 85,65 35,80" }
+    ];
     let pool;
     if (niveau === 1) {
       pool = [
@@ -26,6 +33,7 @@ const configTriangles = {
       ];
     }
 
+    pool = GeoProgramme.filtrerPool(pool, tousTriangles, GeoProgramme.types(this.nomOperation));
     const cible = pool[Math.floor(Math.random() * pool.length)];
     const couleur = "#A077EE";
 

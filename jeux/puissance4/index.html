@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="../../style/commun.css">
     <link rel="stylesheet" href="../../style/exercice-commun.css">
     <script src="../../js/profils.js"></script>
+    <link rel="stylesheet" href="../commun.css">
+    <script src="../commun.js"></script>
     <script src="../../js/composants/header.js" defer></script>
     <style>
       .jeu-conteneur { text-align: center; }
@@ -76,6 +78,7 @@
       <div class="presentation">
         <div class="cadre">
           <div class="jeu-conteneur">
+            <div id="zone-defi"></div>
             <p id="tour-info" class="tour-info">Tour de 🔴</p>
             <div class="col-hover" id="col-hover"></div>
             <div class="grille-p4" id="grille"></div>
@@ -115,7 +118,7 @@
           const ind = document.createElement('div');
           ind.className = 'col-indicateur ' + (tourRouge ? 'rouge' : 'jaune');
           ind.textContent = tourRouge ? '🔴' : '🟡';
-          ind.addEventListener('click', () => jouerColonne(c));
+          ind.addEventListener('click', () => tenterColonne(c));
           colHoverEl.appendChild(ind);
         }
         for (let l = 0; l < LIGNES; l++) {
@@ -124,12 +127,17 @@
             cell.className = 'case-p4';
             cell.dataset.ligne = l;
             cell.dataset.col = c;
-            cell.addEventListener('click', () => jouerColonne(c));
+            cell.addEventListener('click', () => tenterColonne(c));
             if (grille[l][c] === 1) cell.classList.add('rouge');
             if (grille[l][c] === 2) cell.classList.add('jaune');
             grilleEl.appendChild(cell);
           }
         }
+      }
+
+      function tenterColonne(col) {
+        if (partieTerminee || grille[0][col] !== 0) return;
+        JeuxNiveau.demanderCalcul(() => jouerColonne(col));
       }
 
       function jouerColonne(col) {
@@ -214,6 +222,9 @@
         });
       }
 
+      JeuxNiveau.creerBasculeDefi(document.getElementById('zone-defi'));
+      const voixP = JeuxNiveau.creerBoutonVoix(() => 'Puissance 4. Aligne quatre jetons pour gagner.');
+      if (voixP) document.getElementById('zone-defi').appendChild(voixP);
       init();
     </script>
 </body>

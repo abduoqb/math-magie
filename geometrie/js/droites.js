@@ -5,12 +5,10 @@ const configDroites = {
     // Niv1 : Parallèles / Perpendiculaires, sans rotation
     // Niv2 : + rotation modérée
     // Niv3 : + Sécantes (ni // ni ⊥), rotation totale
-    let types;
-    if (niveau <= 2) {
-      types = ["Parallèles", "Perpendiculaires"];
-    } else {
-      types = ["Parallèles", "Perpendiculaires", "Sécantes"];
-    }
+    niveau = Math.max(1, Math.min(niveau, GeoProgramme.maxNiveau(this.nomOperation), 3));
+    const toutes = ["Parallèles", "Perpendiculaires", "Sécantes"].map((nom) => ({ nom }));
+    const poolNiveau = niveau <= 2 ? toutes.slice(0, 2) : toutes;
+    const types = GeoProgramme.filtrerPool(poolNiveau, toutes, GeoProgramme.types(this.nomOperation)).map((e) => e.nom);
 
     const typeCible = types[Math.floor(Math.random() * types.length)];
 

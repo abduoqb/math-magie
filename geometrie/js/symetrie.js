@@ -2,6 +2,11 @@ const configSymetrie = {
   typeInterface: "boutons",
   nomOperation: "geometrie-symetrie",
   genererQuestion: function(niveau = 1) {
+    niveau = Math.max(1, Math.min(niveau, GeoProgramme.maxNiveau(this.nomOperation), 3));
+    // Axes autorisés par le programme. Le moteur dessine la figure avec un axe vertical;
+    // l'axe horizontal s'obtient en faisant pivoter tout le dessin de 90 degrés.
+    const axesOk = GeoProgramme.axes(this.nomOperation);
+    const axe = axesOk.length ? axesOk[Math.floor(Math.random() * axesOk.length)] : "vertical";
     const estSymetrique = Math.random() > 0.5;
     const couleur = "#4caf50";
 
@@ -20,6 +25,9 @@ const configSymetrie = {
       erreurAmplitude = 6;
     }
 
+    const capPoints = GeoProgramme.contenu(this.nomOperation);
+    const plafond = capPoints.nbPointsMax || (Array.isArray(capPoints.nbPoints) ? capPoints.nbPoints[1] : null);
+    if (plafond) nbPoints = Math.min(nbPoints, plafond);
     const pointsGauche = [];
     for (let i = 0; i < nbPoints; i++) {
       pointsGauche.push({
@@ -62,17 +70,23 @@ const configSymetrie = {
     const pointsPath = [{x: 50, y: 5}, ...pointsGauche, {x: 50, y: 95}, ...pointsDroite.reverse()];
     const pathData = pointsPath.map((p, i) => (i === 0 ? "M" : "L") + ` ${p.x},${p.y}`).join(" ") + " Z";
 
+    const rotation = axe === "horizontal" ? ' transform="rotate(90 50 50)"' : "";
     const svg = `
       <svg viewBox="0 0 100 100">
-        <path d="${pathData}" fill="${couleur}" fill-opacity="0.6" stroke="#334155" stroke-width="3"/>
-        <line x1="50" y1="0" x2="50" y2="100" stroke="#f44336" stroke-width="2" stroke-dasharray="4"/>
+        <g${rotation}>
+          <path d="${pathData}" fill="${couleur}" fill-opacity="0.6" stroke="#334155" stroke-width="3"/>
+          <line x1="50" y1="0" x2="50" y2="100" stroke="#f44336" stroke-width="2" stroke-dasharray="4"/>
+        </g>
       </svg>`;
 
     return {
       id: `sym-${estSymetrique}-${Math.floor(Math.random()*5000)}`,
       svg: svg,
       reponse: estSymetrique ? "Oui" : "Non",
-      instruction: "Est-ce que les deux côtés sont identiques ?",
+      axe: axe,
+      nbPoints: nbPoints,
+      instruction: axe === "horizontal" ? "Est-ce que le haut et le bas sont identiques ?" : "Est-ce que les deux côtés sont identiques ?",
+      instructionCP: "Les deux côtés sont pareils ?",
       options: ["Oui", "Non"]
     };
   }

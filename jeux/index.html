@@ -20,7 +20,7 @@
       </section>
 
       <section class="choix-calculs">
-        <article class="carte-mission">
+        <article class="carte-mission" data-jeu="morpion">
           <div class="badge-difficulte">2 JOUEURS</div>
           <a href="morpion/index.html">
             <figure>
@@ -33,7 +33,7 @@
           </a>
         </article>
 
-        <article class="carte-mission">
+        <article class="carte-mission" data-jeu="puissance4">
           <div class="badge-difficulte">2 JOUEURS</div>
           <a href="puissance4/index.html">
             <figure>
@@ -46,7 +46,7 @@
           </a>
         </article>
 
-        <article class="carte-mission">
+        <article class="carte-mission" data-jeu="pendu">
           <div class="badge-difficulte">SOLO</div>
           <a href="pendu/index.html">
             <figure>
@@ -59,7 +59,7 @@
           </a>
         </article>
 
-        <article class="carte-mission">
+        <article class="carte-mission" data-jeu="trouver-le-chiffre">
           <div class="badge-difficulte">SOLO</div>
           <a href="trouver-le-chiffre/index.html">
             <figure>
@@ -73,5 +73,15 @@
         </article>
       </section>
     </main>
+    <script src="commun.js"></script>
+    <script>
+      document.querySelectorAll('[data-jeu]').forEach(function (c) {
+        if (!JeuxNiveau.jeuActif(c.dataset.jeu)) c.style.display = 'none';
+      });
+      if (JeuxNiveau.niveau() === 'cp') {
+        document.querySelector('.entete-missions p').textContent = 'Choisis un jeu !';
+        document.querySelectorAll('.btn-lancer').forEach(function (b) { b.style.minHeight = '64px'; });
+      }
+    </script>
   </body>
 </html>

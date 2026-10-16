@@ -1,8 +1,26 @@
 class MoteurCalcul {
   constructor(config) {
     this.operationSign = config.operationSign;
-    this.genererCalcul = config.genererCalcul;
     this.nomOperation = config.nomOperation; // ex: 'additions'
+
+    // Programme du niveau de classe du profil actif (garde si l'API v2 est absente)
+    const gp = (typeof gestionnaireProfils !== "undefined") ? gestionnaireProfils : null;
+    this.niveauClasse = (gp && typeof gp.getNiveauClasse === "function" && gp.getNiveauClasse()) || null;
+    this.programme = (gp && typeof gp.getProgramme === "function" && gp.getProgramme()) || null;
+    if (!this.programme && window.PROGRAMMES) {
+      this.programme = window.PROGRAMMES[this.niveauClasse || "cm1"] || window.PROGRAMMES.cm1 || Object.values(window.PROGRAMMES)[0] || null;
+    }
+    if (this.programme && !this.niveauClasse) this.niveauClasse = this.programme.id;
+    this.defOperation = this.programme && this.programme.calcul ? this.programme.calcul[this.nomOperation] : null;
+    if (!this.defOperation || this.defOperation.actif === false || !this.defOperation.niveaux) {
+      // Mission hors programme : inaccessible
+      window.location.replace("../index.html");
+      return;
+    }
+    this.nbPaliers = this.defOperation.niveaux.length;
+    this.estCP = this.niveauClasse === "cp";
+    this.genererCalcul = config.genererCalcul || ((palier) =>
+      GenerateurCalcul.generer(this.nomOperation, this.programme, palier, this.niveauClasse));
     
     this.score = 0;
     this.erreurs = 0;
@@ -11,8 +29,10 @@ class MoteurCalcul {
     this.erreursConsecutives = 0;
 
     // Chargement de la progression du joueur actif
-    const progressionSauvegardee = gestionnaireProfils.getProgression(this.nomOperation);
-    this.niveau = progressionSauvegardee.niveau;
+    let progressionSauvegardee = null;
+    try { progressionSauvegardee = gp && gp.getProgression ? gp.getProgression(this.nomOperation) : null; } catch (e) { progressionSauvegardee = null; }
+    this.niveau = Math.min(this.nbPaliers, Math.max(1, parseInt(progressionSauvegardee && progressionSauvegardee.niveau, 10) || 1));
+    this.niveauSauvegarde = this.niveau;
 
     // Elements DOM
     this.elCalcul = document.getElementById("calcul");
@@ -34,7 +54,7 @@ class MoteurCalcul {
         this.elNiveauConteneur.innerHTML = `
             <label for="selectNiveau" style="color: var(--primary-color);">Niveau :</label>
             <select id="selectNiveau" aria-label="Sélection du niveau de difficulté" style="padding: 5px 15px; border-radius: 10px; border: 3px solid var(--primary-color); background: white; color: var(--primary-color); font-weight: bold; font-size: 1.5rem; cursor: pointer;">
-                ${[1,2,3,4,5,6,7,8,9,10].map(n => `<option value="${n}">${n}</option>`).join("")}
+                ${Array.from({ length: this.nbPaliers }, (_, i) => i + 1).map(n => `<option value="${n}">${n}</option>`).join("")}
             </select>
         `;
         // On l'insère avant le calcul
@@ -52,6 +72,7 @@ class MoteurCalcul {
         this.elSaisie.setAttribute('aria-label', 'Saisis ta réponse ici');
     }
 
+    this.injecterTitreEtVoix();
     this.nouveauCalcul();
 
     // Bouton retour
@@ -130,7 +151,10 @@ class MoteurCalcul {
   }
 
   sauvegarderProgression() {
-    gestionnaireProfils.setProgression(this.nomOperation, { niveau: this.niveau });
+    if (typeof gestionnaireProfils !== "undefined" && typeof gestionnaireProfils.setProgression === "function") {
+      gestionnaireProfils.setProgression(this.nomOperation, { niveau: this.niveau });
+    }
+    this.niveauSauvegarde = Math.max(this.niveauSauvegarde || 1, this.niveau);
   }
 
   nouveauCalcul() {
@@ -139,13 +163,14 @@ class MoteurCalcul {
       return;
     }
 
-    const { a, b, resultat } = this.genererCalcul(this.niveau);
-    this.currentResultat = resultat;
-    
-    this.elCalcul.innerText = `${a} ${this.operationSign} ${b} = `;
+    const calcul = this.genererCalcul(this.niveau);
+    this.currentResultat = calcul.resultat;
+    this.currentVoix = calcul.voix || "";
+
+    this.elCalcul.innerText = calcul.texte || `${calcul.a} ${this.operationSign} ${calcul.b} = `;
     if(this.elSaisie) this.elSaisie.value = "";
-    
-    this.elInstructions.innerText = "Saisis ta réponse et appuie sur Entrée";
+
+    this.elInstructions.innerText = calcul.aide || (this.estCP ? "Écris la réponse." : "Saisis ta réponse et appuie sur Entrée");
     this.elInstructions.className = "";
     
     this.elCadre.classList.remove("succes", "erreur");
@@ -200,7 +225,8 @@ class MoteurCalcul {
     const inputValue = this.elSaisie.value.trim();
     if (inputValue === "") return;
 
-    const saisiResultat = Number(inputValue);
+    const valide = /^\d+([.,]\d+)?$/.test(inputValue);
+    const saisiResultat = valide ? Number(inputValue.replace(",", ".")) : NaN;
     if (isNaN(saisiResultat)) {
       this.elInstructions.innerText = "Saisie invalide ! Utilise uniquement des chiffres.";
       this.elInstructions.className = "texte-erreur";
@@ -212,7 +238,7 @@ class MoteurCalcul {
     this.elCadre.classList.remove("succes", "erreur");
     void this.elCadre.offsetWidth; 
 
-    if (saisiResultat === this.currentResultat) {
+    if (Math.abs(saisiResultat - this.currentResultat) < 1e-9) {
       // Points gagnés = niveau × (1 + série d'invincibilité)
       const pointsGagnes = this.niveau * (1 + this.consecutifs);
       this.score += pointsGagnes;
@@ -229,15 +255,14 @@ class MoteurCalcul {
       this.elCadre.classList.add("succes");
 
       // Evolution : 5 bonnes réponses de suite = niveau supérieur (la streak continue)
-      if (this.consecutifs >= 5 && this.consecutifs % 5 === 0 && this.niveau < 10) {
+      if (this.consecutifs >= 5 && this.consecutifs % 5 === 0 && this.niveau < this.nbPaliers) {
         this.niveau++;
         this.majMana(5); // Remplit la barre à 100% brièvement
         setTimeout(() => this.majMana(0), 500); // Puis redescend à 0
         this.elInstructions.innerHTML = `🎉 Niveau ${this.niveau} ! <strong>+${pointsGagnes} pts</strong> <span style="color: var(--accent-color);">(combo x${this.consecutifs} 🔥)</span>`;
         this.majAffichageNiveau();
         
-        const profilActuel = gestionnaireProfils.getProgression(this.nomOperation);
-        if (this.niveau > profilActuel.niveau) {
+        if (this.niveau > (this.niveauSauvegarde || 1)) {
            this.sauvegarderProgression();
         }
       } else {
@@ -253,7 +278,7 @@ class MoteurCalcul {
       this.erreurs++;
       
       const erreursRestantes = this.limiteErreurs - this.erreurs;
-      this.elInstructions.innerHTML = `Oups ! C'était ${this.currentResultat} <strong style="color:#e74c3c;">−${pointsPerdus} pts</strong> <span style="color: var(--text-muted);">(${erreursRestantes} erreur${erreursRestantes > 1 ? 's' : ''} restante${erreursRestantes > 1 ? 's' : ''})</span>`;
+      this.elInstructions.innerHTML = `Oups ! C'était ${String(this.currentResultat).replace(".", ",")} <strong style="color:#e74c3c;">−${pointsPerdus} pts</strong> <span style="color: var(--text-muted);">(${erreursRestantes} erreur${erreursRestantes > 1 ? 's' : ''} restante${erreursRestantes > 1 ? 's' : ''})</span>`;
       this.elInstructions.className = "texte-erreur";
       this.elCadre.classList.add("erreur");
 
@@ -268,6 +293,45 @@ class MoteurCalcul {
 
     setTimeout(() => this.nouveauCalcul(), 1500);
     this.majStatistiques();
+  }
+
+  injecterTitreEtVoix() {
+    const titre = document.querySelector(".titre");
+    if (titre && this.defOperation.libelle) {
+      titre.textContent = this.defOperation.libelle;
+      document.title = this.defOperation.libelle;
+    }
+    if (titre && this.defOperation.consigne) {
+      const p = document.createElement("p");
+      p.className = "consigne-mission";
+      p.style.cssText = "text-align:center;font-size:1.2rem;color:var(--text-muted);margin:0 0 15px;";
+      p.textContent = this.defOperation.consigne;
+      titre.insertAdjacentElement("afterend", p);
+    }
+    if (this.elSaisie) {
+      this.elSaisie.type = "text";
+      this.elSaisie.setAttribute("inputmode", "decimal");
+      this.elSaisie.setAttribute("autocomplete", "off");
+    }
+    if (this.estCP && "speechSynthesis" in window) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "btn-voix";
+      btn.textContent = "🔊";
+      btn.setAttribute("aria-label", "Écouter le calcul");
+      btn.style.cssText = "min-width:56px;min-height:56px;font-size:1.8rem;border-radius:50%;cursor:pointer;margin:0 0 12px;";
+      btn.addEventListener("click", () => this.lire());
+      this.elCadre.insertBefore(btn, this.elCalcul);
+    }
+  }
+
+  lire() {
+    if (!("speechSynthesis" in window)) return;
+    const u = new SpeechSynthesisUtterance(`${this.defOperation.consigne || ""} ${this.currentVoix}`.trim());
+    u.lang = "fr-FR";
+    u.rate = 0.85;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
   }
 
   majStatistiques() {

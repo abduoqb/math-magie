@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="../../style/commun.css">
     <link rel="stylesheet" href="../../style/exercice-commun.css">
     <script src="../../js/profils.js"></script>
+    <link rel="stylesheet" href="../commun.css">
+    <script src="../commun.js"></script>
     <script src="../../js/composants/header.js" defer></script>
     <style>
       .jeu-conteneur { text-align: center; }
@@ -145,6 +147,7 @@
           <div class="jeu-conteneur">
             <div class="categorie-selector" id="categories"></div>
             <p class="categorie-label" id="cat-label">Catégorie : Tout</p>
+            <div id="zone-voix"></div>
             <svg class="pendu-svg" width="200" height="200" viewBox="0 0 200 200">
               <!-- Structure -->
               <line class="structure" x1="20" y1="190" x2="180" y2="190"/>
@@ -182,36 +185,7 @@
       </div>
     </div>
     <script>
-      const CATEGORIES = {
-        '🔢 Maths': [
-          'addition', 'nombre', 'calcul', 'chiffre', 'somme',
-          'double', 'moitie', 'dizaine', 'centaine', 'unite',
-          'entier', 'pair', 'impair', 'fraction', 'total',
-          'tableau', 'graphe', 'courbe'
-        ],
-        '📐 Géométrie': [
-          'triangle', 'cercle', 'carre', 'rectangle', 'losange',
-          'angle', 'droite', 'segment', 'rayon', 'diametre',
-          'surface', 'volume', 'perimetre', 'symetrie',
-          'pyramide', 'sphere', 'cube', 'ligne', 'point',
-          'forme', 'cote', 'sommet', 'base', 'hauteur', 'figure', 'solide'
-        ],
-        '🐾 Animaux': [
-          'chien', 'chat', 'lapin', 'cheval', 'poule',
-          'canard', 'mouton', 'cochon', 'tortue', 'serpent',
-          'tigre', 'lion', 'oiseau', 'dauphin', 'baleine'
-        ],
-        '🌍 Pays': [
-          'france', 'espagne', 'italie', 'japon', 'maroc',
-          'bresil', 'canada', 'egypte', 'grece', 'inde',
-          'chine', 'suisse', 'tunisie', 'portugal', 'turquie'
-        ],
-        '🍎 Nourriture': [
-          'pomme', 'banane', 'fraise', 'orange', 'cerise',
-          'tomate', 'salade', 'fromage', 'gateau', 'chocolat',
-          'croissant', 'baguette', 'pizza', 'crepe', 'soupe'
-        ]
-      };
+      const CATEGORIES = JeuxNiveau.motsPendu(JeuxNiveau.niveau());
 
       const partiesCorps = ['tete', 'corps', 'bras-g', 'bras-d', 'jambe-g', 'jambe-d'];
       let motActuel, lettresTrouvees, erreurs, partieTerminee;
@@ -457,6 +431,8 @@
         }
       });
 
+      const voixPd = JeuxNiveau.creerBoutonVoix(() => 'Trouve le mot caché. Choisis une lettre.');
+      if (voixPd) document.getElementById('zone-voix').appendChild(voixPd);
       creerCategories();
       nouveauMot();
     </script>

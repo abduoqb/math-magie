@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="../../style/commun.css">
     <link rel="stylesheet" href="../../style/exercice-commun.css">
     <script src="../../js/profils.js"></script>
+    <link rel="stylesheet" href="../commun.css">
+    <script src="../commun.js"></script>
     <script src="../../js/composants/header.js" defer></script>
     <style>
       .jeu-conteneur { text-align: center; }
@@ -93,6 +95,7 @@
               <button class="mode-btn actif" id="btn-2j" onclick="changerMode(false)">👫 2 Joueurs</button>
               <button class="mode-btn" id="btn-ia" onclick="changerMode(true)">🤖 vs IA</button>
             </div>
+            <div id="zone-defi"></div>
             <p id="tour-info" class="tour-info">Tour de <span class="symbole" style="color:var(--secondary-color)">❌</span></p>
             <div class="grille-morpion" id="grille"></div>
             <div class="score-board">
@@ -140,7 +143,8 @@
           btn.addEventListener('click', () => {
             // En mode IA, bloquer les clics si c'est le tour de l'IA
             if (modeIA && !tourX) return;
-            jouer(i);
+            if (partieTerminee || plateau[i] !== 0) return;
+            JeuxNiveau.demanderCalcul(() => jouer(i));
           });
           grilleEl.appendChild(btn);
         }
@@ -248,6 +252,9 @@
         });
       }
 
+      JeuxNiveau.creerBasculeDefi(document.getElementById('zone-defi'));
+      const voixM = JeuxNiveau.creerBoutonVoix(() => 'Morpion. Aligne trois signes pour gagner.');
+      if (voixM) document.getElementById('zone-defi').appendChild(voixM);
       creerGrille();
     </script>
 </body>

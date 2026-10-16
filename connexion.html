@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion — Mathémagie</title>
+    <link rel="icon" type="image/png" href="images/logo_transparant.png">
+    <link rel="stylesheet" href="style/commun.css">
+    <link rel="stylesheet" href="style/connexion.css">
+</head>
+<body class="page-connexion">
+    <main id="app" aria-live="polite">
+        <noscript>Mathémagie a besoin de JavaScript pour fonctionner.</noscript>
+    </main>
+
+    <script src="js/niveaux.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/profils.js"></script>
+    <script>
+    (function () {
+      'use strict';
+      const gp = window.gestionnaireProfils;
+      const app = document.getElementById('app');
+
+      // ---------- Utilitaires ----------
+
+      function el(tag, attrs, ...enfants) {
+        const n = document.createElement(tag);
+        if (attrs) {
+          Object.keys(attrs).forEach(k => {
+            const v = attrs[k];
+            if (v === null || v === undefined || v === false) return;
+            if (k === 'class') n.className = v;
+            else if (k === 'style') n.setAttribute('style', v);
+            else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), v);
+            else n.setAttribute(k, v === true ? '' : v);
+          });
+        }
+        enfants.flat(Infinity).forEach(c => {
+          if (c === null || c === undefined || c === false) return;
+          n.appendChild(typeof c === 'string' || typeof c === 'number' ? document.createTextNode(c) : c);
+        });
+        return n;
+      }
+
+      function retourSur() {
+        try {
+          const r = new URLSearchParams(window.location.search).get('retour');
+          if (r && r.charAt(0) === '/' && r.charAt(1) !== '/' && r.indexOf('://') === -1 && r.indexOf('\\') === -1 &&
+              r.indexOf('connexion.html') === -1) {
+            return r;
+          }
+        } catch (e) { /* ignore */ }
+        return 'index.html';
+      }
+
+      // Voix : lecture des consignes (SpeechSynthesis fr-FR)
+      function parler(texte) {
+        if (!('speechSynthesis' in window) || !texte) return;
+        try {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(texte);
+          u.lang = 'fr-FR';
+          u.rate = 0.9;
+          const voix = window.speechSynthesis.getVoices().find(v => v.lang && v.lang.toLowerCase().indexOf('fr') === 0);
+          if (voix) u.voice = voix;
+          window.speechSynthesis.speak(u);
+        } catch (e) { /* ignore */ }
+      }
+
+      function boutonVoix(consigne) {
+        if (!('speechSynthesis' in window)) return null;
+        return el('button', {
+          type: 'button', class: 'btn-voix', 'aria-label': 'Écouter la consigne',
+          onclick: () => parler(consigne)
+        }, '🔊');
+      }
+
+      function ecran(classe, consigne, ...contenu) {
+        app.textContent = '';
+        const section = el('section', { class: 'ecran ' + classe },
+          el('div', { class: 'ecran-haut' }, boutonVoix(consigne)),
+          contenu);
+        app.appendChild(section);
+        const titre = section.querySelector('h2');
+        if (titre) { titre.setAttribute('tabindex', '-1'); titre.focus({ preventScroll: true }); }
+        return section;
+      }
+
+      function entete(emoji, titre, sousTitre) {
+        return [
+          el('span', { class: 'logo-flottant', 'aria-hidden': 'true' }, emoji),
+          el('h2', null, titre),
+          sousTitre ? el('p', { class: 'sous-titre' }, sousTitre) : null
+        ];
+      }
+
+      function btnRetour(action, libelle) {
+        return el('button', { type: 'button', class: 'btn btn-secondaire', onclick: action }, '← ' + (libelle || 'Retour'));
+      }
+
+      let arreterMinuteur = null;
+      let nettoyageClavier = null;
+      function nettoyer() {
+        if (arreterMinuteur) { clearInterval(arreterMinuteur); arreterMinuteur = null; }
+        if (nettoyageClavier) { nettoyageClavier(); nettoyageClavier = null; }
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      }
+      function aller(fn) { nettoyer(); fn(); }
+
+      // ---------- Pavé numérique (code à 4 chiffres) ----------
+
+      /**
+       * Retourne { racine, reinitialiser, secouer, desactiver(bool), message(txt) }.
+       * surComplet(code) est appelé quand 4 chiffres sont saisis.
+       */
+      function creerPave(surComplet) {
+        let code = '';
+        let actif = true;
+        const pastilles = [0, 1, 2, 3].map(() => el('span', { class: 'pastille' }));
+        const zonePastilles = el('div', { class: 'pastilles', role: 'img', 'aria-label': '0 chiffre sur 4' }, pastilles);
+        const message = el('p', { class: 'message-pave', role: 'status' });
+
+        function maj() {
+          pastilles.forEach((p, i) => p.classList.toggle('pleine', i < code.length));
+          zonePastilles.setAttribute('aria-label', code.length + ' chiffre' + (code.length > 1 ? 's' : '') + ' sur 4');
+        }
+        function ajouter(c) {
+          if (!actif || code.length >= 4) return;
+          code += c;
+          maj();
+          if (code.length === 4) {
+            const valeur = code;
+            surComplet(valeur);
+          }
+        }
+        function effacer() { if (!actif) return; code = code.slice(0, -1); maj(); }
+
+        const touches = [];
+        ['1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach(c => touches.push(
+          el('button', { type: 'button', class: 'touche', 'aria-label': c, onclick: () => ajouter(c) }, c)));
+        touches.push(el('button', { type: 'button', class: 'touche touche-effacer', 'aria-label': 'Effacer', onclick: effacer }, '⌫'));
+        touches.push(el('button', { type: 'button', class: 'touche', 'aria-label': '0', onclick: () => ajouter('0') }, '0'));
+        touches.push(el('span', { class: 'touche-vide' }));
+        const grille = el('div', { class: 'pave', role: 'group', 'aria-label': 'Pavé numérique' }, touches);
+
+        function clavier(e) {
+          if (e.key >= '0' && e.key <= '9' && e.key.length === 1) { e.preventDefault(); ajouter(e.key); }
+          else if (e.key === 'Backspace') { e.preventDefault(); effacer(); }
+        }
+        document.addEventListener('keydown', clavier);
+        const ancien = nettoyageClavier;
+        nettoyageClavier = () => { document.removeEventListener('keydown', clavier); if (ancien) ancien(); };
+
+        return {
+          racine: el('div', { class: 'zone-pave' }, zonePastilles, message, grille),
+          reinitialiser() { code = ''; maj(); },
+          secouer() {
+            zonePastilles.classList.remove('secoue');
+            void zonePastilles.offsetWidth;
+            zonePastilles.classList.add('secoue');
+          },
+          desactiver(v) { actif = !v; grille.classList.toggle('desactive', v); grille.querySelectorAll('button').forEach(b => { b.disabled = v; }); },
+          message(txt, type) { message.textContent = txt || ''; message.className = 'message-pave' + (type ? ' ' + type : ''); }
+        };
+      }
+
+      /** Affiche le compte à rebours de la pause anti-devinette. */
+      function demarrerPause(pave, restantMs, surFin) {
+        const fin = Date.now() + restantMs;
+        pave.desactiver(true);
+        pave.reinitialiser();
+        function tic() {
+          const s = Math.ceil((fin - Date.now()) / 1000);
+          if (s <= 0) {
+            clearInterval(arreterMinuteur); arreterMinuteur = null;
+            pave.desactiver(false);
+            pave.message('Tu peux réessayer !', 'info');
+            if (surFin) surFin();
+            return;
+          }
+          pave.message('Trop d\'essais ! Respire un peu… ' + s + ' s ⏳', 'erreur');
+        }
+        if (arreterMinuteur) clearInterval(arreterMinuteur);
+        tic();
+        arreterMinuteur = setInterval(tic, 500);
+      }
+
+      // ---------- Écran 1 : choix du profil ----------
+
+      function ecranProfils() {
+        const noms = gp.getListeProfils();
+        const consigne = noms.length ? 'Qui joue ? Touche ton prénom.' : 'Bienvenue ! Touche le bouton pour créer ton mage.';
+        const cartes = noms.map((nom, i) => {
+          const info = gp.getInfoProfil(nom);
+          return el('button', {
+            type: 'button', class: 'carte-profil', style: '--couleur-profil:' + info.couleur + ';animation-delay:' + (i * 0.05) + 's',
+            'aria-label': nom + (info.niveauClasse ? ', ' + Niveaux.getLibelle(info.niveauClasse) : ''),
+            onclick: () => aller(() => info.aConfigurer ? ecranConfigurer(nom) : ecranCode(nom))
+          },
+            el('span', { class: 'avatar-grand', 'aria-hidden': 'true' }, info.avatar),
+            el('span', { class: 'prenom' }, nom),
+            el('span', { class: 'badge-classe' }, info.niveauClasse ? Niveaux.getLibelle(info.niveauClasse) : '?')
+          );
+        });
+        cartes.push(el('button', {
+          type: 'button', class: 'carte-profil carte-nouveau', 'aria-label': 'Créer un nouveau mage',
+          onclick: () => aller(() => ecranCreation())
+        }, el('span', { class: 'avatar-grand', 'aria-hidden': 'true' }, '➕'), el('span', { class: 'prenom' }, 'Nouveau mage')));
+
+        ecran('ecran-profils', consigne,
+          entete('🔮', 'Qui joue ?', 'Touche ton prénom'),
+          el('div', { class: 'grille-profils' }, cartes),
+          el('div', { class: 'pied' },
+            el('button', { type: 'button', class: 'btn btn-discret', onclick: () => aller(ecranParentAcces) }, '👨‍👩‍👧 Espace parent'))
+        );
+      }
+
+      // ---------- Écran 2 : saisie du code ----------
+
+      function entrerDansLeSite() {
+        window.location.href = retourSur();
+      }
+
+      function ecranCode(nom) {
+        const info = gp.getInfoProfil(nom);
+        const consigne = nom + ', tape ton code secret à quatre chiffres.';
+        const pave = creerPave(async (code) => {
+          pave.desactiver(true);
+          const r = await gp.connecter(nom, code);
+          if (r.ok) {
+            pave.message('Bienvenue, ' + nom + ' ! ✨', 'ok');
+            if (window.SonMagique) SonMagique.jouer('validation');
+            setTimeout(entrerDansLeSite, 500);
+            return;
+          }
+          pave.secouer();
+          if (r.bloque) { demarrerPause(pave, r.restantMs); return; }
+          pave.reinitialiser();
+          pave.desactiver(false);
+          pave.message('Ce n\'est pas le bon code. Il te reste ' + r.essaisRestants + ' essai' + (r.essaisRestants > 1 ? 's' : '') + '.', 'erreur');
+        });
+        ecran('ecran-code', consigne,
+          el('div', { class: 'mini-profil', style: '--couleur-profil:' + info.couleur },
+            el('span', { class: 'avatar-grand', 'aria-hidden': 'true' }, info.avatar),
+            el('span', { class: 'prenom' }, nom)),
+          el('h2', null, 'Ton code secret'),
+          pave.racine,
+          el('div', { class: 'pied' }, btnRetour(() => aller(ecranProfils), 'Changer de mage'))
+        );
+        const etat = gp.getEtatBlocage(nom);
+        if (etat.bloque) demarrerPause(pave, etat.restantMs);
+        parler(consigne);
+      }
+
+      // ---------- Création de profil (étapes) ----------
+
+      const etatCreation = {};
+
+      function ecranCreation(etape) {
+        etape = etape || 1;
+        if (etape === 1) { Object.keys(etatCreation).forEach(k => delete etatCreation[k]); }
+        const total = 6;
+        const progression = () => el('div', { class: 'etapes', role: 'img', 'aria-label': 'Étape ' + etape + ' sur ' + total },
+          Array.from({ length: total }, (_, i) => el('span', { class: 'etape' + (i + 1 <= etape ? ' faite' : '') })));
+        const retour = () => btnRetour(() => aller(() => etape === 1 ? ecranProfils() : ecranCreation(etape - 1)));
+
+        if (etape === 1) { // prénom
+          const consigne = 'Comment t\'appelles-tu ? Écris ton prénom.';
+          const champ = el('input', {
+            type: 'text', class: 'champ-prenom', maxlength: '15', autocomplete: 'off', autocapitalize: 'words',
+            spellcheck: 'false', 'aria-label': 'Ton prénom', value: etatCreation.prenom || ''
+          });
+          const erreur = el('p', { class: 'message-pave erreur', role: 'alert' });
+          const suite = () => {
+            const prenom = champ.value.trim();
+            if (!prenom) { erreur.textContent = 'Écris ton prénom.'; return; }
+            if (prenom.length > 15) { erreur.textContent = '15 lettres maximum.'; return; }
+            if (prenom.charAt(0) === '_') { erreur.textContent = 'Commence par une lettre.'; return; }
+            if (gp.getListeProfils().some(n => n.toLowerCase() === prenom.toLowerCase())) { erreur.textContent = 'Ce mage existe déjà !'; return; }
+            etatCreation.prenom = prenom;
+            aller(() => ecranCreation(2));
+          };
+          champ.addEventListener('keydown', e => { if (e.key === 'Enter') suite(); });
+          ecran('ecran-creation', consigne, progression(), entete('✏️', 'Ton prénom'), champ, erreur,
+            el('div', { class: 'pied' }, retour(), el('button', { type: 'button', class: 'btn btn-principal', onclick: suite }, 'Suivant →')));
+          champ.focus();
+        } else if (etape === 2) { // classe
+          const consigne = 'Dans quelle classe es-tu ? Touche CP, C E un, C E deux, C M un ou C M deux.';
+          const boutons = Niveaux.NIVEAUX.map(n => el('button', {
+            type: 'button', class: 'btn-classe' + (etatCreation.niveauClasse === n ? ' choisi' : ''), 'aria-label': Niveaux.getLibelleLong(n),
+            onclick: () => { etatCreation.niveauClasse = n; aller(() => ecranCreation(3)); }
+          }, el('span', { class: 'classe-sigle' }, Niveaux.getLibelle(n))));
+          ecran('ecran-creation', consigne, progression(), entete('🎒', 'Ta classe'),
+            el('div', { class: 'grille-classes' }, boutons), el('div', { class: 'pied' }, retour()));
+        } else if (etape === 3) { // avatar
+          const consigne = 'Choisis ton personnage magique.';
+          const boutons = GestionnaireProfils.AVATARS_BASE.map(a => el('button', {
+            type: 'button', class: 'choix-avatar' + (etatCreation.avatar === a ? ' choisi' : ''), 'aria-label': 'Personnage ' + a,
+            onclick: () => { etatCreation.avatar = a; aller(() => ecranCreation(4)); }
+          }, a));
+          ecran('ecran-creation', consigne, progression(), entete('🧙‍♂️', 'Ton personnage'),
+            el('div', { class: 'grille-avatars' }, boutons), el('div', { class: 'pied' }, retour()));
+        } else if (etape === 4) { // couleur
+          const consigne = 'Choisis ta couleur préférée.';
+          const boutons = GestionnaireProfils.COULEURS.map(c => el('button', {
+            type: 'button', class: 'choix-couleur' + (etatCreation.couleur === c.valeur ? ' choisi' : ''),
+            style: 'background:' + c.valeur, 'aria-label': c.nom,
+            onclick: () => { etatCreation.couleur = c.valeur; aller(() => ecranCreation(5)); }
+          }, etatCreation.couleur === c.valeur ? '✓' : ''));
+          ecran('ecran-creation', consigne, progression(), entete('🎨', 'Ta couleur'),
+            el('div', { class: 'grille-couleurs' }, boutons), el('div', { class: 'pied' }, retour()));
+        } else if (etape === 5) { // code
+          const consigne = 'Choisis un code secret à quatre chiffres. Retiens-le bien !';
+          const pave = creerPave(code => { etatCreation.code = code; aller(() => ecranCreation(6)); });
+          ecran('ecran-creation', consigne, progression(), entete('🔑', 'Ton code secret', '4 chiffres, que toi seul connais'),
+            pave.racine, el('div', { class: 'pied' }, retour()));
+          parler(consigne);
+        } else { // confirmation
+          const consigne = 'Tape encore une fois ton code pour être sûr.';
+          const pave = creerPave(async (code) => {
+            if (code !== etatCreation.code) {
+              pave.secouer(); pave.reinitialiser();
+              pave.message('Ce n\'est pas le même code. Recommence !', 'erreur');
+              return;
+            }
+            pave.desactiver(true);
+            const r = await gp.creerProfil({
+              prenom: etatCreation.prenom, avatar: etatCreation.avatar, couleur: etatCreation.couleur,
+              niveauClasse: etatCreation.niveauClasse, code
+            });
+            if (!r.ok) { pave.desactiver(false); pave.message(r.erreur, 'erreur'); return; }
+            await gp.connecter(r.prenom, code);
+            if (window.SonMagique) SonMagique.jouer('validation');
+            pave.message('Ton mage est prêt ! ✨', 'ok');
+            setTimeout(entrerDansLeSite, 700);
+          });
+          ecran('ecran-creation', consigne, progression(), entete('✅', 'Encore une fois', 'Pour vérifier ton code'),
+            pave.racine, el('div', { class: 'pied' }, retour()));
+          parler(consigne);
+        }
+        if (etape < 5) parler(etape === 1 ? 'Comment t\'appelles-tu ?' : etape === 2 ? 'Dans quelle classe es-tu ?' : etape === 3 ? 'Choisis ton personnage.' : 'Choisis ta couleur.');
+      }
+
+      // ---------- Profil migré : choisir sa classe et son code ----------
+
+      function ecranConfigurer(nom) {
+        const info = gp.getInfoProfil(nom);
+        const etat = { niveauClasse: info.niveauClasse, code: null };
+
+        function etapeClasse() {
+          const consigne = nom + ', dans quelle classe es-tu cette année ?';
+          const boutons = Niveaux.NIVEAUX.map(n => el('button', {
+            type: 'button', class: 'btn-classe', 'aria-label': Niveaux.getLibelleLong(n),
+            onclick: () => { etat.niveauClasse = n; aller(info.aCode ? finir : etapeCode); }
+          }, el('span', { class: 'classe-sigle' }, Niveaux.getLibelle(n))));
+          ecran('ecran-creation', consigne,
+            entete(info.avatar, 'Bon retour, ' + nom + ' !', 'Dis-nous dans quelle classe tu es'),
+            el('div', { class: 'grille-classes' }, boutons),
+            el('div', { class: 'pied' }, btnRetour(() => aller(ecranProfils))));
+          parler(consigne);
+        }
+        function etapeCode() {
+          const consigne = 'Choisis un code secret à quatre chiffres.';
+          const pave = creerPave(code => { etat.code = code; aller(etapeConfirmation); });
+          ecran('ecran-creation', consigne, entete('🔑', 'Ton code secret', 'Ta progression est gardée !'),
+            pave.racine, el('div', { class: 'pied' }, btnRetour(() => aller(info.niveauClasse ? ecranProfils : etapeClasse))));
+          parler(consigne);
+        }
+        function etapeConfirmation() {
+          const consigne = 'Tape encore une fois ton code.';
+          const pave = creerPave(code => {
+            if (code !== etat.code) {
+              pave.secouer(); pave.reinitialiser(); pave.message('Ce n\'est pas le même code. Recommence !', 'erreur'); return;
+            }
+            pave.desactiver(true);
+            finir(code);
+          });
+          ecran('ecran-creation', consigne, entete('✅', 'Encore une fois'), pave.racine,
+            el('div', { class: 'pied' }, btnRetour(() => aller(etapeCode))));
+          parler(consigne);
+        }
+        async function finir(codeConfirme) {
+          const r = await gp.configurerProfilMigre(nom, etat.niveauClasse, typeof codeConfirme === 'string' ? codeConfirme : etat.code);
+          if (!r.ok) { ecranProfils(); return; }
+          if (info.aCode) { aller(() => ecranCode(nom)); return; }
+          await gp.connecter(nom, etat.code);
+          if (window.SonMagique) SonMagique.jouer('validation');
+          entrerDansLeSite();
+        }
+
+        if (!info.niveauClasse) etapeClasse(); else etapeCode();
+      }
+
+      // ---------- Espace parent ----------
+
+      let codeParentSession = null; // gardé en mémoire uniquement, le temps de la visite
+
+      function ecranParentAcces() {
+        codeParentSession = null;
+        if (!gp.aCodeParent()) { ecranParentCreation(); return; }
+        const consigne = 'Espace parent. Entrez le code parent.';
+        const pave = creerPave(async (code) => {
+          pave.desactiver(true);
+          if (await gp.verifierCodeParent(code)) {
+            codeParentSession = code;
+            aller(ecranParentPanneau);
+            return;
+          }
+          pave.secouer();
+          const e = gp.getEtatBlocageParent();
+          if (e.bloque) { demarrerPause(pave, e.restantMs); return; }
+          pave.reinitialiser(); pave.desactiver(false);
+          pave.message('Code parent incorrect. Essais restants : ' + e.essaisRestants + '.', 'erreur');
+        });
+        ecran('ecran-parent', consigne, entete('👨‍👩‍👧', 'Espace parent', 'Entrez le code parent'),
+          pave.racine, el('div', { class: 'pied' }, btnRetour(() => aller(ecranProfils))));
+        const e = gp.getEtatBlocageParent();
+        if (e.bloque) demarrerPause(pave, e.restantMs);
+      }
+
+      function ecranParentCreation() {
+        const etat = { code: null };
+        function saisie() {
+          const pave = creerPave(code => { etat.code = code; aller(confirmation); });
+          ecran('ecran-parent', 'Créez un code parent à quatre chiffres.',
+            entete('👨‍👩‍👧', 'Créer le code parent', 'Il protège la suppression des profils, le changement de classe et la réinitialisation des codes. Choisissez un code différent de ceux des enfants.'),
+            pave.racine, el('div', { class: 'pied' }, btnRetour(() => aller(ecranProfils))));
+        }
+        function confirmation() {
+          const pave = creerPave(async (code) => {
+            if (code !== etat.code) { pave.secouer(); pave.reinitialiser(); pave.message('Les codes sont différents.', 'erreur'); return; }
+            pave.desactiver(true);
+            if (await gp.definirCodeParent(code)) { codeParentSession = code; aller(ecranParentPanneau); }
+            else { pave.desactiver(false); pave.message('Impossible de créer le code.', 'erreur'); }
+          });
+          ecran('ecran-parent', 'Confirmez le code parent.', entete('✅', 'Confirmer le code parent'),
+            pave.racine, el('div', { class: 'pied' }, btnRetour(() => aller(saisie))));
+        }
+        saisie();
+      }
+
+      function ecranParentPanneau(message) {
+        const noms = gp.getListeProfils();
+        const lignes = noms.map(nom => {
+          const info = gp.getInfoProfil(nom);
+          const classes = Niveaux.NIVEAUX.map(n => el('button', {
+            type: 'button', class: 'btn-mini' + (info.niveauClasse === n ? ' choisi' : ''), 'aria-pressed': info.niveauClasse === n ? 'true' : 'false',
+            'aria-label': 'Passer ' + nom + ' en ' + Niveaux.getLibelle(n),
+            onclick: async () => {
+              const ok = await gp.setNiveauClasse(nom, n, codeParentSession);
+              aller(() => ecranParentPanneau(ok ? nom + ' est maintenant en ' + Niveaux.getLibelle(n) + '.' : 'Action refusée.'));
+            }
+          }, Niveaux.getLibelle(n)));
+          return el('li', { class: 'ligne-parent', style: '--couleur-profil:' + info.couleur },
+            el('div', { class: 'ligne-parent-id' },
+              el('span', { class: 'avatar-moyen', 'aria-hidden': 'true' }, info.avatar),
+              el('strong', null, nom)),
+            el('div', { class: 'groupe-classes', role: 'group', 'aria-label': 'Classe de ' + nom }, classes),
+            el('div', { class: 'actions-parent' },
+              el('button', { type: 'button', class: 'btn btn-petit', onclick: () => aller(() => ecranParentNouveauCode(nom)) }, '🔑 Nouveau code'),
+              confirmerSuppression(nom)));
+        });
+        ecran('ecran-parent ecran-parent-panneau', 'Espace parent. Vous pouvez changer la classe, réinitialiser un code ou supprimer un profil.',
+          entete('👨‍👩‍👧', 'Espace parent'),
+          typeof message === 'string' ? el('p', { class: 'message-pave ok', role: 'status' }, message) : null,
+          noms.length ? el('ul', { class: 'liste-parent' }, lignes) : el('p', { class: 'sous-titre' }, 'Aucun profil pour le moment.'),
+          el('div', { class: 'pied' },
+            btnRetour(() => { codeParentSession = null; aller(ecranProfils); }, 'Terminer'),
+            el('button', { type: 'button', class: 'btn btn-discret', onclick: () => aller(ecranParentChangerCode) }, 'Changer le code parent')));
+      }
+
+      function confirmerSuppression(nom) {
+        const b = el('button', { type: 'button', class: 'btn btn-petit btn-danger' }, '🗑 Supprimer');
+        let arme = false;
+        b.addEventListener('click', async () => {
+          if (!arme) {
+            arme = true; b.textContent = 'Sûr ? Toucher encore'; b.classList.add('arme');
+            setTimeout(() => { if (b.isConnected) { arme = false; b.textContent = '🗑 Supprimer'; b.classList.remove('arme'); } }, 4000);
+            return;
+          }
+          const ok = await gp.supprimerProfil(nom, codeParentSession);
+          aller(() => ecranParentPanneau(ok ? 'Le profil ' + nom + ' est supprimé.' : 'Action refusée.'));
+        });
+        return b;
+      }
+
+      function ecranParentNouveauCode(nom) {
+        const etat = { code: null };
+        function saisie() {
+          const pave = creerPave(code => { etat.code = code; aller(confirmation); });
+          ecran('ecran-parent', 'Nouveau code pour ' + nom + '. Tapez quatre chiffres.', entete('🔑', 'Nouveau code pour ' + nom),
+            pave.racine, el('div', { class: 'pied' }, btnRetour(() => aller(ecranParentPanneau))));
+        }
+        function confirmation() {
+          const pave = creerPave(async (code) => {
+            if (code !== etat.code) { pave.secouer(); pave.reinitialiser(); pave.message('Les codes sont différents.', 'erreur'); return; }
+            pave.desactiver(true);
+            const ok = await gp.reinitialiserCode(nom, code, codeParentSession);
+            aller(() => ecranParentPanneau(ok ? 'Nouveau code enregistré pour ' + nom + '.' : 'Action refusée.'));
+          });
+          ecran('ecran-parent', 'Confirmez le nouveau code.', entete('✅', 'Confirmer le code'),
+            pave.racine, el('div', { class: 'pied' }, btnRetour(() => aller(saisie))));
+        }
+        saisie();
+      }
+
+      function ecranParentChangerCode() {
+        const etat = { code: null };
+        function saisie() {
+          const pave = creerPave(code => { etat.code = code; aller(confirmation); });
+          ecran('ecran-parent', 'Nouveau code parent.', entete('🔑', 'Nouveau code parent'),
+            pave.racine, el('div', { class: 'pied' }, btnRetour(() => aller(ecranParentPanneau))));
+        }
+        function confirmation() {
+          const pave = creerPave(async (code) => {
+            if (code !== etat.code) { pave.secouer(); pave.reinitialiser(); pave.message('Les codes sont différents.', 'erreur'); return; }
+            pave.desactiver(true);
+            const ok = await gp.definirCodeParent(code, codeParentSession);
+            if (ok) codeParentSession = code;
+            aller(() => ecranParentPanneau(ok ? 'Code parent modifié.' : 'Action refusée.'));
+          });
+          ecran('ecran-parent', 'Confirmez le code parent.', entete('✅', 'Confirmer le code parent'),
+            pave.racine, el('div', { class: 'pied' }, btnRetour(() => aller(saisie))));
+        }
+        saisie();
+      }
+
+      // ---------- Démarrage ----------
+
+      if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); // précharge les voix
+      ecranProfils();
+      // Premier lancement : aucun profil → directement la création
+      if (!gp.getListeProfils().length) aller(() => ecranCreation());
+    })();
+    </script>
+</body>
+</html>

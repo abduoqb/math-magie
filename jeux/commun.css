@@ -1,0 +1,19 @@
+/* Styles communs des jeux (niveau de classe, défi calcul, CP) */
+.btn-voix { min-width: 64px; min-height: 64px; border-radius: 50%; border: 2px solid #E2E8F0; background: #fff; font-size: 1.8rem; cursor: pointer; margin: 6px; }
+.btn-voix:hover { border-color: var(--secondary-color); }
+.defi-bascule { display: inline-flex; align-items: center; gap: 6px; min-height: 48px; font-family: 'Lexend', sans-serif; font-weight: 700; cursor: pointer; margin: 8px 0; }
+.defi-bascule input { width: 24px; height: 24px; }
+.defi-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+.defi-box { background: #fff; border-radius: 20px; padding: 28px; width: 90%; max-width: 380px; text-align: center; font-family: 'Lexend', sans-serif; }
+.defi-titre { margin: 0 0 8px; color: var(--text-muted); font-weight: 600; }
+.defi-calcul { font-size: 2.4rem; font-weight: 800; margin: 8px 0; color: var(--primary-color); }
+.defi-input { width: 180px; font-size: 2rem; text-align: center; padding: 8px; border-radius: 14px; border: 2px solid #E2E8F0; font-family: inherit; }
+.defi-msg { min-height: 24px; color: var(--error-color); font-weight: 600; }
+.defi-btns { display: flex; gap: 10px; justify-content: center; align-items: center; }
+.defi-btns button:not(.btn-voix) { min-height: 48px; padding: 10px 22px; border-radius: 14px; border: none; font-family: inherit; font-weight: 700; font-size: 1rem; cursor: pointer; background: #F1F5F9; }
+.defi-btns .defi-ok { background: var(--accent-color); color: #fff; }
+body.niveau-cp .defi-btns button:not(.btn-voix), body.niveau-cp .btn-difficulte, body.niveau-cp .btn-magique, body.niveau-cp .cat-btn, body.niveau-cp .mode-btn, body.niveau-cp #changer { min-height: 64px; font-size: 1.2rem; }
+body.niveau-cp .touche { width: 64px; height: 64px; font-size: 1.4rem; }
+body.niveau-cp .clavier { max-width: 600px; }
+body.niveau-cp .lettre-slot { width: 52px; height: 64px; font-size: 2.4rem; }
+body.niveau-cp .case-p4 { min-width: 48px; min-height: 48px; }

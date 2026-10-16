@@ -206,7 +206,7 @@
                   checkProgress: () => statsGlobales._penduGagnees,
                   suffixe: 'parties gagnées'
                 },
-                { id: 'chiffre', nom: 'Maître Divin',
+                { id: 'trouver-le-chiffre', nom: 'Maître Divin',
                   icones: { 5: '🔮', 10: '🧠', 20: '👁️' },
                   checkProgress: () => statsGlobales._chiffreGagnees,
                   suffixe: 'chiffres trouvés'
@@ -223,7 +223,23 @@
 
             const conteneur = document.getElementById('trophees-conteneur');
             let debloques = 0;
-            const toutesLesMissions = [...missionsCalcul, ...missionsGeometrie, ...missionsJeux];
+
+            // Filtrage par niveau de classe (si getProgramme() disponible, sinon tout afficher)
+            const programme = gestionnaireProfils.getProgramme?.() || null;
+            const estActif = (m) => m === true || (m && m.actif !== false);
+            function filtrer(missions, section, prefixe) {
+                if (!section || typeof section !== 'object') return missions;
+                const cle = (m) => (m.id in section) ? m.id
+                    : (prefixe && m.id.startsWith(prefixe) && m.id.slice(prefixe.length) in section) ? m.id.slice(prefixe.length)
+                    : null;
+                // Aucune correspondance d'identifiants: on ne peut pas filtrer, comportement actuel
+                if (!missions.some(m => cle(m) !== null)) return missions;
+                return missions.filter(m => { const k = cle(m); return k !== null && estActif(section[k]); });
+            }
+            const missionsCalculNiv = programme ? filtrer(missionsCalcul, programme.calcul, '') : missionsCalcul;
+            const missionsGeoNiv = programme ? filtrer(missionsGeometrie, programme.geometrie, 'geometrie-') : missionsGeometrie;
+            const missionsJeuxNiv = programme ? filtrer(missionsJeux, programme.jeux, '') : missionsJeux;
+            const toutesLesMissions = [...missionsCalculNiv, ...missionsGeoNiv, ...missionsJeuxNiv];
 
             // Paliers par catégorie : géométrie (max 3) et calculs (max 10)
             const paliersCalcul = [
@@ -305,15 +321,16 @@
                 });
             }
 
-            creerSection('🧮 Calculs Mentaux', missionsCalcul, paliersCalcul, 'calcul');
-            creerSection('📐 Géométrie', missionsGeometrie, paliersGeometrie, 'geometrie');
-            creerSection('🎮 Salle de Jeux', missionsJeux, paliersJeux, 'jeux');
+            if (missionsCalculNiv.length) creerSection('🧮 Calculs Mentaux', missionsCalculNiv, paliersCalcul, 'calcul');
+            if (missionsGeoNiv.length) creerSection('📐 Géométrie', missionsGeoNiv, paliersGeometrie, 'geometrie');
+            if (missionsJeuxNiv.length) creerSection('🎮 Salle de Jeux', missionsJeuxNiv, paliersJeux, 'jeux');
 
             // Résumé de progression avec avatar
             const nomMage = gestionnaireProfils.getJoueurActif();
             const avatarMage = gestionnaireProfils.getAvatar();
             const couleurMage = gestionnaireProfils.getCouleur();
             const titreMage = gestionnaireProfils.getTitreMage();
+            const niveauClasse = gestionnaireProfils.getNiveauClasse?.() || '';
 
             function ajusterCouleur(hex, amount) {
                 let r = parseInt(hex.slice(1, 3), 16);
@@ -329,7 +346,7 @@
             statsResume.style.background = `linear-gradient(135deg, ${couleurMage}, ${ajusterCouleur(couleurMage, -20)})`;
             statsResume.innerHTML = `
                 <div class="stats-avatar" style="background: linear-gradient(135deg, ${couleurMage}, ${ajusterCouleur(couleurMage, 40)})">${avatarMage}</div>
-                <h3>${nomMage}</h3>
+                <h3>${String(nomMage).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}${niveauClasse ? ' · ' + niveauClasse.toUpperCase() : ''}</h3>
                 <p class="stats-titre">${titreMage}</p>
                 <p>${debloques} / ${toutesLesMissions.length} missions débloquées</p>
             `;

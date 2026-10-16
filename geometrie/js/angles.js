@@ -8,13 +8,19 @@ const configAngles = {
     // Niv2 : + Obtus
     // Niv3 : + Plat + Nul (0°)
     let types, degres;
+    niveau = Math.max(1, Math.min(niveau, GeoProgramme.maxNiveau(this.nomOperation), 3));
+    const tousTypes = ["Nul", "Aigu", "Droit", "Obtus", "Plat"];
+    const autorises = GeoProgramme.types(this.nomOperation);
+    const poolAngles = (liste) => liste.map((nom) => ({ nom }));
+    let poolNiveau;
     if (niveau === 1) {
-      types = ["Aigu", "Droit"];
+      poolNiveau = ["Aigu", "Droit"];
     } else if (niveau === 2) {
-      types = ["Aigu", "Droit", "Obtus"];
+      poolNiveau = ["Aigu", "Droit", "Obtus"];
     } else {
-      types = ["Nul", "Aigu", "Droit", "Obtus", "Plat"];
+      poolNiveau = tousTypes;
     }
+    types = GeoProgramme.filtrerPool(poolAngles(poolNiveau), poolAngles(tousTypes), autorises).map((e) => e.nom);
 
     const typeCible = types[Math.floor(Math.random() * types.length)];
 
@@ -70,6 +76,7 @@ const configAngles = {
       svg: svg,
       reponse: typeCible,
       instruction: niveau >= 3 ? "Quel est le type de cet angle ?" : "Observe bien l'angle orange :",
+      instructionCP: "Quel angle ?",
       options: types
     };
   }

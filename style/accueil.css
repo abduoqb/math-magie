@@ -234,3 +234,44 @@
     padding: 20px 15px;
   }
 }
+
+/* --- ACCUEIL ADAPTÉ AU NIVEAU --- */
+.btn-lecture {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 48px;
+  margin-left: 10px;
+  border: 3px solid var(--secondary-color);
+  border-radius: 50%;
+  background: #FFF;
+  font-size: 1.5rem;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.btn-lecture[hidden] { display: none; }
+.btn-lecture:hover { background: #F0F9FF; transform: scale(1.1); }
+.btn-lecture:focus-visible { outline: 3px solid var(--accent-color); outline-offset: 3px; }
+
+.carte-activite.indisponible {
+  opacity: 0.55;
+  filter: grayscale(1);
+}
+.carte-activite.indisponible .lien-carte { pointer-events: none; cursor: default; }
+.carte-activite.indisponible:hover { transform: none; border-color: #E2E8F0; box-shadow: var(--shadow); }
+.carte-activite.indisponible:hover .bouton-action { transform: none; background-color: var(--accent-color); }
+
+/* Mode CP: textes courts, plus gros */
+body.niveau-cp .hero-text h2 { font-size: 3.4rem; }
+body.niveau-cp .hero-text p { font-size: 1.8rem; font-weight: 600; max-width: 700px; }
+body.niveau-cp .contenu-carte h3 { font-size: 2.2rem; }
+body.niveau-cp .contenu-carte p { font-size: 1.5rem; line-height: 1.4; }
+body.niveau-cp .bouton-action { min-height: 64px; font-size: 1.5rem; padding: 14px 40px; }
+body.niveau-cp .btn-lecture { min-width: 56px; min-height: 56px; font-size: 1.8rem; }
+
+@media (max-width: 768px) {
+  body.niveau-cp .hero-text h2 { font-size: 2.4rem; }
+  body.niveau-cp .hero-text p { font-size: 1.4rem; }
+}

@@ -76,6 +76,7 @@ const configPatrons = {
     // Niv1 : Cube / Pyramide (très différents)
     // Niv2 : + Pavé droit / Cylindre 
     // Niv3 : + Prisme triangulaire / Tétraèdre (tous les 6)
+    niveau = Math.max(1, Math.min(niveau, GeoProgramme.maxNiveau(this.nomOperation), 3));
     let noms;
     if (niveau === 1) {
       noms = ["Cube", "Pyramide"];
@@ -85,6 +86,8 @@ const configPatrons = {
       noms = ["Cube", "Pyramide", "Pavé droit", "Cylindre", "Prisme triangulaire", "Tétraèdre"];
     }
 
+    const autorises = GeoProgramme.noms(this.nomOperation);
+    noms = GeoProgramme.filtrerPool(noms.map((nom) => ({ nom })), Object.keys(tousLesPatrons).map((nom) => ({ nom })), autorises).map((e) => e.nom);
     const typeCible = noms[Math.floor(Math.random() * noms.length)];
     const c = couleurs[typeCible];
     const path = tousLesPatrons[typeCible](c);

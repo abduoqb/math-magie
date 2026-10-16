@@ -51,10 +51,18 @@ const configProprietes = {
       }
     ];
 
+    const maxNiv = GeoProgramme.maxNiveau(this.nomOperation);
+    niveau = Math.max(1, Math.min(niveau, maxNiv, 3));
+    const qAutorisees = GeoProgramme.questionsProprietes(this.nomOperation);
+    const qDe = (f) => (f.type === "2d" ? qAutorisees.d2 : qAutorisees.d3);
+    const nomsOk = GeoProgramme.noms(this.nomOperation);
+    const ok = (f) => (nomsOk === null || nomsOk.indexOf(f.nom) >= 0) && qDe(f).length > 0;
     let figures;
     if (niveau === 1) figures = figuresNiv1;
     else if (niveau === 2) figures = figuresNiv2;
     else figures = figuresNiv3;
+    figures = figures.filter(ok);
+    if (figures.length === 0) figures = figuresNiv3.filter(ok);
 
     let index;
     do {
@@ -65,30 +73,22 @@ const configProprietes = {
     const fig = figures[index];
     let typeQ, reponse, instruction;
 
-    if (fig.type === "2d") {
-      // Niv1 : que sommets, Niv2+ : sommets ou côtés
-      if (niveau === 1) {
-        typeQ = "sommets";
-        reponse = fig.sommets;
-      } else {
-        const isSommets = Math.random() > 0.5;
-        typeQ = isSommets ? "sommets" : "côtés";
-        reponse = isSommets ? fig.sommets : fig.cotes;
-      }
-      instruction = `Combien de ${typeQ} possède ce ${fig.nom} ?`;
-    } else {
-      const r = Math.random();
-      if (r < 0.33) { typeQ = "sommets"; reponse = fig.sommets; }
-      else if (r < 0.66) { typeQ = "faces"; reponse = fig.faces; }
-      else { typeQ = "arêtes"; reponse = fig.aretes; }
-      instruction = `Combien de ${typeQ} possède ce ${fig.nom} ?`;
-    }
+    const libelles = { sommets: "sommets", cotes: "côtés", faces: "faces", aretes: "arêtes" };
+    const valeurs = { sommets: fig.sommets, cotes: fig.cotes, faces: fig.faces, aretes: fig.aretes };
+    let permises = qDe(fig);
+    // Niv1 (figures planes) : que des sommets, sauf si le programme n'autorise qu'un seul niveau
+    if (fig.type === "2d" && niveau === 1 && maxNiv > 1 && permises.indexOf("sommets") >= 0) permises = ["sommets"];
+    const q = permises[Math.floor(Math.random() * permises.length)];
+    typeQ = libelles[q];
+    reponse = valeurs[q];
+    instruction = `Combien de ${typeQ} possède ce ${fig.nom} ?`;
 
     return {
       id: `${fig.nom}-${typeQ}`,
       svg: `<svg viewBox="0 0 100 100">${fig.path}</svg>`,
       reponse: reponse,
       instruction: instruction,
+      instructionCP: `Combien de ${typeQ} ?`,
       options: null
     };
   }

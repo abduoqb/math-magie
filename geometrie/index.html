@@ -9,6 +9,13 @@
     <link rel="stylesheet" href="../style/missions-liste.css" />
     <script src="../js/profils.js"></script>
     <script src="../js/composants/header.js" defer></script>
+    <script src="js/programme_geo.js"></script>
+    <style>
+      .carte-mission.carte-inactive { opacity: 0.55; filter: grayscale(1); cursor: not-allowed; }
+      .carte-mission.carte-inactive:hover { transform: none; }
+      .carte-mission.carte-inactive .btn-lancer { background: #94a3b8; color: #fff; }
+      .carte-mission.carte-inactive .bloc-inactif { pointer-events: none; }
+    </style>
   </head>
   <body>
     <script>gestionnaireProfils.verifierAccesOuRediriger('../');</script>
@@ -16,127 +23,55 @@
     <main>
       <section class="entete-missions">
         <h2>Académie de Géométrie</h2>
-        <p>Relève les 9 défis pour devenir un Grand Archimage !</p>
+        <p id="sous-titre">Relève les défis pour devenir un Grand Archimage !</p>
       </section>
 
-      <section class="choix-calculs grille-flexible">
-        <!-- Niveau 1 -->
-        <article class="carte-mission">
-          <div class="badge-difficulte">NIVEAU 1</div>
-          <a href="missions/formes.html">
-            <figure>
-              <figcaption>
-                <h3>Le nom des formes</h3>
-                <span class="btn-lancer">Jouer</span>
-              </figcaption>
-            </figure>
-          </a>
-        </article>
-
-        <!-- Niveau 2 -->
-        <article class="carte-mission">
-          <div class="badge-difficulte">NIVEAU 2</div>
-          <a href="missions/proprietes.html">
-            <figure>
-              <figcaption>
-                <h3>Sommets et côtés</h3>
-                <span class="btn-lancer">Jouer</span>
-              </figcaption>
-            </figure>
-          </a>
-        </article>
-
-        <!-- Niveau 3 -->
-        <article class="carte-mission">
-          <div class="badge-difficulte">NIVEAU 3</div>
-          <a href="missions/angles.html">
-            <figure>
-              <figcaption>
-                <h3>Les angles</h3>
-                <span class="btn-lancer">Jouer</span>
-              </figcaption>
-            </figure>
-          </a>
-        </article>
-
-        <!-- Niveau 4 -->
-        <article class="carte-mission">
-          <div class="badge-difficulte">NIVEAU 4</div>
-          <a href="missions/symetrie.html">
-            <figure>
-              <figcaption>
-                <h3>Symétrie</h3>
-                <span class="btn-lancer">Jouer</span>
-              </figcaption>
-            </figure>
-          </a>
-        </article>
-
-        <!-- Niveau 5 -->
-        <article class="carte-mission">
-          <div class="badge-difficulte">NIVEAU 5</div>
-          <a href="missions/vrai_faux.html">
-            <figure>
-              <figcaption>
-                <h3>Vrai ou Faux ?</h3>
-                <span class="btn-lancer">Jouer</span>
-              </figcaption>
-            </figure>
-          </a>
-        </article>
-
-        <!-- Niveau 6 : NOUVEAU -->
-        <article class="carte-mission">
-          <div class="badge-difficulte">NIVEAU 6</div>
-          <a href="missions/droites.html">
-            <figure>
-              <figcaption>
-                <h3>Droites Magiques</h3>
-                <span class="btn-lancer">Jouer</span>
-              </figcaption>
-            </figure>
-          </a>
-        </article>
-
-        <!-- Niveau 7 : NOUVEAU -->
-        <article class="carte-mission">
-          <div class="badge-difficulte">NIVEAU 7</div>
-          <a href="missions/triangles.html">
-            <figure>
-              <figcaption>
-                <h3>Le Secret des Triangles</h3>
-                <span class="btn-lancer">Jouer</span>
-              </figcaption>
-            </figure>
-          </a>
-        </article>
-
-        <!-- Niveau 8 : NOUVEAU -->
-        <article class="carte-mission">
-          <div class="badge-difficulte">NIVEAU 8</div>
-          <a href="missions/quadrilateres.html">
-            <figure>
-              <figcaption>
-                <h3>Tapis Volants</h3>
-                <span class="btn-lancer">Jouer</span>
-              </figcaption>
-            </figure>
-          </a>
-        </article>
-
-        <!-- Niveau 9 : NOUVEAU -->
-        <article class="carte-mission">
-          <div class="badge-difficulte">NIVEAU 9</div>
-          <a href="missions/patrons.html">
-            <figure>
-              <figcaption>
-                <h3>Les Patrons Magiques</h3>
-                <span class="btn-lancer">Jouer</span>
-              </figcaption>
-            </figure>
-          </a>
-        </article>
-      </section>
+      <section class="choix-calculs grille-flexible" id="liste-missions" aria-live="polite"></section>
     </main>
+    <script>
+      (function () {
+        var MISSIONS = [
+          { id: 'geometrie-formes', page: 'formes.html', titre: 'Le nom des formes' },
+          { id: 'geometrie-proprietes', page: 'proprietes.html', titre: 'Sommets et côtés' },
+          { id: 'geometrie-angles', page: 'angles.html', titre: 'Les angles' },
+          { id: 'geometrie-symetrie', page: 'symetrie.html', titre: 'Symétrie' },
+          { id: 'geometrie-vraifaux', page: 'vrai_faux.html', titre: 'Vrai ou Faux ?' },
+          { id: 'geometrie-droites', page: 'droites.html', titre: 'Droites Magiques' },
+          { id: 'geometrie-triangles', page: 'triangles.html', titre: 'Le Secret des Triangles' },
+          { id: 'geometrie-quadrilateres', page: 'quadrilateres.html', titre: 'Tapis Volants' },
+          { id: 'geometrie-patrons', page: 'patrons.html', titre: 'Les Patrons Magiques' }
+        ];
+        var liste = document.getElementById('liste-missions');
+        var nbActives = 0;
+        MISSIONS.forEach(function (m, i) {
+          var actif = GeoProgramme.actif(m.id);
+          var titre = m.titre;
+          var carte = document.createElement('article');
+          carte.className = 'carte-mission' + (actif ? '' : ' carte-inactive');
+          var badge = document.createElement('div');
+          badge.className = 'badge-difficulte';
+          badge.textContent = 'NIVEAU ' + (i + 1);
+          carte.appendChild(badge);
+          var lien = document.createElement('a'); // <a> sans href quand inactif : garde la mise en page .carte-mission a
+          if (actif) { lien.href = 'missions/' + m.page; nbActives++; }
+          else { lien.className = 'bloc-inactif'; lien.setAttribute('aria-disabled', 'true'); lien.setAttribute('role', 'link'); }
+          var fig = document.createElement('figure');
+          var cap = document.createElement('figcaption');
+          var h3 = document.createElement('h3');
+          h3.textContent = titre;
+          var btn = document.createElement('span');
+          btn.className = 'btn-lancer';
+          btn.textContent = actif ? 'Jouer' : 'Pas encore au programme';
+          cap.appendChild(h3);
+          cap.appendChild(btn);
+          fig.appendChild(cap);
+          lien.appendChild(fig);
+          carte.appendChild(lien);
+          liste.appendChild(carte);
+        });
+        var st = document.getElementById('sous-titre');
+        if (st) st.textContent = 'Relève les ' + nbActives + ' défis pour devenir un Grand Archimage !';
+      })();
+    </script>
   </body>
 </html>

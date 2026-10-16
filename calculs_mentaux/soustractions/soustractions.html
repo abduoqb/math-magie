@@ -6,6 +6,7 @@
     <title>Soustractions</title>
     <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
     <script src="../../js/profils.js"></script>
+    <script src="../js/generateur_calcul.js" defer></script>
     <script src="../js/moteur_calcul.js" defer></script>
     <script src="js/soustractions.js" defer></script>
     <script src="../../js/composants/header.js" defer></script>
@@ -20,7 +21,7 @@
       <section class="presentation">
         <div class="cadre">
           <div id="calcul"></div>
-          <input type="number" id="saisieReponse" />
+          <input type="text" inputmode="decimal" id="saisieReponse" />
           <div id="instructions"></div>
           <button id="changer">Nouveau calcul</button>
           <p>Score : <span>0 pts — ❌ 0/5</span></p>

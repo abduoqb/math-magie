@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="../../style/commun.css">
     <link rel="stylesheet" href="../../style/exercice-commun.css">
     <script src="../../js/profils.js"></script>
+    <link rel="stylesheet" href="../commun.css">
+    <script src="../commun.js"></script>
     <script src="../../js/composants/header.js" defer></script>
     <style>
       .jeu-conteneur { text-align: center; max-width: 500px; margin: 0 auto; }
@@ -103,18 +105,8 @@
           <div class="jeu-conteneur">
             <!-- Écran de sélection de difficulté -->
             <div id="ecran-difficulte">
-              <p style="font-size: 1.4rem; font-weight: 700; color: var(--primary-color); margin-bottom: 25px;">Choisis ta mission !</p>
-              <div class="choix-difficulte">
-                <button class="btn-difficulte facile" onclick="demarrerJeu(10, 4)">
-                  Petite Magie <span>1 à 10</span>
-                </button>
-                <button class="btn-difficulte moyen" onclick="demarrerJeu(100, 7)">
-                  Grande Magie <span>1 à 100</span>
-                </button>
-                <button class="btn-difficulte difficile" onclick="demarrerJeu(1000, 12)">
-                  Maître Magicien <span>1 à 1000</span>
-                </button>
-              </div>
+              <p style="font-size: 1.4rem; font-weight: 700; color: var(--primary-color); margin-bottom: 25px;">Choisis ta mission ! <span id="zone-voix"></span></p>
+              <div class="choix-difficulte" id="choix-difficulte"></div>
 
               <div class="choix-perso" style="margin-top: 30px; padding-top: 20px; border-top: 2px dashed #E2E8F0;">
                 <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 10px; font-weight: bold;">Mode 2 Joueurs :</p>
@@ -159,6 +151,21 @@
       const cadre = document.querySelector('.cadre');
       const inputPerso = document.getElementById('input-perso');
 
+      const niveauJeu = JeuxNiveau.niveau();
+      const plagesJeu = JeuxNiveau.plages(niveauJeu);
+      const maxNiveau = JeuxNiveau.plageMax(niveauJeu);
+      const classes = ['facile', 'moyen', 'difficile'];
+      plagesJeu.forEach((p, i) => {
+        const b = document.createElement('button');
+        b.className = 'btn-difficulte ' + classes[i];
+        b.innerHTML = p.nom + ' <span>1 à ' + JeuxNiveau.fmt(p.max) + '</span>';
+        b.addEventListener('click', () => demarrerJeu(p.max, p.essais));
+        document.getElementById('choix-difficulte').appendChild(b);
+      });
+      inputPerso.placeholder = 'Chiffre secret (max ' + JeuxNiveau.fmt(maxNiveau) + ')';
+      const voixT = JeuxNiveau.creerBoutonVoix(() => 'Trouve le nombre mystère. Je te dis si le nombre est plus grand ou plus petit.');
+      if (voixT) document.getElementById('zone-voix').appendChild(voixT);
+
       saisie.addEventListener('keydown', e => { if (e.key === 'Enter') valider(); });
       inputPerso.addEventListener('keydown', e => { if (e.key === 'Enter') demarrerJeuPerso(); });
 
@@ -171,7 +178,7 @@
         borneMax = max;
         partieTerminee = false;
 
-        phraseIntro.textContent = `Je pense à un nombre entre 1 et ${max}...`;
+        phraseIntro.textContent = `Je pense à un nombre entre 1 et ${JeuxNiveau.fmt(max)}...`;
         saisie.max = max;
         saisie.value = '';
         saisie.style.display = 'inline-block';
@@ -189,7 +196,7 @@
 
       function demarrerJeuPerso() {
         const secret = parseInt(inputPerso.value);
-        if (isNaN(secret) || secret < 1) return;
+        if (isNaN(secret) || secret < 1 || secret > maxNiveau) { inputPerso.value = ''; inputPerso.placeholder = 'Entre 1 et ' + JeuxNiveau.fmt(maxNiveau); return; }
         
         let max = 10;
         while (max <= secret && max < 1000000) max *= 10;
@@ -205,7 +212,7 @@
         borneMax = max;
         partieTerminee = false;
 
-        phraseIntro.textContent = `Je pense à un nombre entre 1 et ${max}...`;
+        phraseIntro.textContent = `Je pense à un nombre entre 1 et ${JeuxNiveau.fmt(max)}...`;
         saisie.max = max;
         saisie.value = '';
         saisie.style.display = 'inline-block';

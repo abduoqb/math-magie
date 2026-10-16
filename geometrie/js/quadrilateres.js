@@ -5,6 +5,15 @@ const configQuadrilateres = {
     // Niv1 : Losange / Trapèze (très différents)
     // Niv2 : + Parallélogramme
     // Niv3 : + Rectangle + Cerf-volant (formes proches, plus subtil)
+    niveau = Math.max(1, Math.min(niveau, GeoProgramme.maxNiveau(this.nomOperation), 3));
+    const tousQuad = [
+      { nom: "Losange",           points: "50,10 80,50 50,90 20,50" },
+      { nom: "Parallélogramme",   points: "25,30 85,30 75,70 15,70" },
+      { nom: "Trapèze",           points: "30,30 70,30 85,70 15,70" },
+      { nom: "Rectangle",         points: "20,25 80,25 80,75 20,75" },
+      { nom: "Cerf-volant",       points: "50,10 75,45 50,90 25,45" },
+      { nom: "Carré",             points: "25,25 75,25 75,75 25,75" }
+    ];
     let pool;
     if (niveau === 1) {
       pool = [
@@ -27,6 +36,8 @@ const configQuadrilateres = {
       ];
     }
 
+    pool = GeoProgramme.filtrerPool(pool, tousQuad, GeoProgramme.types(this.nomOperation));
+    const avecCarre = pool.some((q) => q.nom === "Carré");
     const cible = pool[Math.floor(Math.random() * pool.length)];
     const couleur = "#41B6E6";
 
@@ -46,7 +57,7 @@ const configQuadrilateres = {
       id: `quad-${cible.nom}-${rotation}`,
       svg: svg,
       reponse: cible.nom,
-      instruction: "Quel est ce type de tapis volant ?",
+      instruction: avecCarre ? "Quel est le nom le plus précis de ce tapis volant ?" : "Quel est ce type de tapis volant ?",
       options: options
     };
   }

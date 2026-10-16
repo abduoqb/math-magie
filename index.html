@@ -15,15 +15,16 @@
     <app-header base-path=""></app-header>
     <main>
       <section class="hero-text">
-        <h2 class="titre-anime">Prêt pour l'aventure ? ✨</h2>
-        <p>
+        <h2 class="titre-anime" id="titre-bienvenue">Prêt pour l'aventure ? ✨</h2>
+        <p id="texte-bienvenue">
           Deviens un véritable champion des chiffres et des formes en relevant
           nos super défis !
         </p>
+        <button type="button" class="btn-lecture" id="btn-lecture" hidden aria-label="Écouter le texte à voix haute">🔊</button>
       </section>
 
       <section class="activites-grid">
-        <article class="carte-activite carte-calcul">
+        <article class="carte-activite carte-calcul" id="carte-calcul">
           <a href="calculs_mentaux/index.html" class="lien-carte">
             <div class="badge-nouveau">MISSION 1</div>
             <div class="image-conteneur">
@@ -43,7 +44,7 @@
           </a>
         </article>
 
-        <article class="carte-activite carte-geometrie">
+        <article class="carte-activite carte-geometrie" id="carte-geometrie">
           <a href="geometrie/index.html" class="lien-carte">
             <div class="badge-nouveau">MISSION 2</div>
             <div class="image-conteneur">
@@ -63,7 +64,7 @@
           </a>
         </article>
 
-        <article class="carte-activite carte-jeux">
+        <article class="carte-activite carte-jeux" id="carte-jeux">
           <a href="jeux/index.html" class="lien-carte">
             <div class="badge-nouveau" style="background-color: #E07800; box-shadow: 0 4px 10px rgba(224, 120, 0, 0.4);">BONUS</div>
             <div class="image-conteneur">
@@ -84,5 +85,75 @@
         </article>
       </section>
     </main>
+    <script>
+      (function () {
+        const gp = window.gestionnaireProfils;
+        const prenom = gp?.getJoueurActif?.();
+        const niveau = gp?.getNiveauClasse?.() || null;
+        const programme = gp?.getProgramme?.() || null;
+        const estCP = niveau === 'cp';
+        const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+        // Bienvenue personnalisée
+        const titre = document.getElementById('titre-bienvenue');
+        const texte = document.getElementById('texte-bienvenue');
+        if (prenom) {
+          titre.innerHTML = 'Bonjour ' + esc(prenom) + ' ! ✨';
+          if (!estCP) texte.textContent = "Prêt pour l'aventure ? Relève nos super défis et deviens un champion des chiffres et des formes !";
+        }
+
+        // Cartes sans mission active pour ce niveau: grisées
+        const actifs = (obj) => !obj || (typeof obj === 'object' && Object.keys(obj).length === 0)
+          ? null
+          : Object.values(obj).some((m) => m === true || (m && m.actif !== false));
+        const sections = {
+          'carte-calcul': programme ? actifs(programme.calcul) : null,
+          'carte-geometrie': programme ? actifs(programme.geometrie) : null,
+          'carte-jeux': programme ? actifs(programme.jeux) : null
+        };
+        for (const [id, actif] of Object.entries(sections)) {
+          if (actif !== false) continue; // null (inconnu) ou true => inchangé
+          const carte = document.getElementById(id);
+          carte.classList.add('indisponible');
+          const lien = carte.querySelector('.lien-carte');
+          lien.setAttribute('aria-disabled', 'true');
+          lien.setAttribute('tabindex', '-1');
+          lien.removeAttribute('href');
+          lien.addEventListener('click', (e) => e.preventDefault());
+          const btn = carte.querySelector('.bouton-action');
+          if (btn) btn.textContent = 'Bientôt';
+        }
+
+        // Mode CP: textes courts + lecture à voix haute
+        if (estCP) {
+          document.body.classList.add('niveau-cp');
+          texte.textContent = 'Choisis ton aventure !';
+          const courts = {
+            'carte-calcul': 'Calcule vite !',
+            'carte-geometrie': 'Découvre les formes !',
+            'carte-jeux': 'Joue et amuse-toi !'
+          };
+          for (const [id, t] of Object.entries(courts)) {
+            const p = document.querySelector('#' + id + ' .contenu-carte p');
+            if (p) p.textContent = t;
+          }
+          const btnLecture = document.getElementById('btn-lecture');
+          if ('speechSynthesis' in window && window.SpeechSynthesisUtterance) {
+            btnLecture.hidden = false;
+            btnLecture.addEventListener('click', () => {
+              const phrases = [titre.textContent, texte.textContent];
+              document.querySelectorAll('.carte-activite:not(.indisponible)').forEach((c) => {
+                phrases.push(c.querySelector('h3').textContent + '. ' + c.querySelector('.contenu-carte p').textContent);
+              });
+              window.speechSynthesis.cancel();
+              const u = new SpeechSynthesisUtterance(phrases.join(' '));
+              u.lang = 'fr-FR';
+              u.rate = 0.85;
+              window.speechSynthesis.speak(u);
+            });
+          }
+        }
+      })();
+    </script>
   </body>
 </html>

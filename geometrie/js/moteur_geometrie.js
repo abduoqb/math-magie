@@ -4,6 +4,11 @@ class MoteurGeometrie {
     this.typeInterface = config.typeInterface || "clavier";
     this.nomOperation = config.nomOperation || "geometrie-defaut";
 
+    // Mission hors programme du niveau de classe : retour a la liste des missions
+    if (!GeoProgramme.garde(this.nomOperation, "../index.html")) return;
+    this.estCP = GeoProgramme.estCP();
+    this.maxNiveau = GeoProgramme.maxNiveau(this.nomOperation);
+
     this.score = 0;
     this.tentatives = 0;
     this.consecutifs = 0;
@@ -12,8 +17,12 @@ class MoteurGeometrie {
     this.historiqueSession = []; // Pour garantir l'unicité
 
     // Chargement de la progression du joueur actif
-    const savedData = gestionnaireProfils.getProgression(this.nomOperation);
-    this.niveau = savedData.niveau;
+    let savedData = null;
+    try {
+      savedData = (typeof gestionnaireProfils.getProgression === "function")
+        ? gestionnaireProfils.getProgression(this.nomOperation) : null;
+    } catch (e) { savedData = null; }
+    this.niveau = Math.max(1, Math.min((savedData && savedData.niveau) || 1, this.maxNiveau));
 
     this.elForme = document.getElementById("forme-conteneur");
     this.elInstructions = document.getElementById("instructions");
@@ -34,15 +43,14 @@ class MoteurGeometrie {
         this.elNiveauConteneur.innerHTML = `
             <label for="selectNiveau" style="color: var(--primary-color);">Niveau :</label>
             <select id="selectNiveau" aria-label="Sélection du niveau de difficulté" style="padding: 5px 15px; border-radius: 10px; border: 3px solid var(--primary-color); background: white; color: var(--primary-color); font-weight: bold; font-size: 1.5rem; cursor: pointer;">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
+                ${Array.from({ length: this.maxNiveau }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("")}
             </select>
         `;
         this.elCadre.insertBefore(this.elNiveauConteneur, this.elForme);
       }
 
       this.elSelectNiveau = document.getElementById("selectNiveau");
+      if (this.maxNiveau <= 1 && this.elNiveauConteneur) this.elNiveauConteneur.style.display = "none";
       if (this.elSelectNiveau) {
         this.elSelectNiveau.value = this.niveau;
         this.elSelectNiveau.addEventListener("change", (e) => {
@@ -138,13 +146,26 @@ class MoteurGeometrie {
     this.currentReponse = defi.reponse;
 
     this.elForme.innerHTML = defi.svg;
-    this.elInstructions.innerHTML = defi.instruction;
+    this.texteConsigne = (this.estCP && defi.instructionCP) ? defi.instructionCP : defi.instruction;
+    this.elInstructions.innerHTML = this.texteConsigne;
     this.elInstructions.className = "";
+    if (this.estCP) this.ajouterBoutonVoix();
     this.elCadre.classList.remove("succes", "erreur");
     this.majMana(this.consecutifs);
 
     this.preparerInterface(defi.options);
     this.majStatistiques();
+  }
+
+  ajouterBoutonVoix() {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "bouton-voix";
+    btn.textContent = "🔊";
+    btn.setAttribute("aria-label", "Écouter la consigne");
+    btn.style.cssText = "margin-left:12px;min-width:56px;min-height:56px;font-size:1.8rem;border-radius:50%;border:3px solid var(--primary-color);background:white;cursor:pointer;vertical-align:middle;";
+    btn.onclick = () => GeoProgramme.lire(this.texteConsigne);
+    this.elInstructions.appendChild(btn);
   }
 
   preparerInterface(options) {
@@ -155,6 +176,7 @@ class MoteurGeometrie {
         const btn = document.createElement("button");
         btn.innerText = opt;
         btn.className = "bouton-option";
+        if (this.estCP) btn.style.minHeight = "64px";
         btn.setAttribute("aria-label", `Réponse : ${opt}`);
         btn.onclick = () => this.validerReponse(opt);
         this.elZoneReponse.appendChild(btn);
@@ -256,9 +278,11 @@ class MoteurGeometrie {
     `;
 
     if (this.score >= 8) {
-      const profilActuel = gestionnaireProfils.getProgression(this.nomOperation);
-      const nouveauNiveau = Math.max(profilActuel.niveau, this.niveau + 1);
-      gestionnaireProfils.setProgression(this.nomOperation, { niveau: nouveauNiveau });
+      const profilActuel = (typeof gestionnaireProfils.getProgression === "function" && gestionnaireProfils.getProgression(this.nomOperation)) || { niveau: 1 };
+      const nouveauNiveau = Math.max(profilActuel.niveau || 1, this.niveau + 1);
+      if (typeof gestionnaireProfils.setProgression === "function") {
+        gestionnaireProfils.setProgression(this.nomOperation, { niveau: nouveauNiveau });
+      }
       this.elInstructions.innerHTML += `<div style="color: #4CAF50; font-weight: bold; margin-top: 10px;">🌟 Progression sauvegardée ! Trophée validé ! 🌟</div>`;
     } else {
       this.elInstructions.innerHTML += `<div style="color: var(--text-muted); margin-top: 10px; font-size: 1.1rem;">Obtiens au moins <strong style="color: #e74c3c;">8/10</strong> pour valider ce niveau !</div>`;

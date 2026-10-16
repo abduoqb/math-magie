@@ -73,10 +73,14 @@ const configFormes = {
     ];
 
     // Déterminer quelles formes utiliser selon le niveau demandé
-    let toutesLesFormes;
-    if (niveau === 1) { toutesLesFormes = formesNiv1; }
-    else if (niveau === 2) { toutesLesFormes = formesNiv2; }
-    else { toutesLesFormes = formesNiv3; }
+    const maxNiv = GeoProgramme.maxNiveau(this.nomOperation);
+    niveau = Math.max(1, Math.min(niveau, maxNiv, 3));
+    let poolNiveau;
+    if (niveau === 1) { poolNiveau = formesNiv1; }
+    else if (niveau === 2) { poolNiveau = formesNiv2; }
+    else { poolNiveau = formesNiv3; }
+    // Ne garder que les formes du programme du niveau de classe
+    const toutesLesFormes = GeoProgramme.filtrerPool(poolNiveau, formesNiv3, GeoProgramme.noms(this.nomOperation));
 
     let indexCible;
     do {
@@ -106,6 +110,7 @@ const configFormes = {
       svg: svgFinal,
       reponse: cible.nom,
       instruction: "Quel est le nom de cette figure ?",
+      instructionCP: "Quelle forme ?",
       options: options
     };
   }

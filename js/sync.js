@@ -225,6 +225,7 @@
   let erreurMsg = null;
   let erreurReseau = false;
   let recuperation = false;
+  let adoptesRecents = 0; // profils sans compte rattachés à la famille qui vient de se connecter
 
   function metaVide() {
     return { uid: null, email: null, ids: {}, versions: {}, snaps: {}, snapCp: 'null', derniere: 0 };
@@ -291,10 +292,23 @@
     if (!session || !session.user) return;
     if (meta.uid && meta.uid !== session.user.id) {
       meta = Object.assign(metaVide(), { uid: session.user.id });
+      erreurMsg = null;
     }
     meta.uid = session.user.id;
     meta.email = session.user.email || meta.email;
     ecrireMeta();
+    basculerFamille(meta.uid);
+  }
+
+  /**
+   * L'appareil affiche les profils de la famille connectée (et seulement eux). Un changement de
+   * famille ou une déconnexion change de stockage : aucun profil ne passe d'une famille à l'autre.
+   */
+  function basculerFamille(uid) {
+    if (!gp || typeof gp.changerDeFamille !== 'function' || gp.famille === (uid || null)) return;
+    const r = gp.changerDeFamille(uid);
+    if (r && r.adoptes) adoptesRecents += r.adoptes;
+    emettre({ changement: true });
   }
 
   function oublierFamille() {
@@ -343,10 +357,12 @@
         return { ok: false, erreur: 'Impossible de créer le compte. Vérifiez l\'adresse e-mail ou essayez de vous connecter.' };
       }
       if (data && data.session) {
+        adoptesRecents = 0;
         adopterSession(data.session);
+        const adoptes = adoptesRecents; adoptesRecents = 0;
         emettre();
-        synchroniser();
-        return { ok: true, connecte: true };
+        await synchroniser();
+        return { ok: true, connecte: true, adoptes };
       }
       return { ok: true, connecte: false, confirmer: true };
     } catch (e) {
@@ -360,10 +376,12 @@
     try {
       const { data, error } = await client.auth.signInWithPassword({ email: email.trim(), password: mdp });
       if (error || !data || !data.session) return { ok: false, erreur: messageAuth(error) };
+      adoptesRecents = 0;
       adopterSession(data.session);
+      const adoptes = adoptesRecents; adoptesRecents = 0;
       emettre();
       const r = await synchroniser();
-      return { ok: true, synchro: r };
+      return { ok: true, synchro: r, adoptes };
     } catch (e) {
       return { ok: false, erreur: MSG_RESEAU };
     }
@@ -372,6 +390,7 @@
   async function deconnecter() {
     try { if (getClient()) await client.auth.signOut({ scope: 'local' }); } catch (e) { /* ignore */ }
     oublierFamille();
+    basculerFamille(null); // les profils de la famille ne s'affichent plus ici (ils restent sauvegardés)
     return { ok: true };
   }
 
@@ -643,6 +662,7 @@
     if (!estConfigure()) return;
     getClient();
     if (!client) return;
+    if (estConnecte()) basculerFamille(meta.uid); // les profils affichés sont ceux de la famille connectée
     try {
       client.auth.getSession().then(r => {
         const s = r && r.data && r.data.session;

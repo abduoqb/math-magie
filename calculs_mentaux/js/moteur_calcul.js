@@ -237,6 +237,8 @@ class MoteurCalcul {
     const texte = calcul.texte || `${calcul.a} ${this.operationSign} ${calcul.b} = `;
     const base = String(texte).replace(/\s*=\s*$/, "");
     this.elCalcul.textContent = "";
+    // Énoncé long (ex. 4 nombres à additionner) : police réduite, le CSS lit cet attribut
+    this.elCalcul.dataset.longueur = base.length > 30 ? "tres-long" : base.length > 16 ? "long" : "";
     this.elCalcul.append(document.createTextNode(base + " "));
     const egal = document.createElement("span");
     egal.className = "calc-egal";

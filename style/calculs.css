@@ -138,7 +138,7 @@
 .calc-corps { display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .calc-principal { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 420px; }
 
-.calc-enonce-ligne { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
+.calc-enonce-ligne { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; width: 100%; }
 .calc-mascotte { width: 84px; height: 84px; flex: none; }
 .calc-mascotte.rebond { animation: calc-bond .6s ease; }
 .calc-mascotte.secoue { animation: calc-secoue .5s ease; }
@@ -147,8 +147,11 @@
   font-size: clamp(2.2rem, 8vw, 3.8rem); line-height: 1.1;
   background: var(--op-clair); border: 3px solid var(--c-encre); border-radius: var(--c-rayon);
   box-shadow: 0 4px 0 var(--c-encre);
-  padding: 14px 20px; flex: 1; min-width: 0; text-align: center; white-space: nowrap;
+  padding: 14px 20px; flex: 1 1 220px; min-width: 0; max-width: 100%; text-align: center;
+  white-space: normal; overflow-wrap: anywhere; /* le calcul revient à la ligne au lieu de déborder */
 }
+#calcul[data-longueur="long"] { font-size: clamp(1.4rem, 6vw, 2.4rem); }
+#calcul[data-longueur="tres-long"] { font-size: clamp(1.1rem, 4.4vw, 1.7rem); }
 .calc-egal { color: var(--c-calcul); }
 .calc-voix {
   width: 72px; height: 72px; font-size: 2rem; cursor: pointer;

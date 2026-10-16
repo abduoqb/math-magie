@@ -202,8 +202,10 @@
 
       // ---------- Écran 1 : choix du profil ----------
 
-      function ecranProfils() {
+      function ecranProfils(message) {
         const noms = gp.getListeProfils();
+        const syncDispo = !!(Sync && Sync.estConfigure());
+        const connecte = syncDispo && Sync.estConnecte();
         const consigne = noms.length ? 'Qui joue ? Touche ton prénom.' : 'Bienvenue ! Touche le bouton pour créer ton mage.';
         const cartes = noms.map((nom, i) => {
           const info = gp.getInfoProfil(nom);
@@ -224,10 +226,13 @@
 
         ecran('ecran-profils', consigne,
           entete('🔮', 'Qui joue ?', 'Touche ton prénom', 'mascotte-neutre'),
+          typeof message === 'string' ? el('p', { class: 'message-pave ok', role: 'status' }, message) : null,
           el('div', { class: 'grille-profils' }, cartes),
+          connecte ? el('p', { class: 'sync-note' }, '☁️ Famille connectée : ' + (Sync.getEmail() || '')) : null,
           el('div', { class: 'pied' },
-            (!noms.length && Sync && Sync.estConfigure() && !Sync.estConnecte())
-              ? el('button', { type: 'button', class: 'btn btn-secondaire btn-parent', onclick: () => aller(() => ecranParentSync(false)) }, '☁️ J\'ai déjà un compte famille')
+            syncDispo
+              ? el('button', { type: 'button', class: 'btn btn-secondaire btn-parent', onclick: () => aller(() => ecranParentSync(false)) },
+                connecte ? '☁️ Ma famille' : '☁️ Me connecter à ma famille')
               : null,
             el('button', { type: 'button', class: 'btn btn-discret btn-parent', onclick: () => aller(ecranParentAcces) }, '🔒 Espace parent'))
         );
@@ -558,7 +563,7 @@
         'en-cours': ['☁️', 'Mise à jour en cours…', 'encours'],
         'hors-ligne': ['📴', 'Pas de connexion pour le moment', ''],
         'erreur': ['⚠️', 'Petit souci, nous réessayons bientôt', 'erreur'],
-        'non-connecte': ['☁️', 'Pas de famille connectée', '']
+        'non-connecte': ['☁️', 'Aucun compte famille sur cet appareil', '']
       };
 
       function ilYA(ms) {
@@ -616,11 +621,26 @@
           if (ancien) ancien.replaceWith(msg());
         }
 
+        /** Famille connectée : on repart sur « Qui joue ? » avec les profils de cette famille (et seulement eux). */
+        function familleConnectee(r) {
+          codeParentSession = null; // le code parent est propre à chaque famille
+          etat.occupe = false;
+          if (!gp.getListeProfils().length) { aller(() => ecranCreation()); return; }
+          const n = (r && r.adoptes) || 0;
+          const rattaches = n ? n + (n > 1 ? ' profils de cet appareil ont rejoint' : ' profil de cet appareil a rejoint') + ' la famille. ' : '';
+          aller(() => ecranProfils('Famille connectée. ' + rattaches + 'Qui joue ?'));
+        }
+
         function rendreFormulaire() {
           const inscription = etat.mode === 'inscription';
           const oubli = etat.mode === 'oubli';
           zone.appendChild(el('p', { class: 'sync-intro' },
             'Avec un compte famille, la progression est sauvegardée en ligne. Seule votre adresse e-mail est conservée : les enfants gardent juste leur prénom et leur code.'));
+          const sansCompte = gp.famille === null ? gp.getListeProfils().length : 0;
+          if (sansCompte && !oubli) {
+            zone.appendChild(el('p', { class: 'sync-note' },
+              (sansCompte > 1 ? sansCompte + ' profils de cet appareil rejoindront' : '1 profil de cet appareil rejoindra') + ' la famille que vous connectez.'));
+          }
           zone.appendChild(el('div', { class: 'onglets-sync', role: 'group', 'aria-label': 'Choisir une action' },
             ['connexion', 'inscription'].map(m => el('button', {
               type: 'button', class: 'btn-mini' + ((m === 'inscription') === inscription ? ' choisi' : ''),
@@ -647,7 +667,6 @@
             etat.occupe = true; bouton.disabled = true;
             const adresse = e.input.value.trim();
             const mdp = m ? m.input.value : '';
-            const avantCode = JSON.stringify(gp.donnees.codeParent || null);
             let r;
             if (oubli) {
               dire('Envoi en cours…'); remplacerMessage(form);
@@ -659,22 +678,12 @@
               r = await Sync.inscrire(adresse, mdp);
               if (!r.ok) dire(r.erreur, 'erreur');
               else if (r.confirmer) { etat.mode = 'connexion'; dire('Compte créé ! Ouvrez le message reçu par e-mail pour le confirmer, puis revenez vous connecter ici.', 'ok'); }
-              else dire('Compte créé : la famille est connectée.', 'ok');
+              else { familleConnectee(r); return; }
             } else {
               dire('Connexion…'); remplacerMessage(form);
               r = await Sync.connecter(adresse, mdp);
               if (!r.ok) dire(r.erreur, 'erreur');
-              else {
-                const n = gp.getListeProfils().length;
-                dire('Famille connectée. ' + (n ? n + ' profil' + (n > 1 ? 's' : '') + ' sur cet appareil.' : 'Aucun profil pour le moment.'), 'ok');
-                if (codeParentSession && JSON.stringify(gp.donnees.codeParent || null) !== avantCode) {
-                  // Le code parent de la famille a remplacé celui de cet appareil : il faut le retaper
-                  codeParentSession = null;
-                  etat.occupe = false;
-                  aller(ecranProfils);
-                  return;
-                }
-              }
+              else { familleConnectee(r); return; }
             }
             etat.occupe = false;
             rendre();
@@ -694,8 +703,9 @@
           zone.appendChild(el('div', { class: 'statut-sync ' + t[2], role: 'status' },
             el('span', { class: 'nuage', 'aria-hidden': 'true' }, t[0]),
             el('span', null, t[1],
-              el('small', null, 'Famille : ' + (Sync.getEmail() || '')),
+              el('small', null, 'Compte famille : ' + (Sync.getEmail() || '')),
               el('small', null, 'Dernière mise à jour : ' + ilYA(Sync.getDerniereSynchro())))));
+          zone.appendChild(el('p', { class: 'sync-note' }, 'La progression de vos enfants est sauvegardée sur ce compte et récupérée sur vos autres appareils.'));
           if (e === 'hors-ligne') zone.appendChild(el('p', { class: 'sync-note' }, 'Rien n\'est perdu : tout est gardé sur cet appareil et sera envoyé dès que la connexion revient.'));
           if (e === 'erreur' && Sync.getMessageErreur()) zone.appendChild(el('p', { class: 'sync-note' }, Sync.getMessageErreur()));
           zone.appendChild(msg());
@@ -712,23 +722,26 @@
             rendre();
           });
           zone.appendChild(el('div', { class: 'actions-sync' }, bouton,
-            autorise ? deconnexionFamille() : el('p', { class: 'sync-note' }, 'Pour déconnecter la famille, passez par l\'Espace parent (code parent).')));
-          zone.appendChild(el('p', { class: 'sync-note' }, 'Après une déconnexion, les profils restent sur cet appareil mais ne sont plus synchronisés.'));
+            autorise ? deconnexionFamille()
+              : el('button', { type: 'button', class: 'btn btn-petit', onclick: () => aller(ecranParentAcces) }, '🔒 Code parent pour se déconnecter')));
+          zone.appendChild(el('p', { class: 'sync-note' },
+            'Pour utiliser une autre famille : déconnectez-vous, puis connectez l\'autre compte. Les profils de chaque famille restent séparés, rien ne se mélange.'));
         }
 
         function deconnexionFamille() {
-          const b = el('button', { type: 'button', class: 'btn btn-petit btn-danger' }, 'Déconnecter la famille');
+          const b = el('button', { type: 'button', class: 'btn btn-petit btn-danger' }, 'Se déconnecter');
           let arme = false;
           b.addEventListener('click', async () => {
             if (!arme) {
-              arme = true; b.textContent = 'Sûr ? Toucher encore'; b.classList.add('arme');
-              setTimeout(() => { if (b.isConnected) { arme = false; b.textContent = 'Déconnecter la famille'; b.classList.remove('arme'); } }, 4000);
+              arme = true; b.textContent = 'Confirmer la déconnexion'; b.classList.add('arme');
+              setTimeout(() => { if (b.isConnected) { arme = false; b.textContent = 'Se déconnecter'; b.classList.remove('arme'); } }, 4000);
               return;
             }
             b.disabled = true;
             await Sync.deconnecter();
+            codeParentSession = null;
             etat.mode = 'connexion';
-            dire('La famille est déconnectée.', 'ok');
+            dire('Vous êtes déconnecté. Les profils de cette famille ne s\'affichent plus ici ; ils restent sauvegardés en ligne. Connectez une famille pour continuer.', 'ok');
             rendre();
           });
           return b;

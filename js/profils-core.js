@@ -1,6 +1,7 @@
 /**
  * GestionnaireProfils v2 — profils locaux avec code secret et niveau de classe.
- * Stocke tout sous la clé unique `mathemagie-profils` dans localStorage (aucun serveur).
+ * Stocke tout dans localStorage, un stockage par famille : `mathemagie-profils:<uid>` pour un compte
+ * famille connecté, `mathemagie-profils` pour l'appareil sans compte (clé `mathemagie-famille-active`).
  *
  * Schéma v2 :
  * {
@@ -68,10 +69,95 @@ class GestionnaireProfils {
   static VERSION = 2;
 
   constructor() {
-    this.CLE_STORAGE = 'mathemagie-profils';
+    // Un stockage par famille (`mathemagie-profils:<uid>`) + celui de l'appareil sans compte (`mathemagie-profils`).
+    this.CLE_BASE = 'mathemagie-profils';
+    this.CLE_FAMILLE_ACTIVE = 'mathemagie-famille-active';
     this.CLE_SAUVEGARDE_V1 = 'mathemagie-profils-v1-sauvegarde';
+    this._migrerVersFamilles();
+    this.famille = this._lireFamilleActive();
+    this.CLE_STORAGE = this._cleStockage(this.famille);
     this.donnees = this.charger();
     this.migrerAnciennesDonnees();
+    // Une autre page/onglet a changé de famille : on se recale plutôt que d'écrire dans le mauvais stockage.
+    try {
+      window.addEventListener('storage', (e) => {
+        if (e.key === this.CLE_FAMILLE_ACTIVE) window.location.reload();
+      });
+    } catch (e) { /* ignore */ }
+  }
+
+  // --- Familles (un stockage de profils par compte famille) ---
+
+  _cleStockage(uid) {
+    return uid ? this.CLE_BASE + ':' + uid : this.CLE_BASE;
+  }
+
+  _lireFamilleActive() {
+    try { return localStorage.getItem(this.CLE_FAMILLE_ACTIVE) || null; } catch (e) { return null; }
+  }
+
+  _ecrireFamilleActive(uid) {
+    try {
+      if (uid) localStorage.setItem(this.CLE_FAMILLE_ACTIVE, uid);
+      else localStorage.removeItem(this.CLE_FAMILLE_ACTIVE);
+    } catch (e) { /* ignore */ }
+  }
+
+  /** Appareil déjà relié à une famille avant les stockages par famille : le stockage actuel lui appartient. */
+  _migrerVersFamilles() {
+    try {
+      if (localStorage.getItem(this.CLE_FAMILLE_ACTIVE) !== null) return;
+      const meta = JSON.parse(localStorage.getItem('mathemagie-sync-meta'));
+      const uid = meta && typeof meta.uid === 'string' ? meta.uid : null;
+      const brut = localStorage.getItem(this.CLE_BASE);
+      if (!uid || !brut) return;
+      localStorage.setItem(this._cleStockage(uid), brut);
+      localStorage.removeItem(this.CLE_BASE);
+      this._ecrireFamilleActive(uid);
+    } catch (e) { /* ignore */ }
+  }
+
+  /**
+   * Bascule vers les profils d'une famille (uid) ou vers ceux de l'appareil sans compte (null).
+   * Les profils d'une famille ne sont jamais visibles ni envoyés à une autre. Les profils créés
+   * sans compte sont rattachés à la première famille qui se connecte.
+   * Retourne { adoptes } : nombre de profils sans compte rattachés à cette famille.
+   */
+  changerDeFamille(uid) {
+    uid = uid || null;
+    if (uid === this.famille) return { adoptes: 0 };
+    const sansCompte = this.famille === null ? this.donnees : null;
+    this.sauvegarder(true);
+    this.famille = uid;
+    this._ecrireFamilleActive(uid);
+    this.CLE_STORAGE = this._cleStockage(uid);
+    this.donnees = this.charger();
+    this.donnees.joueurActif = null; // chacun doit se reconnecter avec son code
+    const adoptes = sansCompte && uid ? this._adopter(sansCompte) : 0;
+    this.sauvegarder(true);
+    return { adoptes };
+  }
+
+  /** Rattache les profils d'un appareil sans compte à la famille active, puis vide ce stockage. */
+  _adopter(source) {
+    const noms = Object.keys(source.profils || {});
+    if (!noms.length) return 0;
+    const d = this.donnees;
+    if (!d.supprimes || typeof d.supprimes !== 'object') d.supprimes = {};
+    const fusion = (typeof window !== 'undefined' && window.Sync && window.Sync.fusionnerProfils) || null;
+    noms.forEach(nom => {
+      const p = source.profils[nom];
+      if (!d.profils[nom]) {
+        const pierre = d.supprimes[nom];
+        if (pierre) { this._toucherProfil(p, pierre.supprimeLe); delete d.supprimes[nom]; }
+        d.profils[nom] = p;
+      } else if (fusion) {
+        d.profils[nom] = fusion(d.profils[nom], p) || d.profils[nom];
+      }
+    });
+    if (!d.codeParent && source.codeParent) d.codeParent = source.codeParent;
+    try { localStorage.removeItem(this.CLE_BASE); } catch (e) { /* ignore */ }
+    return noms.length;
   }
 
   // --- Persistance ---

@@ -39,7 +39,7 @@ Ouvrir les fichiers directement (`file://`) marche pour la plupart des pages, ma
 
 ## Données et persistance
 
-Tout est stocké dans `localStorage` sous la clé `mathemagie-profils`, avec `version: 2`. Forme simplifiée :
+Tout est stocké dans `localStorage`, **un stockage par famille** : `mathemagie-profils:<uid>` pour un compte famille connecté, `mathemagie-profils` pour un appareil sans compte. La clé `mathemagie-famille-active` indique lequel est affiché. Chaque stockage a `version: 2`. Forme simplifiée :
 
 ```js
 {
@@ -106,6 +106,7 @@ Fonctionnement :
 - Déclencheurs : au chargement, au retour du réseau (`online`), toutes les 60 s quand l'onglet est visible, et 2 s après une modification (debounce).
 - File d'attente : la différence entre l'état local et le dernier état connu du serveur, stockée dans `mathemagie-sync-meta`. Elle survit au rechargement.
 - Session Supabase dans `mathemagie-supabase-auth`. La déconnexion utilise `signOut({ scope: 'local' })`.
+- **Une famille à la fois** : l'appareil n'affiche que les profils de la famille connectée. Se déconnecter les masque (ils restent sauvegardés en ligne et dans `mathemagie-profils:<uid>`), changer de famille affiche ceux de l'autre famille. Rien ne passe d'une famille à l'autre. Les profils créés sans compte rejoignent la première famille qui se connecte, puis le stockage sans compte est vidé.
 - RLS : chaque ligne est visible et modifiable uniquement par `famille_id = auth.uid()`. Le rôle `anon` n'a aucun droit sur les deux tables.
 
 Pour modifier le schéma : ajouter une nouvelle migration dans `supabase/migrations/` et l'appliquer au projet. Ne jamais modifier une migration déjà appliquée.
@@ -135,7 +136,7 @@ Les scripts sont restés hors dépôt. Les rajouter (par exemple dans `tests/`, 
 - **Schéma Supabase versionné** dans `supabase/migrations/20261016000000_sync_familles_profils_enfants.sql`. Ce fichier est déjà appliqué au projet de production : ne pas le rejouer dessus, il sert à recréer un projet vierge. Toute modification future du schéma doit passer par une nouvelle migration.
 - **Supabase à configurer à la main** : « Site URL » et les « Redirect URLs » (Authentication → URL Configuration) doivent contenir le domaine de production et `/connexion.html`. Sinon les liens de confirmation et de mot de passe oublié sont faux.
 - **Flux e-mail non testé en réel** (confirmation, mot de passe oublié). Les tests ont utilisé des comptes créés directement en base.
-- **Déconnexion de famille** : elle ne vide pas les profils locaux. Un appareil partagé entre deux familles enverrait les profils locaux dans la nouvelle famille.
+- **Migration des appareils déjà synchronisés** : au premier chargement, l'ancien stockage unique est rattaché à la famille alors connectée. Un appareil déconnecté depuis longtemps, avec les profils d'une ancienne famille, les verra rattachés à la prochaine famille qui s'y connecte (impossible à deviner).
 - **Incohérence de bornes** entre cm1 (par terme) et les autres classes (par résultat) : voir `BORNES_PAR_TERME`.
 - **CE1 divisions** désactivées (`actif: false`), volontairement, en attente de la question du partage dans le moteur.
 - **Ancien code mort** : `choix-mage.html` n'est plus qu'une redirection vers `connexion.html`. Quelques PNG de `images/` ne sont plus utilisés.

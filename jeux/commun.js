@@ -227,6 +227,118 @@
     afficher();
   }
 
+
+  /* ---------- Catalogue des jeux « magiques » (solo, adaptés à chaque classe) ---------- */
+  var CATALOGUE = [
+    { id: 'eclair', titre: 'Calcul Éclair', emoji: '⚡', categorie: 'calcul', accroche: 'Un maximum de calculs en 60 secondes !',
+      trophee: { nom: 'Éclair de Génie', icones: { 5: '⚡', 10: '🌩️', 20: '☄️' }, action: 'Joue 5 parties de Calcul Éclair' } },
+    { id: 'compte-magique', titre: 'Le Compte Magique', emoji: '🎯', categorie: 'calcul', accroche: 'Atteins le nombre cible avec tes nombres.',
+      trophee: { nom: 'Maître du Compte', icones: { 5: '🎯', 10: '🏹', 20: '🌟' }, action: 'Joue 5 parties du Compte Magique' } },
+    { id: 'suites-magiques', titre: 'Suites Magiques', emoji: '🔗', categorie: 'logique', accroche: 'Trouve le nombre qui manque dans la suite.',
+      trophee: { nom: 'Détective des Suites', icones: { 5: '🔎', 10: '🕵️', 20: '🧩' }, action: 'Joue 5 parties de Suites Magiques' } },
+    { id: 'ranger', titre: 'Range les nombres', emoji: '📊', categorie: 'logique', accroche: 'Du plus petit au plus grand… ou l’inverse !',
+      trophee: { nom: 'Grand Ordonnateur', icones: { 5: '📊', 10: '🗂️', 20: '🏛️' }, action: 'Joue 5 parties de Range les nombres' } },
+    { id: 'memory-nombres', titre: 'Mémoire Magique', emoji: '🃏', categorie: 'logique', accroche: 'Retrouve les paires qui vont ensemble.',
+      trophee: { nom: 'Mémoire d’Éléphant', icones: { 5: '🃏', 10: '🐘', 20: '🧠' }, action: 'Joue 5 parties de Mémoire Magique' } },
+    { id: 'horloge', titre: 'L’Horloge Enchantée', emoji: '🕒', categorie: 'mesures', accroche: 'Lis l’heure et règle les aiguilles.',
+      trophee: { nom: 'Gardien du Temps', icones: { 5: '🕒', 10: '⏳', 20: '🕰️' }, action: 'Joue 5 parties de l’Horloge Enchantée' } },
+    { id: 'marche', titre: 'Au Marché des Sorciers', emoji: '🪙', categorie: 'mesures', accroche: 'Paye et rends la monnaie sans te tromper.',
+      trophee: { nom: 'Roi du Marché', icones: { 5: '🪙', 10: '💰', 20: '👑' }, action: 'Joue 5 parties au Marché des Sorciers' } },
+    { id: 'fractions', titre: 'Pizzas Magiques', emoji: '🍕', categorie: 'mesures', accroche: 'Coupe, colorie et partage en parts égales.',
+      trophee: { nom: 'Chef Pizzaïolo', icones: { 5: '🍕', 10: '🧑‍🍳', 20: '🏅' }, action: 'Joue 5 parties de Pizzas Magiques' } }
+  ];
+  var CATEGORIES = [
+    { id: 'calcul', titre: '➕ Calcul malin' },
+    { id: 'logique', titre: '🧩 Logique et mémoire' },
+    { id: 'mesures', titre: '📏 Heure, monnaie, parts' }
+  ];
+  function jeuCatalogue(id) {
+    for (var i = 0; i < CATALOGUE.length; i++) if (CATALOGUE[i].id === id) return CATALOGUE[i];
+    return null;
+  }
+
+  /* ---------- Enregistrement des parties et défi du jour ---------- */
+  function dateLocale(d) {
+    d = d || new Date();
+    var m = d.getMonth() + 1, j = d.getDate();
+    return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (j < 10 ? '0' : '') + j;
+  }
+  function veille(dateStr) {
+    var p = dateStr.split('-');
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    d.setDate(d.getDate() - 1);
+    return dateLocale(d);
+  }
+  function hachage(texte) {
+    var h = 0;
+    for (var i = 0; i < texte.length; i++) h = (h * 31 + texte.charCodeAt(i)) >>> 0;
+    return h;
+  }
+  /** Jeu proposé aujourd'hui (le même toute la journée, parmi les jeux ouverts à la classe). */
+  function defiDuJour(dateStr) {
+    dateStr = dateStr || dateLocale();
+    var dispo = CATALOGUE.filter(function (j) { return jeuActif(j.id); });
+    if (!dispo.length) return null;
+    return dispo[hachage(dateStr) % dispo.length];
+  }
+  function etatDefi() {
+    var g = gp();
+    var d = {};
+    try { if (g && g.getProgression) d = g.getProgression('defi-du-jour') || {}; } catch (e) {}
+    var auj = dateLocale();
+    var serie = d.serie || 0;
+    var fait = d.derniereDate === auj;
+    // une série s'arrête si on a raté hier (elle reste affichée si on a joué aujourd'hui ou hier)
+    if (!fait && d.derniereDate && d.derniereDate !== veille(auj)) serie = 0;
+    if (!d.derniereDate) serie = 0;
+    return { fait: fait, serie: serie, total: d.partiesDefis || 0, jeu: defiDuJour(auj) };
+  }
+  function validerDefi(id) {
+    var g = gp();
+    var etat = etatDefi();
+    if (!g || !etat.jeu || etat.jeu.id !== id || etat.fait) return null;
+    var d = {};
+    try { d = g.getProgression('defi-du-jour') || {}; } catch (e) {}
+    var auj = dateLocale();
+    var serie = (d.derniereDate === veille(auj) ? (d.serie || 0) : 0) + 1;
+    g.setProgression('defi-du-jour', {
+      derniereDate: auj, serie: serie,
+      partiesDefis: (d.partiesDefis || 0) + 1,
+      meilleureSerie: Math.max(d.meilleureSerie || 0, serie)
+    });
+    return { serie: serie };
+  }
+  /**
+   * À appeler à la fin de chaque partie d'un jeu du catalogue.
+   * res = { gagnee: bool, score: nombre (optionnel), meilleur: 'max' | 'min' (sens du meilleur score) }
+   * Retourne { defi: { serie } } si la partie valide le défi du jour, sinon {}.
+   */
+  function enregistrerPartie(id, res) {
+    var g = gp();
+    res = res || {};
+    if (!g || typeof g.setProgression !== 'function') return {};
+    var cle = 'jeu-' + id;
+    var d = {};
+    try { d = g.getProgression(cle) || {}; } catch (e) {}
+    var suivant = {};
+    Object.keys(d).forEach(function (k) { if (k !== 'niveau') suivant[k] = d[k]; });
+    suivant.partiesJouees = (d.partiesJouees || 0) + 1;
+    suivant.partiesGagnees = (d.partiesGagnees || 0) + (res.gagnee ? 1 : 0);
+    if (typeof res.score === 'number' && isFinite(res.score)) {
+      var ancien = d.meilleurScore;
+      if (typeof ancien !== 'number') suivant.meilleurScore = res.score;
+      else suivant.meilleurScore = res.meilleur === 'min' ? Math.min(ancien, res.score) : Math.max(ancien, res.score);
+    }
+    g.setProgression(cle, suivant);
+    var defi = res.gagnee ? validerDefi(id) : null; // le défi du jour demande une partie gagnée
+    return defi ? { defi: defi } : {};
+  }
+  /** Texte de fin de partie quand le défi du jour vient d'être réussi (chaîne vide sinon). */
+  function messageDefi(retour) {
+    if (!retour || !retour.defi) return '';
+    return '🔥 Défi du jour réussi ! Série : ' + retour.defi.serie + ' jour' + (retour.defi.serie > 1 ? 's' : '');
+  }
+
   /* ---------- Mascotte (neutre / contente / triste) ---------- */
   function mascotte(etat) {
     if (typeof document === 'undefined') return;
@@ -249,7 +361,9 @@
     plages: plages, plageMax: plageMax, fmt: fmt, motsPendu: motsPendu,
     genererCalcul: genererCalcul, reponseJuste: reponseJuste,
     lire: lire, creerBoutonVoix: creerBoutonVoix, mascotte: mascotte,
-    defi: defi, creerBasculeDefi: creerBasculeDefi, demanderCalcul: demanderCalcul
+    defi: defi, creerBasculeDefi: creerBasculeDefi, demanderCalcul: demanderCalcul,
+    CATALOGUE: CATALOGUE, CATEGORIES: CATEGORIES, jeuCatalogue: jeuCatalogue,
+    dateLocale: dateLocale, defiDuJour: defiDuJour, etatDefi: etatDefi, enregistrerPartie: enregistrerPartie, messageDefi: messageDefi
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   else { root.JeuxNiveau = API; init(); }

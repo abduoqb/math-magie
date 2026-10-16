@@ -1,0 +1,111 @@
+/* Pizzas Magiques : styles propres au jeu (classes préfixées fractions-). Les tokens viennent de style/commun.css. */
+.jeu-fractions [hidden] { display: none !important; }
+.jeu-fractions .jeu-conteneur { max-width: 540px; margin: 0 auto; }
+
+/* ---------- Fraction empilée ---------- */
+.fractions-frac {
+  display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle;
+  margin: 0 .2em; line-height: 1.05; font-family: var(--police-titre, sans-serif); font-weight: 800;
+}
+.fractions-num { display: block; min-width: 1.1em; padding: 0 .22em .06em; text-align: center; border-bottom: .11em solid currentColor; }
+.fractions-den { display: block; min-width: 1.1em; padding: .06em .22em 0; text-align: center; }
+.fractions-entier { font-family: var(--police-titre, sans-serif); font-weight: 800; margin: 0 .15em; }
+.fractions-mot { display: block; font-size: .72rem; font-weight: 600; color: var(--texte-doux, #475569); margin-top: 2px; }
+
+/* ---------- Barre du haut ---------- */
+.fractions-haut { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; margin: 0 0 10px; }
+.fractions-pastille {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 2px 14px; background: var(--carte, #fff);
+  border: var(--contour, 3px solid #2B2D5B); border-radius: 999px; font-family: var(--police-titre, sans-serif);
+  font-weight: 800; font-size: .95rem; color: var(--encre, #2B2D5B);
+}
+.fractions-pastille.combo { background: var(--trophees-clair, #FFF5C2); }
+
+/* ---------- Bouton voix (CP) ---------- */
+.fractions-voix { display: flex; justify-content: center; }
+.fractions-voix:empty { display: none; }
+.fractions-voix .btn-voix { margin: 0 0 4px; }
+
+/* ---------- Choix de difficulté ---------- */
+.fractions-presentation { font-family: var(--police-titre, sans-serif); font-weight: 600; color: var(--texte-doux, #475569); margin: -8px 0 16px; }
+.jeu-fractions .btn-difficulte { width: 100%; text-align: left; }
+.jeu-fractions .btn-difficulte span { text-align: center; }
+
+/* ---------- Formes (pizzas et tablettes) ---------- */
+.fractions-formes { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 14px 18px; margin: 8px 0 6px; }
+.fractions-bloc { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 0 1 auto; min-width: 0; }
+.fractions-etiquette { font-family: var(--police-titre, sans-serif); font-weight: 800; font-size: 1.5rem; color: var(--encre, #2B2D5B); min-height: 2.6rem; display: flex; align-items: center; justify-content: center; text-align: center; }
+.fractions-svg { display: block; width: min(100%, 230px); height: auto; margin: 0 auto; overflow: visible; }
+.fractions-formes.deux .fractions-svg, .fractions-formes.trois .fractions-svg { width: min(46vw, 190px); }
+.fractions-formes.trois .fractions-svg { width: min(30vw, 150px); }
+.fractions-croute { fill: var(--trophees, #FACC15); stroke: var(--encre, #2B2D5B); stroke-width: 3; }
+.fractions-chocolat { fill: #8A5A3C; stroke: var(--encre, #2B2D5B); stroke-width: 3; }
+.fractions-part { fill: var(--jeux-clair, #FFE6D2); stroke: var(--encre, #2B2D5B); stroke-width: 3; stroke-linejoin: round; transition: fill .15s; }
+.fractions-part.on { fill: var(--jeux, #F97316); }
+.fractions-part.interactif { cursor: pointer; }
+.fractions-part.interactif:not(.on):hover { fill: var(--trophees-clair, #FFF5C2); }
+.fractions-part:focus-visible { outline: 4px solid var(--encre, #2B2D5B); outline-offset: 2px; stroke: var(--focus, #FFE066); stroke-width: 6; }
+.fractions-part.juste { fill: var(--ok-clair, #DCFCE7); stroke: var(--ok-fonce, #15803D); stroke-width: 6; }
+.fractions-part.faux { fill: var(--ko-clair, #FEE2E2); stroke: var(--ko-fonce, #B91C1C); stroke-width: 6; }
+.fractions-marque { fill: var(--encre, #2B2D5B); pointer-events: none; opacity: 0; transition: opacity .15s; }
+.fractions-marque.on { opacity: .85; }
+.fractions-compteur { font-family: var(--police-titre, sans-serif); font-weight: 800; font-size: 1.1rem; color: var(--encre, #2B2D5B); margin: 8px 0 0; }
+.fractions-duel { display: flex; align-items: center; justify-content: center; gap: 18px; font-size: 2.2rem; color: var(--encre, #2B2D5B); margin: 10px 0; }
+
+/* ---------- Objets à partager ---------- */
+.fractions-objets { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 420px; margin: 10px auto; }
+.fractions-objet { font-size: 1.7rem; line-height: 1; padding: 4px; border-radius: 12px; border: 2px dashed transparent; }
+.fractions-objet.pris { background: var(--ok-clair, #DCFCE7); border-color: var(--ok-fonce, #15803D); }
+
+/* ---------- Réponses ---------- */
+.fractions-choix { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 14px 0 4px; }
+.fractions-choix.trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fractions-btn-choix {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 72px; padding: 8px 10px;
+  background: var(--carte, #fff); color: var(--encre, #2B2D5B); border: var(--contour, 3px solid #2B2D5B); border-radius: var(--rayon, 22px);
+  box-shadow: 0 4px 0 var(--encre, #2B2D5B); font-family: var(--police-titre, sans-serif); font-weight: 800; font-size: 1.5rem;
+  line-height: 1.15; cursor: pointer; transition: transform .12s, box-shadow .12s, background-color .12s; overflow-wrap: anywhere;
+}
+.fractions-btn-choix:hover:not(:disabled) { background: var(--jeux-clair, #FFE6D2); transform: translateY(-2px); box-shadow: 0 6px 0 var(--encre, #2B2D5B); }
+.fractions-btn-choix:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--encre, #2B2D5B); }
+.fractions-btn-choix:disabled { cursor: default; }
+.fractions-btn-choix.faux { background: var(--ko-clair, #FEE2E2); border-color: var(--ko-fonce, #B91C1C); color: var(--ko-fonce, #B91C1C); opacity: .85; }
+.fractions-btn-choix.juste { background: var(--ok-clair, #DCFCE7); border-color: var(--ok-fonce, #15803D); color: var(--ok-fonce, #15803D); }
+.fractions-btn-choix.petit { font-size: 1.15rem; }
+
+.fractions-retour { min-height: 3.2rem; margin: 12px 0 0; padding: 0; font-family: var(--police-titre, sans-serif); font-weight: 600; font-size: 1.05rem; color: var(--encre, #2B2D5B); line-height: 1.5; }
+.fractions-retour:empty { min-height: 0; margin: 0; }
+.fractions-retour .titre-retour { display: block; font-weight: 800; font-size: 1.2rem; margin-bottom: 2px; }
+.fractions-retour.ok .titre-retour { color: var(--ok-fonce, #15803D); }
+.fractions-retour.ko .titre-retour { color: var(--ko-fonce, #B91C1C); }
+.fractions-retour.indice .titre-retour { color: var(--calcul-fonce, #6D28D9); }
+
+.fractions-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 8px; }
+.jeu-fractions .btn-magique { margin-top: 12px; }
+.jeu-fractions a.btn-magique { text-decoration: none; }
+
+/* ---------- Fin de partie ---------- */
+.fractions-fin { text-align: center; }
+.fractions-etoiles { font-size: 2.6rem; letter-spacing: .1em; margin: 6px 0; }
+.fractions-score { font-family: var(--police-titre, sans-serif); font-weight: 800; font-size: 1.3rem; color: var(--encre, #2B2D5B); margin: 4px 0; }
+.fractions-defi { font-family: var(--police-titre, sans-serif); font-weight: 800; color: var(--encre, #2B2D5B); background: var(--trophees-clair, #FFF5C2); border: var(--contour, 3px solid #2B2D5B); border-radius: var(--rayon, 22px); padding: 8px 14px; margin: 10px auto; max-width: 420px; }
+
+/* ---------- CP : tout plus gros ---------- */
+body.niveau-cp .fractions-btn-choix { min-height: 84px; font-size: 1.7rem; }
+body.niveau-cp .fractions-retour { font-size: 1.25rem; }
+body.niveau-cp .fractions-etiquette { font-size: 1.7rem; }
+body.niveau-cp .fractions-objet { font-size: 2.1rem; }
+
+@media (max-width: 420px) {
+  .fractions-btn-choix { font-size: 1.3rem; padding: 6px; }
+  .fractions-choix { gap: 10px; }
+  .fractions-choix.trois { grid-template-columns: 1fr; }
+  .fractions-objet { font-size: 1.45rem; padding: 2px; }
+  .fractions-etiquette { font-size: 1.25rem; }
+  .fractions-duel { font-size: 1.8rem; gap: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fractions-part, .fractions-marque, .fractions-btn-choix { transition: none !important; }
+  .fractions-retour, .fractions-pastille { animation: none !important; }
+}

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcul Éclair - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
+    <link rel="stylesheet" href="../../style/commun.css">
+    <link rel="stylesheet" href="../../style/jeux.css">
+    <script src="../../js/profils.js"></script>
+    <link rel="stylesheet" href="../commun.css">
+    <script src="../commun.js"></script>
+    <link rel="stylesheet" href="eclair.css">
+    <script src="eclair.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
+</head>
+
+<body class="jeu-page jeu-eclair">
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
+    <app-header base-path="../../"></app-header>
+    <main>
+      <a href="../index.html" class="lien-retour">← Jeux</a>
+      <h2 class="titre"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><polygon points="70,8 28,66 56,66 46,112 92,48 62,48" fill="#FDE68A" stroke="#2B2D5B" stroke-width="6" stroke-linejoin="round"/></svg> Calcul Éclair</h2>
+      <div class="presentation">
+        <div class="cadre">
+          <div class="jeu-conteneur eclair-conteneur">
+
+            <div class="jeu-parole">
+              <img class="jeu-mascotte" src="../../images/mascotte-neutre.svg" data-dossier="../../images/" data-etat="neutre" alt="" width="76" height="76" onerror="this.style.display='none'">
+              <p id="bulle" class="tour-info" aria-live="polite">Choisis ton défi !</p>
+            </div>
+
+            <!-- Choix du mode -->
+            <section id="ecran-mode" aria-label="Choix du mode">
+              <p class="eclair-regle" id="regle"></p>
+              <div class="eclair-voix" id="zone-voix"></div>
+              <div class="eclair-modes" id="modes"></div>
+              <p class="eclair-record" id="record"></p>
+            </section>
+
+            <!-- Partie -->
+            <section id="ecran-jeu" aria-label="Partie" hidden>
+              <div class="eclair-hud">
+                <span class="eclair-pill">⭐ <b id="score">0</b></span>
+                <span class="eclair-pill eclair-pill-serie" id="pill-serie">🔥 <b id="serie">0</b></span>
+                <span class="eclair-pill"><span aria-hidden="true">⏱</span> <b id="temps-txt">60</b> s</span>
+              </div>
+              <div class="eclair-barre" id="barre" role="progressbar" aria-label="Temps restant" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+                <div class="eclair-barre-rempli" id="barre-rempli"></div>
+                <span class="eclair-bonus" id="bonus" aria-hidden="true"></span>
+              </div>
+              <div class="eclair-question" id="question"></div>
+              <div class="eclair-reponse" id="reponse" role="textbox" aria-readonly="true" aria-label="Ta réponse"></div>
+              <div class="eclair-clavier" id="clavier"></div>
+              <button type="button" class="eclair-abandon" id="btn-abandon">Changer de mode</button>
+            </section>
+
+            <!-- Fin de partie -->
+            <section id="ecran-fin" aria-label="Fin de la partie" hidden>
+              <div class="eclair-etoiles" id="etoiles"></div>
+              <p class="eclair-grand-score"><b id="fin-score">0</b> <span id="fin-libelle">bonnes réponses</span></p>
+              <p class="eclair-detail" id="fin-serie"></p>
+              <p class="eclair-detail" id="fin-prochaine"></p>
+              <p class="eclair-defi" id="fin-defi"></p>
+              <div class="eclair-fin-btns">
+                <button type="button" class="btn-magique" id="btn-rejouer">Rejouer</button>
+                <button type="button" class="eclair-secondaire" id="btn-autre">Changer de mode</button>
+                <a href="../index.html" class="eclair-secondaire">Retour aux jeux</a>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      (function () {
+        'use strict';
+        var niveau = JeuxNiveau.niveau();
+        var P = Eclair.params(niveau);
+        var cp = niveau === 'cp';
+
+        var $ = function (id) { return document.getElementById(id); };
+        var ecrans = { mode: $('ecran-mode'), jeu: $('ecran-jeu'), fin: $('ecran-fin') };
+        var bulle = $('bulle'), questionEl = $('question'), reponseEl = $('reponse');
+        var barre = $('barre'), barreRempli = $('barre-rempli'), bonusEl = $('bonus');
+        var scoreEl = $('score'), serieEl = $('serie'), pillSerie = $('pill-serie'), tempsTxt = $('temps-txt');
+
+        // État de la partie
+        var mode = 'melange', score = 0, serie = 0, meilleureSerie = 0, palier = 0;
+        var tempsRestant = 0, dernier = 0, minuteur = null, actif = false, bloque = false;
+        var saisie = '', erreurs = 0, question = null, delai = null, ancienRecord = null;
+
+        var PHRASES_OK = ['Bravo !', 'Bien joué !', 'Super !', 'Éclair !', 'Parfait !', 'Génial !'];
+
+        function montrer(nom) {
+          Object.keys(ecrans).forEach(function (k) { ecrans[k].hidden = (k !== nom); });
+        }
+        function dire(texte) { bulle.textContent = texte; }
+
+        function lireRecord() {
+          try {
+            var d = gestionnaireProfils.getProgression('jeu-eclair');
+            return d && typeof d.meilleurScore === 'number' ? d.meilleurScore : null;
+          } catch (e) { return null; }
+        }
+
+        /* ---------- Écran de choix ---------- */
+        function afficherChoix() {
+          arreter();
+          montrer('mode');
+          JeuxNiveau.mascotte('neutre');
+          dire(cp ? 'Choisis ton défi !' : 'Choisis ton défi, apprenti éclair !');
+          var rec = lireRecord();
+          $('record').textContent = rec === null ? '' : 'Ton record : ' + rec + ' bonne' + (rec > 1 ? 's' : '') + ' réponse' + (rec > 1 ? 's' : '');
+        }
+
+        var classes = { additions: 'eclair-mode-add', tables: 'eclair-mode-tab', melange: 'eclair-mode-mel' };
+        var icones = { additions: '➕', tables: '✖️', melange: '🎲' };
+        Eclair.MODES.forEach(function (m) {
+          var lib = Eclair.libelle(niveau, m);
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'eclair-mode ' + classes[m];
+          var ic = document.createElement('span');
+          ic.className = 'eclair-mode-icone';
+          ic.setAttribute('aria-hidden', 'true');
+          ic.textContent = icones[m];
+          var tx = document.createElement('span');
+          tx.className = 'eclair-mode-texte';
+          var nom = document.createElement('b');
+          nom.textContent = lib[0];
+          var det = document.createElement('small');
+          det.textContent = lib[1];
+          tx.appendChild(nom);
+          tx.appendChild(det);
+          b.appendChild(ic);
+          b.appendChild(tx);
+          b.addEventListener('click', function () { demarrer(m); });
+          $('modes').appendChild(b);
+        });
+        $('regle').textContent = cp
+          ? 'Réponds vite aux calculs. Tu as ' + P.duree + ' secondes !'
+          : 'Résous un maximum de calculs en ' + P.duree + ' secondes. Cinq bonnes réponses d’affilée = 3 secondes en plus !';
+        var voix = JeuxNiveau.creerBoutonVoix(function () {
+          return 'Réponds vite aux calculs. Tape le résultat, puis appuie sur le bouton O K.';
+        });
+        if (voix) $('zone-voix').appendChild(voix);
+
+        /* ---------- Clavier à l'écran ---------- */
+        function toucheBtn(etiquette, classe, action, aria) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'eclair-touche ' + classe;
+          b.textContent = etiquette;
+          if (aria) b.setAttribute('aria-label', aria);
+          b.addEventListener('click', action);
+          return b;
+        }
+        (function construireClavier() {
+          var k = $('clavier');
+          [7, 8, 9, 4, 5, 6, 1, 2, 3].forEach(function (c) {
+            k.appendChild(toucheBtn(String(c), '', function () { chiffre(String(c)); }));
+          });
+          k.appendChild(toucheBtn('⌫', 'eclair-touche-eff', effacer, 'Effacer'));
+          k.appendChild(toucheBtn('0', '', function () { chiffre('0'); }));
+          if (P.decimal) {
+            k.appendChild(toucheBtn(',', 'eclair-touche-vir', virgule, 'Virgule'));
+            var ok = toucheBtn('OK', 'eclair-touche-ok eclair-touche-large', valider, 'Valider');
+            k.appendChild(ok);
+          } else {
+            k.appendChild(toucheBtn('OK', 'eclair-touche-ok', valider, 'Valider'));
+          }
+        })();
+
+        function afficherSaisie() {
+          reponseEl.textContent = saisie === '' ? '?' : saisie;
+          reponseEl.classList.toggle('vide', saisie === '');
+        }
+        function chiffre(c) {
+          if (!actif || bloque) return;
+          if (saisie === '0') saisie = '';
+          if (saisie.length >= 9) return;
+          saisie += c;
+          afficherSaisie();
+        }
+        function virgule() {
+          if (!actif || bloque || !P.decimal || saisie.indexOf(',') >= 0) return;
+          saisie = (saisie === '' ? '0' : saisie) + ',';
+          afficherSaisie();
+        }
+        function effacer() {
+          if (!actif || bloque) return;
+          saisie = saisie.slice(0, -1);
+          afficherSaisie();
+        }
+
+        document.addEventListener('keydown', function (e) {
+          if (!actif || e.ctrlKey || e.metaKey || e.altKey) return;
+          var t = e.target && e.target.tagName;
+          if (/^[0-9]$/.test(e.key)) { chiffre(e.key); e.preventDefault(); }
+          else if (e.key === ',' || e.key === '.') { virgule(); e.preventDefault(); }
+          else if (e.key === 'Backspace') { effacer(); e.preventDefault(); }
+          else if (e.key === 'Enter' && t !== 'BUTTON') { valider(); e.preventDefault(); }
+        });
+
+        /* ---------- Déroulement ---------- */
+        function demarrer(m) {
+          mode = m;
+          score = 0; serie = 0; meilleureSerie = 0; palier = 0; erreurs = 0;
+          tempsRestant = P.duree; saisie = '';
+          ancienRecord = lireRecord();
+          question = null;
+          bloque = false; actif = true;
+          montrer('jeu');
+          majHud();
+          majTemps();
+          JeuxNiveau.mascotte('neutre');
+          dire(cp ? 'C’est parti !' : 'C’est parti ! Réponds vite !');
+          questionSuivante();
+          dernier = performance.now();
+          clearInterval(minuteur);
+          minuteur = setInterval(tic, 100);
+        }
+
+        function arreter() {
+          actif = false;
+          clearInterval(minuteur);
+          clearTimeout(delai);
+          minuteur = null;
+        }
+
+        function questionSuivante() {
+          question = Eclair.suivante(niveau, mode, palier, Math.random, question);
+          var t = question.texte;
+          var interro = question.type === 'double' || question.type === 'moitie' || question.type === 'pct';
+          questionEl.textContent = t + (interro ? ' ?' : ' = ?');
+          saisie = '';
+          erreurs = 0;
+          afficherSaisie();
+        }
+
+        function majHud() {
+          scoreEl.textContent = score;
+          serieEl.textContent = serie;
+          pillSerie.classList.toggle('actif', serie >= 2);
+        }
+        function majTemps() {
+          var t = Math.max(0, tempsRestant);
+          var part = Math.min(1, t / P.duree);
+          barreRempli.style.transform = 'scaleX(' + part.toFixed(3) + ')';
+          barre.classList.toggle('eclair-bas', t <= 10);
+          var sec = Math.ceil(t);
+          if (tempsTxt.textContent !== String(sec)) {
+            tempsTxt.textContent = sec;
+            barre.setAttribute('aria-valuenow', String(Math.round(part * 100)));
+          }
+        }
+
+        function tic() {
+          var maintenant = performance.now();
+          var dt = (maintenant - dernier) / 1000;
+          dernier = maintenant;
+          if (!actif) return;
+          if (document.hidden || dt > 1) dt = 0; // onglet caché : le temps ne s'écoule pas
+          if (!bloque) tempsRestant -= dt;
+          majTemps();
+          if (tempsRestant <= 0) finir();
+        }
+
+        function flash(classe) {
+          reponseEl.classList.remove('ok', 'ko');
+          void reponseEl.offsetWidth;
+          reponseEl.classList.add(classe);
+        }
+        function montrerBonus(texte) {
+          bonusEl.textContent = texte;
+          bonusEl.classList.remove('montre');
+          void bonusEl.offsetWidth;
+          bonusEl.classList.add('montre');
+        }
+
+        function valider() {
+          if (!actif || bloque || saisie === '' || saisie === '0,') return;
+          if (Eclair.reponseJuste(saisie, question.reponse)) bonneReponse();
+          else mauvaiseReponse();
+        }
+
+        function bonneReponse() {
+          score++;
+          serie++;
+          if (serie > meilleureSerie) meilleureSerie = serie;
+          var plus = Eclair.bonusSerie(serie);
+          var texte = PHRASES_OK[(score - 1) % PHRASES_OK.length];
+          if (plus) {
+            tempsRestant += plus;
+            texte = 'Série de ' + serie + ' ! +' + plus + ' secondes';
+            montrerBonus('+' + plus + ' s');
+          }
+          dire(texte);
+          JeuxNiveau.mascotte('contente');
+          flash('ok');
+          palier = Eclair.palierPour(niveau, score);
+          majHud();
+          majTemps();
+          questionSuivante();
+        }
+
+        function mauvaiseReponse() {
+          serie = 0;
+          erreurs++;
+          majHud();
+          flash('ko');
+          JeuxNiveau.mascotte('triste');
+          var tentative = Number(saisie.replace(',', '.'));
+          if (erreurs === 1) {
+            // seconde chance avec un indice
+            dire('Presque ! Le résultat est ' + (tentative < question.reponse ? 'plus grand.' : 'plus petit.') + ' Essaie encore.');
+            saisie = '';
+            afficherSaisie();
+            return;
+          }
+          // la réponse est montrée, le temps est mis en pause un instant
+          bloque = true;
+          dire('C’était ' + Eclair.formaterReponse(question.reponse) + '. On continue !');
+          reponseEl.textContent = Eclair.formaterReponse(question.reponse);
+          reponseEl.classList.remove('vide');
+          delai = setTimeout(function () {
+            bloque = false;
+            dernier = performance.now();
+            if (!actif) return;
+            JeuxNiveau.mascotte('neutre');
+            questionSuivante();
+          }, 1500);
+        }
+
+        /* ---------- Fin ---------- */
+        function finir() {
+          if (!actif) return;
+          arreter();
+          var etoiles = Eclair.etoiles(niveau, score);
+          var retour = JeuxNiveau.enregistrerPartie('eclair', { gagnee: etoiles >= 1, score: score, meilleur: 'max' });
+
+          var zone = $('etoiles');
+          zone.textContent = '';
+          zone.setAttribute('role', 'img');
+          zone.setAttribute('aria-label', etoiles + ' étoile' + (etoiles > 1 ? 's' : '') + ' sur 3');
+          for (var i = 1; i <= 3; i++) {
+            var s = document.createElement('span');
+            s.className = 'eclair-etoile' + (i <= etoiles ? ' pleine' : '');
+            s.setAttribute('aria-hidden', 'true');
+            s.textContent = '★';
+            zone.appendChild(s);
+          }
+          $('fin-score').textContent = score;
+          $('fin-libelle').textContent = score > 1 ? 'bonnes réponses' : 'bonne réponse';
+          var detail = meilleureSerie >= 2 ? 'Meilleure série : ' + meilleureSerie + ' 🔥' : '';
+          if (ancienRecord !== null && score > ancienRecord) detail = '🏆 Nouveau record ! ' + detail;
+          else if (ancienRecord === null && score > 0) detail = '🏆 Premier record ! ' + detail;
+          $('fin-serie').textContent = detail.trim();
+          var seuil = P.seuils[etoiles];
+          $('fin-prochaine').textContent = etoiles >= 3 ? 'Les trois étoiles ! Tu es un éclair !' :
+            'Encore ' + (seuil - score) + ' bonne' + (seuil - score > 1 ? 's' : '') + ' réponse' + (seuil - score > 1 ? 's' : '') + ' pour ' + (etoiles + 1) + ' étoile' + (etoiles + 1 > 1 ? 's' : '') + '.';
+          $('fin-defi').textContent = JeuxNiveau.messageDefi(retour);
+
+          montrer('fin');
+          JeuxNiveau.mascotte(etoiles >= 1 ? 'contente' : 'neutre');
+          dire(etoiles >= 3 ? 'Incroyable !' : etoiles >= 1 ? 'Bravo, le temps est écoulé !' : 'Le temps est écoulé. Tu feras mieux !');
+          $('btn-rejouer').focus();
+        }
+
+        $('btn-rejouer').addEventListener('click', function () { demarrer(mode); });
+        $('btn-autre').addEventListener('click', afficherChoix);
+        $('btn-abandon').addEventListener('click', afficherChoix);
+        document.addEventListener('visibilitychange', function () { dernier = performance.now(); });
+
+        afficherChoix();
+      })();
+    </script>
+</body>
+</html>

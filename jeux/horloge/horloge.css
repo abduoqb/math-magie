@@ -1,0 +1,121 @@
+/* L’Horloge Enchantée : styles propres au jeu (classes préfixées horloge-).
+   Les boutons « sticker », la bulle de la mascotte et le choix de mission viennent de style/jeux.css. */
+
+.jeu-horloge [hidden] { display: none !important; }
+.jeu-horloge .jeu-conteneur { max-width: 560px; margin: 0 auto; }
+
+/* ---------- Texte annexe ---------- */
+.horloge-regle { font-family: var(--police-titre, sans-serif); font-weight: 600; font-size: 1.05rem; color: var(--texte-doux, #475569); margin: 0 0 18px; }
+.horloge-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---------- Bandeau de partie ---------- */
+.horloge-haut { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; margin: 0 0 8px; }
+.horloge-manche { margin: 0; font-family: var(--police-titre, sans-serif); font-weight: 800; font-size: 1rem; color: var(--encre); }
+.horloge-points { display: flex; gap: 6px; }
+.horloge-points span { width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid var(--encre); background: var(--carte); }
+.horloge-points span.bon { background: var(--ok); }
+.horloge-points span.rate { background: var(--ko); }
+.horloge-points span.courant { background: var(--trophees, #FACC15); transform: scale(1.25); }
+.horloge-stats { margin: 0; display: flex; gap: 10px; align-items: center; font-family: var(--police-titre, sans-serif); font-weight: 800; font-size: 1rem; color: var(--encre); }
+.horloge-serie { color: var(--ko-fonce, #B91C1C); }
+
+.horloge-voix { margin: 0 0 4px; min-height: 0; }
+.horloge-enonce { margin: 6px 0 4px; font-family: var(--police-titre, sans-serif); font-weight: 600; font-size: clamp(1.05rem, 3.4vw, 1.25rem); line-height: 1.35; color: var(--encre); text-align: left; overflow-wrap: anywhere; }
+.horloge-enonce:empty { display: none; }
+
+/* ---------- Horloge ---------- */
+.horloge-scene { margin: 4px 0 8px; }
+.horloge-svg { display: block; width: min(100%, 300px); aspect-ratio: 1; height: auto; margin: 4px auto; overflow: visible; user-select: none; -webkit-user-select: none; }
+body.niveau-cp .horloge-svg { width: min(100%, 340px); }
+.horloge-svg.horloge-actif { touch-action: none; cursor: pointer; }
+.horloge-bord { fill: var(--carte, #fff); stroke: var(--encre); stroke-width: 5; }
+.horloge-cadran { fill: var(--fond-2, #E8F6FF); }
+.horloge-trait { stroke: var(--encre); stroke-width: 1.4; stroke-linecap: round; }
+.horloge-trait-h { stroke: var(--encre); stroke-width: 3.2; stroke-linecap: round; }
+.horloge-chiffre { fill: var(--encre); font-family: var(--police-titre, 'Lexend', sans-serif); font-weight: 800; font-size: 17px; text-anchor: middle; dominant-baseline: central; }
+.horloge-aig { transform-origin: 100px 100px; transition: transform .5s cubic-bezier(.4, 1.3, .6, 1); }
+.horloge-contour { stroke: var(--encre); stroke-linecap: round; }
+.horloge-aig-h .horloge-contour { stroke-width: 14; }
+.horloge-aig-h .horloge-remplissage { stroke: var(--action, #FF8A1F); stroke-width: 8; stroke-linecap: round; }
+.horloge-aig-m .horloge-contour { stroke-width: 10; }
+.horloge-aig-m .horloge-remplissage { stroke: var(--accueil, #3B82F6); stroke-width: 5.5; stroke-linecap: round; }
+.horloge-axe { fill: var(--encre); }
+.horloge-axe-centre { fill: var(--trophees, #FACC15); stroke: var(--encre); stroke-width: 3; }
+.horloge-legende { margin: 2px 0 0; font-family: var(--police-titre, sans-serif); font-weight: 700; font-size: .95rem; color: var(--encre); }
+.horloge-legende b { display: inline-block; padding: 1px 10px; border-radius: 999px; border: 2.5px solid var(--encre); color: var(--encre); }
+.horloge-legende .l-h { background: var(--action, #FF8A1F); }
+.horloge-legende .l-m { background: var(--accueil-clair, #DBEAFE); }
+
+/* ---------- Réponses (QCM) ---------- */
+.horloge-choix-grille { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 10px 0 6px; }
+.horloge-choix {
+  position: relative; min-height: 64px; padding: 10px 12px; display: flex; align-items: center; justify-content: center;
+  background: var(--carte, #fff); color: var(--encre); border: 3px solid var(--encre); border-radius: 20px; box-shadow: 0 5px 0 var(--encre);
+  font-family: var(--police-titre, sans-serif); font-weight: 800; font-size: clamp(1.05rem, 4vw, 1.35rem); line-height: 1.2; text-align: center; overflow-wrap: anywhere;
+  cursor: pointer; transition: transform .12s, box-shadow .12s, background .12s;
+}
+body.niveau-cp .horloge-choix { min-height: 80px; font-size: clamp(1.2rem, 4.6vw, 1.5rem); }
+.horloge-choix:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 var(--encre); background: var(--jeux-clair, #FFE6D2); }
+.horloge-choix:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--encre); }
+.horloge-touche { position: absolute; top: 4px; left: 8px; font-size: .7rem; font-weight: 800; color: var(--texte-doux, #475569); }
+.horloge-choix.faux { background: var(--ko-clair, #FEE2E2); border-color: var(--ko-fonce, #B91C1C); color: var(--ko-fonce, #B91C1C); box-shadow: 0 2px 0 var(--ko-fonce, #B91C1C); transform: translateY(3px); cursor: default; }
+.horloge-choix.faux::after { content: " ✗"; }
+.horloge-choix.juste { background: var(--ok-clair, #DCFCE7); border-color: var(--ok-fonce, #15803D); color: var(--ok-fonce, #15803D); animation: jeu-pop .4s cubic-bezier(.34, 1.56, .64, 1); }
+.horloge-choix.juste::after { content: " ✓"; }
+.horloge-choix:disabled { cursor: default; }
+
+/* ---------- Réglage de l’horloge ---------- */
+.horloge-regl { display: flex; flex-direction: column; gap: 12px; margin: 8px 0 0; }
+.horloge-groupe { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 8px; border: 3px dashed var(--encre); border-radius: 20px; background: var(--fond, #FFF8E7); }
+.horloge-groupe-nom { flex: 1 0 100%; margin: 0; font-family: var(--police-titre, sans-serif); font-weight: 800; font-size: .95rem; color: var(--encre); }
+.horloge-btn-reglage {
+  flex: 1 1 112px; min-width: 0; min-height: 52px; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--carte, #fff); color: var(--encre); border: 3px solid var(--encre); border-radius: 999px; box-shadow: 0 4px 0 var(--encre);
+  font-family: var(--police-titre, sans-serif); font-weight: 800; font-size: 1.05rem; cursor: pointer; transition: transform .12s, box-shadow .12s;
+}
+body.niveau-cp .horloge-btn-reglage { min-height: 64px; font-size: 1.2rem; }
+.horloge-btn-reglage.heure:hover { background: var(--action-clair, #FFE6D2); }
+.horloge-btn-reglage.minute:hover { background: var(--accueil-clair, #DBEAFE); }
+.horloge-btn-reglage:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--encre); }
+.horloge-regl .btn-magique { align-self: center; margin-top: 4px; }
+
+/* ---------- Retour et suite ---------- */
+.horloge-retour {
+  min-height: 3.2em; margin: 8px 0 0; padding: 8px 14px; border: 3px solid transparent; border-radius: 20px;
+  font-family: var(--police-titre, sans-serif); font-weight: 800; font-size: clamp(1.05rem, 3.4vw, 1.25rem); line-height: 1.25; color: var(--encre);
+  overflow-wrap: anywhere;
+}
+.horloge-retour:empty { visibility: hidden; }
+.horloge-retour.ok { background: var(--ok-clair, #DCFCE7); border-color: var(--ok-fonce, #15803D); color: var(--ok-fonce, #15803D); animation: jeu-pop .4s cubic-bezier(.34, 1.56, .64, 1); }
+.horloge-retour.indice { background: var(--jeux-clair, #FFE6D2); border-color: var(--encre); }
+.horloge-retour.ko { background: var(--ko-clair, #FEE2E2); border-color: var(--ko-fonce, #B91C1C); color: var(--ko-fonce, #B91C1C); }
+
+/* ---------- Écran de fin ---------- */
+.horloge-fin-titre { font-family: var(--police-titre, sans-serif); font-size: clamp(1.4rem, 5vw, 1.9rem); color: var(--encre); margin: 6px 0 4px; }
+.horloge-fin-mascotte { width: 96px; height: 96px; }
+.horloge-etoiles { display: flex; justify-content: center; gap: 8px; font-size: 2.6rem; line-height: 1; margin: 6px 0; }
+.horloge-etoiles .vide { filter: grayscale(1); opacity: .35; }
+.horloge-fin-score { font-family: var(--police-titre, sans-serif); font-weight: 800; font-size: 1.35rem; color: var(--encre); margin: 6px 0; }
+.horloge-fin-msg { font-family: var(--police-titre, sans-serif); font-weight: 600; font-size: 1.1rem; color: var(--encre); margin: 6px 0; }
+.horloge-fin-defi { font-family: var(--police-titre, sans-serif); font-weight: 800; font-size: 1.05rem; color: var(--ko-fonce, #B91C1C); margin: 10px 0; }
+.horloge-fin-boutons { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.horloge-fin-boutons .btn-magique { margin-top: 12px; width: min(100%, 320px); text-decoration: none; }
+.horloge-fin-boutons .horloge-secondaire { background: var(--carte, #fff); }
+
+/* ---------- Focus visible ---------- */
+.jeu-horloge button:focus-visible, .jeu-horloge a:focus-visible, .horloge-svg:focus-visible {
+  outline: 4px solid var(--encre); outline-offset: 3px; box-shadow: 0 0 0 7px var(--focus, #FFE066);
+}
+
+/* ---------- Petits écrans ---------- */
+@media (max-width: 420px) {
+  .jeu-page.jeu-horloge .presentation { padding: 14px 10px; }
+  .horloge-choix-grille { gap: 10px; }
+  .horloge-btn-reglage { flex-basis: 100px; font-size: 1rem; }
+}
+
+/* ---------- Mouvement réduit ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .horloge-aig, .horloge-choix, .horloge-btn-reglage { transition: none !important; }
+  .horloge-choix.juste, .horloge-retour.ok { animation: none !important; }
+}

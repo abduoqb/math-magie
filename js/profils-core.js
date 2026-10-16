@@ -38,8 +38,15 @@ class GestionnaireProfils {
     { emoji: '❌', nom: 'Maître Morpion', condition: 'Jouer 15 parties de Morpion', test: (p) => p._morpionJouees >= 15 },
     { emoji: '🔤', nom: 'Survivant du Pendu', condition: 'Gagner 10 parties du Pendu', test: (p) => p._penduGagnees >= 10 },
     { emoji: '🧠', nom: 'Télépathe', condition: 'Gagner 15 fois à Trouver le chiffre', test: (p) => p._chiffreGagnees >= 15 },
-    { emoji: '🔴', nom: 'Stratège', condition: 'Jouer 15 parties de Puissance 4', test: (p) => p._p4Jouees >= 15 }
+    { emoji: '🔴', nom: 'Stratège', condition: 'Jouer 15 parties de Puissance 4', test: (p) => p._p4Jouees >= 15 },
+    { emoji: '🧩', nom: 'Esprit Curieux', condition: 'Essayer 4 jeux magiques différents', test: (p) => p._jeuxMagiquesEssayes >= 4 },
+    { emoji: '🌈', nom: 'Arc-en-ciel', condition: 'Essayer tous les jeux magiques', test: (p) => p._jeuxMagiquesEssayes >= GestionnaireProfils.JEUX_MAGIQUES.length },
+    { emoji: '🔥', nom: 'Phénix du Défi', condition: 'Réussir le défi du jour 3 jours d\u2019affilée', test: (p) => p._serieDefiMax >= 3 },
+    { emoji: '🦅', nom: 'Aigle du Défi', condition: 'Réussir 10 défis du jour', test: (p) => p._defisReussis >= 10 }
   ];
+
+  /** Jeux « magiques » (catalogue dans jeux/commun.js) : leur progression est dans `jeu-<id>`. */
+  static JEUX_MAGIQUES = ['eclair', 'compte-magique', 'suites-magiques', 'ranger', 'memory-nombres', 'horloge', 'marche', 'fractions'];
 
   static COULEURS = [
     { id: 'violet', valeur: '#A077EE', nom: 'Violet Sage' },
@@ -614,7 +621,8 @@ class GestionnaireProfils {
     if (!profil) {
       return {
         _totalNiveaux: 0, _niveauMax: 0, _calculsComplets: false, _geometrieComplete: false, _toutesCompletes: false, _toutesMaitrisees: false,
-        _morpionJouees: 0, _penduGagnees: 0, _chiffreGagnees: 0, _p4Jouees: 0, _jeuxJoues: 0
+        _morpionJouees: 0, _penduGagnees: 0, _chiffreGagnees: 0, _p4Jouees: 0, _jeuxJoues: 0,
+        _parJeu: {}, _jeuxMagiquesEssayes: 0, _serieDefiMax: 0, _defisReussis: 0
       };
     }
     const sacs = this._sacs(profil);
@@ -652,7 +660,18 @@ class GestionnaireProfils {
     clesChiffre.forEach(k => { _chiffreGagnees += somme(k, 'partiesGagnees'); });
     _chiffreGagnees += somme('jeu-trouver-chiffre', 'partiesGagnees'); // ancienne clé
 
-    const _jeuxJoues = _morpionJouees + somme('jeu-pendu', 'partiesJouees') + _p4Jouees + _chiffreGagnees;
+    const _parJeu = {};
+    let _jeuxMagiquesEssayes = 0, _magiquesJouees = 0;
+    GestionnaireProfils.JEUX_MAGIQUES.forEach(id => {
+      const n = somme('jeu-' + id, 'partiesJouees');
+      _parJeu[id] = n;
+      _magiquesJouees += n;
+      if (n > 0) _jeuxMagiquesEssayes++;
+    });
+    const _serieDefiMax = sacs.reduce((m, s) => Math.max(m, (s['defi-du-jour'] && s['defi-du-jour'].meilleureSerie) || 0), 0);
+    const _defisReussis = somme('defi-du-jour', 'partiesDefis');
+
+    const _jeuxJoues = _morpionJouees + somme('jeu-pendu', 'partiesJouees') + _p4Jouees + _chiffreGagnees + _magiquesJouees;
 
     return {
       _totalNiveaux: total,
@@ -665,7 +684,11 @@ class GestionnaireProfils {
       _penduGagnees,
       _chiffreGagnees,
       _p4Jouees,
-      _jeuxJoues
+      _jeuxJoues,
+      _parJeu,
+      _jeuxMagiquesEssayes,
+      _serieDefiMax,
+      _defisReussis
     };
   }
 

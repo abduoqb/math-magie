@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Au Marché des Sorciers - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png">
+    <link rel="stylesheet" href="../../style/commun.css">
+    <link rel="stylesheet" href="../../style/jeux.css">
+    <script src="../../js/profils.js"></script>
+    <link rel="stylesheet" href="../commun.css">
+    <link rel="stylesheet" href="marche.css">
+    <script src="../commun.js"></script>
+    <script src="marche.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
+</head>
+
+<body class="jeu-page jeu-marche">
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
+    <app-header base-path="../../"></app-header>
+    <main>
+      <a href="../index.html" class="lien-retour">← Jeux</a>
+      <h2 class="titre"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><circle cx="60" cy="60" r="44" fill="#FACC15" stroke="#2B2D5B" stroke-width="5"/>
+<circle cx="60" cy="60" r="30" fill="none" stroke="#2B2D5B" stroke-width="3" opacity=".4"/>
+<text x="60" y="76" font-family="Lexend,sans-serif" font-weight="800" font-size="46" fill="#2B2D5B" text-anchor="middle">€</text></svg> Au Marché des Sorciers</h2>
+      <div class="presentation">
+        <div class="cadre">
+          <div class="jeu-conteneur">
+
+            <!-- Choix de la mission -->
+            <div id="ecran-difficulte">
+              <p class="invite-mission">Choisis ta mission ! <span id="zone-voix"></span></p>
+              <div class="choix-difficulte" id="choix-difficulte"></div>
+            </div>
+
+            <!-- Partie -->
+            <div id="ecran-jeu" hidden>
+              <div class="marche-barre">
+                <ol class="marche-points" id="points" aria-label="Avancement"></ol>
+                <div class="marche-stats"><span id="stat-score">⭐ 0</span><span id="stat-serie" hidden>🔥 0</span></div>
+              </div>
+              <div class="jeu-parole">
+                <img class="jeu-mascotte" src="../../images/mascotte-neutre.svg" data-dossier="../../images/" data-etat="neutre" alt="" width="76" height="76" onerror="this.style.display='none'">
+                <p id="consigne" class="tour-info" tabindex="-1"></p>
+              </div>
+              <div class="marche-voix" id="voix-manche"></div>
+              <div id="etal" class="marche-etal"></div>
+              <div id="zone-action"></div>
+              <p id="retour" class="marche-retour" aria-live="polite"></p>
+              <div class="marche-bas"><button type="button" id="btn-suivant" class="btn-magique" hidden>Manche suivante →</button></div>
+            </div>
+
+            <!-- Fin de partie -->
+            <div id="ecran-fin" class="marche-fin" aria-live="polite" hidden>
+              <h3 id="fin-titre"></h3>
+              <div class="marche-etoiles" id="fin-etoiles" role="img"></div>
+              <p id="fin-score"></p>
+              <p id="fin-message"></p>
+              <p id="fin-defi" class="marche-defi" aria-live="polite" hidden></p>
+              <div class="marche-fin-btns">
+                <button type="button" id="btn-rejouer" class="btn-magique">Rejouer</button>
+                <button type="button" id="btn-mission" class="btn-magique marche-doux">Autre mission</button>
+                <a href="../index.html" class="btn-magique marche-doux">Retour aux jeux</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+    (function () {
+      'use strict';
+      var M = MarcheSorciers;
+      var niveau = JeuxNiveau.niveau();
+      var cp = niveau === 'cp';
+      var fm = function (c) { return M.formaterMontant(c, niveau); };
+
+      var $ = function (id) { return document.getElementById(id); };
+      var ecranDiff = $('ecran-difficulte'), ecranJeu = $('ecran-jeu'), ecranFin = $('ecran-fin');
+      var elConsigne = $('consigne'), elEtal = $('etal'), elAction = $('zone-action'), elRetour = $('retour');
+      var btnSuivant = $('btn-suivant');
+
+      // État de la partie
+      var partie = null; // { diff, manches, i, score, serie, resultats, enregistree }
+      var manche = null; // { q, essais, pieces, fini, total, tapis, btnAnnuler, ... }
+
+      function el(tag, cls, texte) {
+        var e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (texte !== undefined) e.textContent = texte;
+        return e;
+      }
+      function vider(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+      // Les images de monnaie viennent de MarcheSorciers.svgMonnaie (valeurs internes uniquement)
+      function imageMonnaie(v) {
+        var s = el('span', 'marche-img');
+        s.innerHTML = M.svgMonnaie(v);
+        return s;
+      }
+
+      /* ---------- Écran de départ ---------- */
+      var classes = ['facile', 'moyen', 'difficile'];
+      M.DIFFICULTES[niveau].forEach(function (d, i) {
+        var b = el('button', 'btn-difficulte ' + classes[i]);
+        b.type = 'button';
+        b.appendChild(document.createTextNode(d.nom + ' '));
+        b.appendChild(el('span', '', d.detail));
+        b.addEventListener('click', function () { demarrer(d.id); });
+        $('choix-difficulte').appendChild(b);
+      });
+      var voixAccueil = JeuxNiveau.creerBoutonVoix(function () { return 'Choisis ta mission au marché des sorciers.'; });
+      if (voixAccueil) $('zone-voix').appendChild(voixAccueil);
+      var voixManche = JeuxNiveau.creerBoutonVoix(function () { return manche ? manche.q.voix : ''; });
+      if (voixManche) $('voix-manche').appendChild(voixManche);
+
+      /* ---------- Déroulement ---------- */
+      function demarrer(diff) {
+        partie = { diff: diff, manches: M.genererPartie(niveau, diff), i: 0, score: 0, serie: 0, resultats: [], enregistree: false };
+        ecranDiff.hidden = true; ecranFin.hidden = true; ecranJeu.hidden = false;
+        majPoints();
+        majStats();
+        afficherManche();
+      }
+
+      function majPoints() {
+        var ol = $('points');
+        vider(ol);
+        for (var k = 0; k < M.NB_MANCHES; k++) {
+          var li = el('li');
+          var r = partie.resultats[k];
+          li.className = r === undefined ? (k === partie.i ? 'courant' : '') : (r ? 'ok' : 'ko');
+          ol.appendChild(li);
+        }
+        ol.setAttribute('aria-label', 'Manche ' + Math.min(partie.i + 1, M.NB_MANCHES) + ' sur ' + M.NB_MANCHES);
+      }
+      function majStats() {
+        $('stat-score').textContent = '⭐ ' + partie.score;
+        var s = $('stat-serie');
+        s.hidden = partie.serie < 2;
+        s.textContent = '🔥 ' + partie.serie;
+      }
+
+      function carteArticle(a) {
+        var c = el('div', 'marche-article');
+        c.appendChild(el('span', 'marche-emoji', a.emoji)).setAttribute('aria-hidden', 'true');
+        c.appendChild(el('span', 'marche-nom', a.qte > 1 ? a.qte + ' ' + a.pl : a.nom));
+        c.appendChild(el('span', 'marche-prix', fm(a.prix) + (a.qte > 1 ? ' chacun' : '')));
+        return c;
+      }
+
+      function dessinerEtal(q) {
+        vider(elEtal);
+        if (q.paniers) {
+          var g = el('div', 'marche-paniers');
+          q.paniers.forEach(function (panier, k) {
+            var p = el('div', 'marche-panier');
+            p.appendChild(el('h3', '', 'Panier ' + (k ? 'B' : 'A')));
+            panier.forEach(function (a) { p.appendChild(carteArticle(a)); });
+            g.appendChild(p);
+          });
+          elEtal.appendChild(g);
+          return;
+        }
+        if (q.pieces) {
+          elEtal.appendChild(el('p', 'marche-legende', 'Voici l’argent :'));
+          var ar = el('div', 'marche-argent');
+          q.pieces.forEach(function (v) { ar.appendChild(imageMonnaie(v)); });
+          elEtal.appendChild(ar);
+          return;
+        }
+        var articles = q.articles || (q.article ? [{ emoji: q.article.emoji, nom: q.article.nom, pl: q.article.pl, qte: 1, prix: q.prixUnitaire || q.prixInitial || null }] : null);
+        if (!articles) return;
+        elEtal.appendChild(el('div', 'marche-auvent'));
+        var rayon = el('div', 'marche-rayon');
+        if (q.article && !q.articles) {
+          // un seul article : on n'affiche le prix que s'il fait partie de l'énoncé
+          var c = el('div', 'marche-article');
+          c.appendChild(el('span', 'marche-emoji', q.article.emoji)).setAttribute('aria-hidden', 'true');
+          c.appendChild(el('span', 'marche-nom', q.article.nom));
+          if (q.prixUnitaire || q.prixInitial) c.appendChild(el('span', 'marche-prix', fm(q.prixUnitaire || q.prixInitial)));
+          rayon.appendChild(c);
+        } else {
+          articles.forEach(function (a) { rayon.appendChild(carteArticle(a)); });
+        }
+        elEtal.appendChild(rayon);
+        if (q.paye) {
+          elEtal.appendChild(el('p', 'marche-legende', 'Le client te donne :'));
+          var ar2 = el('div', 'marche-argent');
+          ar2.appendChild(imageMonnaie(q.paye));
+          elEtal.appendChild(ar2);
+        }
+      }
+
+      function afficherManche() {
+        var q = partie.manches[partie.i];
+        manche = { q: q, essais: 0, pieces: [], fini: false };
+        majPoints();
+        elConsigne.textContent = q.consigne;
+        dessinerEtal(q);
+        vider(elAction);
+        elRetour.textContent = '';
+        elRetour.className = 'marche-retour';
+        btnSuivant.hidden = true;
+        JeuxNiveau.mascotte('neutre');
+        if (q.mode === 'composer') construireComposer(q); else construireChoix(q);
+        elConsigne.focus();
+      }
+
+      /* ---------- Composer une somme ---------- */
+      function construireComposer(q) {
+        var cpt = el('div', 'marche-compteur');
+        cpt.appendChild(document.createTextNode(q.type === 'rendre' ? 'Tu rends :' : 'Tu as posé :'));
+        var total = el('strong', '', fm(0));
+        cpt.appendChild(total);
+        var tapis = el('div', 'marche-tapis');
+        tapis.setAttribute('role', 'group');
+        tapis.setAttribute('aria-label', 'Argent posé');
+        var plateau = el('div', 'marche-plateau');
+        var pieces = q.denoms.filter(function (d) { return d < 500; });
+        var billets = q.denoms.filter(function (d) { return d >= 500; });
+        manche.boutons = [];
+        [pieces, billets].forEach(function (liste) {
+          if (!liste.length) return;
+          var rg = el('div', 'marche-rangee');
+          liste.forEach(function (v) {
+            var b = el('button', 'marche-monnaie');
+            b.type = 'button';
+            b.setAttribute('aria-label', 'Poser un' + (v >= 500 ? ' ' : 'e ') + M.nomMonnaie(v));
+            b.innerHTML = M.svgMonnaie(v);
+            b.addEventListener('click', function () { poser(v); });
+            rg.appendChild(b);
+            manche.boutons.push(b);
+          });
+          plateau.appendChild(rg);
+        });
+        var actions = el('div', 'marche-actions');
+        var annuler = el('button', 'btn-magique marche-doux', 'Annuler la dernière');
+        annuler.type = 'button'; annuler.disabled = true;
+        annuler.addEventListener('click', annulerDerniere);
+        var tout = el('button', 'btn-magique marche-doux', 'Tout effacer');
+        tout.type = 'button'; tout.disabled = true;
+        tout.addEventListener('click', toutEffacer);
+        var valider = el('button', 'btn-magique', 'Valider');
+        valider.type = 'button';
+        valider.addEventListener('click', validerSomme);
+        actions.appendChild(annuler); actions.appendChild(tout); actions.appendChild(valider);
+        [cpt, tapis, plateau, actions].forEach(function (n) { elAction.appendChild(n); });
+        Object.assign(manche, { total: total, tapis: tapis, annuler: annuler, tout: tout, valider: valider });
+      }
+      function majTapis() {
+        vider(manche.tapis);
+        manche.pieces.forEach(function (v) {
+          var s = el('span', 'marche-pose');
+          s.innerHTML = M.svgMonnaie(v);
+          manche.tapis.appendChild(s);
+        });
+        manche.total.textContent = fm(M.somme(manche.pieces));
+        manche.annuler.disabled = manche.tout.disabled = manche.fini || manche.pieces.length === 0;
+      }
+      function poser(v) {
+        if (manche.fini || manche.pieces.length >= 40) return;
+        manche.pieces.push(v);
+        majTapis();
+      }
+      function annulerDerniere() {
+        if (manche.fini) return;
+        manche.pieces.pop();
+        majTapis();
+        elRetour.textContent = '';
+        elRetour.className = 'marche-retour';
+      }
+      function toutEffacer() {
+        if (manche.fini) return;
+        manche.pieces = [];
+        majTapis();
+      }
+      function validerSomme() {
+        if (manche.fini) return;
+        var q = manche.q, s = M.somme(manche.pieces);
+        if (!manche.pieces.length) { retour('Pose d’abord de l’argent !', 'aide'); return; }
+        manche.essais++;
+        if (s === q.cible) { conclure(true); return; }
+        JeuxNiveau.mascotte('triste');
+        if (manche.essais >= 3) { revelerSomme(); return; }
+        var enTrop = s > q.cible;
+        if (manche.essais === 1) {
+          retour((enTrop ? 'Il y en a trop. ' : 'Il n’y en a pas assez. ') + (cp ? 'Essaie encore !' : 'Retire ou ajoute des pièces. Essaie encore !'), 'ko');
+        } else {
+          retour((enTrop ? 'Tu as ' + fm(s - q.cible) + ' de trop.' : 'Il manque ' + fm(q.cible - s) + '.') + ' ' + q.indice, 'ko');
+        }
+      }
+      function revelerSomme() {
+        var q = manche.q;
+        manche.pieces = M.solutionMinimale(q.cible, q.denoms);
+        majTapis();
+        conclure(false, 'Voici une façon de faire : ' + q.explication);
+      }
+
+      /* ---------- Choisir une réponse ---------- */
+      function construireChoix(q) {
+        var g = el('div', 'marche-choix' + (q.choix.length === 3 ? ' marche-trois' : ''));
+        manche.boutons = [];
+        q.choix.forEach(function (c, k) {
+          var b = el('button', '', c.label);
+          b.type = 'button';
+          b.addEventListener('click', function () { choisir(k); });
+          g.appendChild(b);
+          manche.boutons.push(b);
+        });
+        elAction.appendChild(g);
+      }
+      function choisir(k) {
+        if (manche.fini) return;
+        var q = manche.q, b = manche.boutons[k];
+        manche.essais++;
+        if (k === q.bonne) { b.classList.add('juste'); conclure(true); return; }
+        b.classList.add('faux'); b.disabled = true;
+        JeuxNiveau.mascotte('triste');
+        if (q.choix.length > 2 && manche.essais < 2) {
+          retour('Pas tout à fait ! ' + q.indice + ' Essaie encore.', 'ko');
+        } else {
+          manche.boutons[q.bonne].classList.add('juste');
+          conclure(false);
+        }
+      }
+
+      /* ---------- Fin de manche ---------- */
+      function retour(texte, type) {
+        elRetour.textContent = texte;
+        elRetour.className = 'marche-retour ' + type;
+      }
+      function conclure(juste, texteSolution) {
+        var q = manche.q;
+        manche.fini = true;
+        var premier = juste && manche.essais === 1;
+        partie.resultats[partie.i] = premier;
+        if (premier) { partie.score++; partie.serie++; } else { partie.serie = 0; }
+        majStats();
+        majPoints();
+        if (manche.boutons) manche.boutons.forEach(function (b) { b.disabled = true; });
+        if (manche.annuler) { manche.annuler.disabled = true; manche.tout.disabled = true; manche.valider.disabled = true; }
+        JeuxNiveau.mascotte(juste ? 'contente' : 'triste');
+        var debut = juste
+          ? (premier ? (partie.serie >= 3 ? 'Série de ' + partie.serie + ' ! Bravo !' : 'Bravo !') : 'Bien, tu as trouvé !')
+          : 'Pas cette fois.';
+        retour(debut + ' ' + (texteSolution || q.explication), juste ? 'ok' : 'ko');
+        var derniere = partie.i === M.NB_MANCHES - 1;
+        btnSuivant.textContent = derniere ? 'Voir mon score ⭐' : 'Manche suivante →';
+        btnSuivant.hidden = false;
+        btnSuivant.focus();
+      }
+      btnSuivant.addEventListener('click', function () {
+        if (partie.i >= M.NB_MANCHES - 1) { terminer(); return; }
+        partie.i++;
+        afficherManche();
+      });
+
+      /* ---------- Fin de partie ---------- */
+      function terminer() {
+        var score = partie.score;
+        var gagnee = M.gagnee(score);
+        var retourDefi = {};
+        if (!partie.enregistree) {
+          partie.enregistree = true;
+          retourDefi = JeuxNiveau.enregistrerPartie('marche', { gagnee: gagnee, score: score, meilleur: 'max' });
+        }
+        ecranJeu.hidden = true; ecranFin.hidden = false;
+        var etoiles = M.etoiles(score);
+        $('fin-titre').textContent = score === M.NB_MANCHES ? 'Roi du Marché ! 👑' : gagnee ? 'Belle affaire ! 🪙' : 'Le marché ferme… 🌙';
+        var fe = $('fin-etoiles');
+        fe.textContent = '⭐'.repeat(etoiles) + '☆'.repeat(3 - etoiles);
+        fe.setAttribute('aria-label', etoiles + ' étoile' + (etoiles > 1 ? 's' : '') + ' sur 3');
+        $('fin-score').textContent = score + ' manche' + (score > 1 ? 's' : '') + ' réussie' + (score > 1 ? 's' : '') + ' du premier coup sur ' + M.NB_MANCHES + '.';
+        $('fin-message').textContent = score === M.NB_MANCHES ? 'Pas une erreur : les sorciers sont impressionnés !'
+          : gagnee ? 'Tu comptes très bien. Encore un peu et c’est parfait !'
+          : 'Tu apprends vite. Rejoue pour t’entraîner : tu peux le faire !';
+        var md = JeuxNiveau.messageDefi(retourDefi);
+        var pd = $('fin-defi');
+        pd.textContent = md;
+        pd.hidden = !md;
+        JeuxNiveau.mascotte(gagnee ? 'contente' : 'neutre');
+        $('btn-rejouer').focus();
+      }
+      $('btn-rejouer').addEventListener('click', function () { demarrer(partie.diff); });
+      $('btn-mission').addEventListener('click', function () {
+        ecranFin.hidden = true; ecranJeu.hidden = true; ecranDiff.hidden = false;
+      });
+    })();
+    </script>
+</body>
+</html>

@@ -5,7 +5,7 @@ Objectif: la progression des enfants est sauvegardée en ligne et retrouvée sur
 ## Modèle de confiance
 - **Un compte « famille » = un parent** (Supabase Auth, e-mail + mot de passe). Seule donnée personnelle stockée: l'e-mail du parent (géré par Supabase Auth). Aucune donnée personnelle sur l'enfant: prénom (ou pseudo), avatar, couleur, classe, progression.
 - Les enfants gardent **prénom + code à 4 chiffres**. Le code est un verrou de confort *à l'intérieur* de la session famille (le hachage `{sel, hash}` est synchronisé pour fonctionner sur tous les appareils). La sécurité réelle = la session du parent + RLS.
-- Sur un nouvel appareil: le parent se connecte **une fois** (Espace parent → « Synchroniser cet appareil »), puis les enfants choisissent leur profil + code comme d'habitude. La session persiste jusqu'à « Se déconnecter » (Espace parent → Ma famille).
+- Sur un nouvel appareil: le parent se connecte **une fois** (Espace parent → « Synchroniser cet appareil »), puis les enfants choisissent leur profil + code comme d'habitude. La session persiste jusqu'à « Se déconnecter » (Espace parent → Sauvegarde en ligne).
 
 ## Base (projet `uuxghhuhfeoposespbsk`, région eu-north-1) — créée par l'orchestrateur
 - `public.familles(famille_id uuid pk = auth.uid(), code_parent jsonb, maj_le)` — code parent `{sel, hash}`.

@@ -232,7 +232,7 @@
           el('div', { class: 'pied' },
             syncDispo
               ? el('button', { type: 'button', class: 'btn btn-secondaire btn-parent', onclick: () => aller(() => ecranParentSync(false)) },
-                connecte ? '☁️ Ma famille' : '☁️ Me connecter à ma famille')
+                connecte ? '☁️ Sauvegarde en ligne' : '☁️ Sauvegarder ma progression')
               : null,
             el('button', { type: 'button', class: 'btn btn-discret btn-parent', onclick: () => aller(ecranParentAcces) }, '🔒 Espace parent'))
         );

@@ -2,6 +2,10 @@ const configPatrons = {
   typeInterface: "boutons",
   nomOperation: "geometrie-patrons",
   genererQuestion: function(niveau = 1) {
+    // CE1 : « approche du patron du cube » -> ce patron plie-t-il en cube ? (Oui / Non)
+    if (GeoProgramme.contenu(this.nomOperation).mode === "patron-cube" && typeof GeoPatronCube !== "undefined") {
+      return GeoPatronCube.question(Math.max(1, Math.min(niveau, GeoProgramme.maxNiveau(this.nomOperation), 3)));
+    }
     // Couleurs par solide
     const couleurs = {
       "Cube": "#FF8C00",

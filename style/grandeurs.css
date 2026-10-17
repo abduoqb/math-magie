@@ -1,0 +1,85 @@
+/* Univers « Grandeurs & mesures » : liste des missions + pages d'exercice.
+   Réutilise les classes calc-* de calculs.css (même mécanique d'exercice) et ne fait que
+   changer la couleur d'univers et ajouter ce qui est propre aux mesures (gr-*).
+   À charger APRÈS calculs.css. (La carte de l'accueil et les trophées ont leurs règles dans accueil.css et trophees.html.) */
+
+:root {
+  --grandeurs: #EC4899;
+  --grandeurs-clair: #FCE1F0;
+  --grandeurs-fonce: #BE185D; /* texte rose AA sur blanc */
+}
+
+.gr-body {
+  --c-calcul: var(--grandeurs, #EC4899);
+  --c-calcul-clair: var(--grandeurs-clair, #FCE1F0);
+  --op: var(--grandeurs, #EC4899);
+  --op-clair: var(--grandeurs-clair, #FCE1F0);
+}
+.gr-body [hidden] { display: none !important; }
+
+/* ---------- liste des missions ---------- */
+.gr-liste-entete .gr-liste-emoji {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 88px; height: 88px; font-size: 3rem;
+  background: var(--grandeurs-clair); border: 3px solid var(--encre, #2B2D5B); border-radius: 50%;
+  box-shadow: 0 5px 0 var(--encre, #2B2D5B);
+}
+.gr-ops { max-width: 900px; }
+.gr-op { --op: var(--grandeurs); --op-clair: var(--grandeurs-clair); }
+.gr-op-emoji {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: clamp(96px, 18vw, 120px); height: clamp(96px, 18vw, 120px); font-size: clamp(3rem, 8vw, 4rem);
+  background: var(--c-carte, #fff); border: 3px solid var(--c-encre, #2B2D5B); border-radius: 50%;
+  box-shadow: 0 4px 0 var(--c-encre, #2B2D5B);
+}
+.gr-op .calc-op-nom { text-align: center; }
+.gr-op-info { margin: 0; font-size: .95rem; font-weight: 600; color: var(--c-texte, #334155); text-align: center; }
+.gr-op.inactive .calc-op-go { font-size: 1rem; line-height: 1.15; text-align: center; padding: 6px 14px; min-width: 0; }
+.gr-op:focus-visible { outline: 4px solid var(--grandeurs); outline-offset: 3px; }
+
+/* ---------- page d'exercice ---------- */
+.gr-titre-emoji { font-size: 2.2rem; line-height: 1; }
+.gr-body #calcul[data-longueur="phrase"] {
+  font-size: clamp(1.15rem, 4.2vw, 1.55rem); font-weight: 700; line-height: 1.35; padding: 12px 16px;
+}
+.gr-figure { display: flex; justify-content: center; width: 100%; }
+.gr-fig { width: 100%; max-width: 280px; height: auto; max-height: 170px; }
+.gr-fig-forme { fill: var(--op-clair); stroke: var(--c-encre, #2B2D5B); stroke-width: 3.5; stroke-linejoin: round; }
+.gr-fig-haut { fill: #fff; }
+.gr-fig-cote { fill: var(--op); }
+.gr-fig-grille { stroke: var(--c-encre, #2B2D5B); stroke-width: 1.5; opacity: .55; }
+.gr-fig-trait { stroke: var(--c-encre, #2B2D5B); stroke-width: 3.5; stroke-linecap: round; }
+.gr-fig-point { fill: var(--c-encre, #2B2D5B); }
+.gr-fig-texte { font: 800 15px 'Lexend', sans-serif; fill: var(--c-encre, #2B2D5B); paint-order: stroke; stroke: #fff; stroke-width: 4px; }
+
+.gr-saisie { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
+.gr-saisie #saisieReponse { flex: 0 1 230px; width: auto; min-width: 0; }
+.gr-unite { font: 800 1.6rem 'Lexend', sans-serif; color: var(--c-encre, #2B2D5B); white-space: nowrap; }
+
+.gr-choix { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; width: 100%; }
+.gr-choix-bouton {
+  min-height: 72px; padding: 8px 14px; cursor: pointer;
+  font: 800 1.5rem 'Lexend', sans-serif; color: var(--c-encre, #2B2D5B); line-height: 1.15;
+  background: var(--c-carte, #fff); border: 3px solid var(--c-encre, #2B2D5B); border-radius: var(--c-rayon, 22px);
+  box-shadow: 0 5px 0 var(--c-encre, #2B2D5B);
+  touch-action: manipulation; transition: transform .1s, box-shadow .1s, background-color .15s;
+}
+.gr-choix-bouton:hover:not(:disabled) { background: var(--c-calcul-clair); }
+.gr-choix-bouton:active:not(:disabled) { transform: translateY(5px); box-shadow: 0 0 0 var(--c-encre, #2B2D5B); }
+.gr-choix-bouton:focus-visible { outline: 4px solid var(--grandeurs); outline-offset: 3px; }
+.gr-choix-bouton:disabled { cursor: default; }
+.gr-choix-bouton.juste { background: var(--c-ok-clair, #DCFCE7); border-color: var(--c-ok, #22C55E); }
+.gr-choix-bouton.faux { background: var(--c-ko-clair, #FEE2E2); border-color: var(--c-ko, #EF4444); }
+.gr-choix-bouton.juste::after { content: " ✓"; }
+.gr-choix-bouton.faux::after { content: " ✗"; }
+
+.calc-body.calc-cp .gr-choix-bouton { min-height: 88px; font-size: 1.8rem; }
+
+@media (max-width: 520px) {
+  .gr-liste-entete .gr-liste-emoji { width: 64px; height: 64px; font-size: 2.2rem; }
+  .gr-op-emoji { width: 80px; height: 80px; font-size: 2.4rem; }
+  .gr-unite { font-size: 1.3rem; }
+  .gr-choix { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .gr-choix-bouton { font-size: 1.25rem; min-height: 64px; }
+  .gr-fig { max-height: 130px; }
+}

@@ -113,18 +113,18 @@ window.PROGRAMMES.ce1 = {
       }
     },
     'geometrie-angles': {
-      actif: false,
+      actif: true,
       libelle: 'Angles',
       source: 'https://eduscol.education.fr/document/13948/download',
-      notes: 'Au CE1 seul l\'angle droit est vu (equerre) ; aigu/obtus/plat/nul sont hors programme. Un quiz a un seul type n\'a pas de sens avec le moteur actuel (QCM de types) : inactif. Pourrait devenir "droit / pas droit" si le moteur le permet.',
-      contenu: { types: ['Droit'] }
+      notes: 'Au CE1 seul l\'angle droit est vu (equerre) ; aigu/obtus/plat/nul sont hors programme. Active : le moteur propose "est-ce un angle droit ?" (Oui/Non) avec une equerre dessinee, jamais les autres noms d\'angles.',
+      contenu: { types: ['Droit'], niveauMax: 2 }
     },
     'geometrie-symetrie': {
       actif: true,
       libelle: 'Symétrie',
       source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
       notes: 'Reconnaitre un axe de symetrie (pliage, calque) au programme CE1. Limiter aux formes simples du moteur (niveaux 1-2 : 3 a 6 points, erreurs visibles) ; pas de niveau 3 (formes complexes, erreurs subtiles).',
-      contenu: { niveauMoteurMax: 2, nbPoints: [3, 6] }
+      contenu: { niveauMoteurMax: 2, nbPoints: [3, 6], quadrillage: true }
     },
     'geometrie-vraifaux': {
       actif: true,
@@ -158,13 +158,279 @@ window.PROGRAMMES.ce1 = {
       contenu: { types: [] }
     },
     'geometrie-patrons': {
-      actif: false,
-      libelle: 'Patrons',
+      actif: true,
+      libelle: 'Patron du cube',
       source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
-      notes: 'Seule une "approche du patron du cube" est citee ; le moteur demande >= 2 solides et ses patrons de pyramide/cylindre/pave sont hors CE1. A valider si on veut un mini-mode Cube / Pave droit.',
-      contenu: { solides: ['Cube'] }
+      notes: 'Seule une "approche du patron du cube" est citee : mode Oui/Non "ce patron plie-t-il en cube ?" (assemblages de 6 carres, reponse calculee par simulation de pliage). Patrons de pyramide/cylindre/pave : hors CE1.',
+      contenu: { mode: 'patron-cube', solides: ['Cube'], niveauMax: 2 }
+    },
+    'geometrie-espace': {
+      actif: true,
+      libelle: 'Repérage sur quadrillage',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Vocabulaire spatial + suite de deplacements sur un quadrillage (droite/gauche/haut/bas). Coordonnees (x ; y) : CE2.',
+      contenu: { themes: ['position', 'quadrillage-case', 'deplacement'], niveauMax: 2 }
+    },
+    'geometrie-solides': {
+      actif: true,
+      libelle: 'Les solides',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Faces du cube (carres), du pave (rectangles), de la pyramide (triangles). "Roule / ne roule pas" : activite classique du cycle 2 (a valider). Descriptions par enigmes : CE2.',
+      contenu: { themes: ['roule', 'faces-forme'], solides: ['Cube', 'Sphère', 'Pavé droit', 'Cylindre', 'Cône', 'Pyramide'], niveauMax: 2 }
+    },
+    'geometrie-cercle': {
+      actif: true,
+      libelle: 'Le cercle',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Cercle, centre, rayon, compas pour tracer un cercle. Diametre : CE2.',
+      contenu: { themes: ['vocabulaire', 'compas'], vocab: ['centre', 'rayon'], niveauMax: 1 }
+    },
+    'geometrie-instruments': {
+      actif: true,
+      libelle: 'Règle, équerre, compas',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Regle graduee (cm), equerre (angles droits), compas (cercle). Rapporteur : CM2.',
+      contenu: { themes: ['choix-instrument', 'regle-lecture'], instruments: ['règle', 'équerre', 'compas'], niveauMax: 3 }
     }
   },
+  nombres: {
+    // Module Nombres : ids prefixes 'nombres-'. Paliers lus par nombres/js/generateur_nombres.js.
+    // Nombres jusqu'à 1 000. Les paliers sont une proposition de conception (non officielle).
+    'nombres-valeur': {
+      actif: true,
+      libelle: 'Valeur des chiffres',
+      consigne: 'Centaines, dizaines, unités : trouve la valeur.',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Nombres jusqu\'à 1 000 : centaines, dizaines, unités.',
+      niveaux: [
+        { min: 100, max: 300, types: ['chiffre'] },
+        { min: 100, max: 999, types: ['chiffre'] },
+        { min: 100, max: 999, types: ['chiffre', 'valeur'] },
+        { min: 100, max: 999, types: ['valeur', 'combien'] },
+        { min: 100, max: 999, types: ['chiffre', 'valeur', 'combien'] },
+        { min: 100, max: 999, types: ['valeur', 'combien'] }
+      ]
+    },
+    'nombres-decomposer': {
+      actif: true,
+      libelle: 'Décomposer',
+      consigne: 'Décompose en centaines, dizaines et unités.',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Décomposer un nombre jusqu\'à 1 000.',
+      niveaux: [
+        { min: 100, max: 300, types: ['rangs'] },
+        { min: 100, max: 999, types: ['rangs'] },
+        { min: 100, max: 999, types: ['somme'] },
+        { min: 100, max: 999, types: ['retrouver', 'somme'] },
+        { min: 100, max: 999, types: ['rangs', 'somme', 'retrouver'] },
+        { min: 100, max: 999, types: ['rangs', 'somme', 'retrouver'] }
+      ]
+    },
+    'nombres-comparer': {
+      actif: true,
+      libelle: 'Comparer',
+      consigne: 'Compare les nombres.',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Comparer jusqu\'à 1 000.',
+      niveaux: [
+        { min: 0, max: 200, types: ['symbole'] },
+        { min: 0, max: 999, types: ['symbole', 'plusgrand'] },
+        { min: 0, max: 999, types: ['symbole', 'plusgrand', 'pluspetit'] },
+        { min: 100, max: 999, types: ['symbole', 'plusgrand', 'pluspetit'], proche: true },
+        { min: 100, max: 999, types: ['symbole', 'pluspetit'], proche: true, nb: 4 },
+        { min: 100, max: 999, types: ['symbole', 'plusgrand', 'pluspetit'], proche: true, nb: 4 }
+      ]
+    },
+    'nombres-ranger': {
+      actif: true,
+      libelle: 'Ranger',
+      consigne: 'Range les nombres dans l\'ordre.',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Ranger jusqu\'à 1 000.',
+      niveaux: [
+        { min: 0, max: 200, nb: 3, sens: ['croissant'] },
+        { min: 0, max: 999, nb: 3, sens: ['croissant', 'decroissant'] },
+        { min: 0, max: 999, nb: 4, sens: ['croissant', 'decroissant'] },
+        { min: 100, max: 999, nb: 4, sens: ['croissant', 'decroissant'], proche: true },
+        { min: 100, max: 999, nb: 5, sens: ['croissant', 'decroissant'] },
+        { min: 100, max: 999, nb: 5, sens: ['croissant', 'decroissant'], proche: true }
+      ]
+    },
+    'nombres-encadrer': {
+      actif: true,
+      libelle: 'Encadrer',
+      consigne: 'Encadre le nombre.',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Encadrer entre deux dizaines ou deux centaines consécutives.',
+      niveaux: [
+        { min: 20, max: 99, e: [1], types: ['pair'] },
+        { min: 100, max: 999, e: [1], types: ['pair', 'inf', 'sup'] },
+        { min: 100, max: 999, e: [2], types: ['pair'] },
+        { min: 100, max: 999, e: [1, 2], types: ['pair', 'inf', 'sup'] },
+        { min: 100, max: 999, e: [1, 2], types: ['pair', 'inf', 'sup'] },
+        { min: 100, max: 999, e: [1, 2], types: ['pair', 'inf', 'sup'] }
+      ]
+    },
+    'nombres-droite': {
+      actif: false,
+      libelle: 'Droite graduée',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Droite graduée : à partir du CE2 dans ce module.',
+      niveaux: []
+    },
+    'nombres-moitie': {
+      actif: false,
+      libelle: 'La moitié',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Moitié : CP.',
+      niveaux: []
+    },
+    'nombres-fractions': {
+      actif: false,
+      libelle: 'Les fractions',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Fractions simples : CM1.',
+      niveaux: []
+    },
+    'nombres-decimaux': {
+      actif: false,
+      libelle: 'Les nombres décimaux',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Décimaux : CM1.',
+      niveaux: []
+    }
+  },
+  // BEGIN grandeurs (module grandeurs/ ; généré, voir grandeurs/js/generateur_grandeurs.js pour le format des exos)
+  grandeurs: {
+    longueurs: {
+      actif: true,
+      libelle: 'Longueurs',
+      consigne: 'Mesure, compare et change d’unité.',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Unités : cm, dm, m, km (dm et km introduits au CE1, voir docs/programmes/ce1.md). Pas de mm. Entiers <= 1000.',
+      niveaux: [
+        { exos: [
+          { type: 'comparer', grandeur: 'longueur', unites: ['cm'], min: 1, max: 100, deux: true },
+          { type: 'choisir-unite', grandeur: 'longueur', unites: ['cm', 'm'], nbChoix: 2 }
+        ] },
+        { exos: [
+          { type: 'convertir', grandeur: 'longueur', paires: [['m', 'cm']], min: 1, max: 9 },
+          { type: 'probleme', grandeur: 'longueur', op: 'add', unite: 'm', min: 1, max: 500 },
+          { type: 'probleme', grandeur: 'longueur', op: 'sub', unite: 'm', min: 1, max: 1000 }
+        ] },
+        { exos: [
+          { type: 'convertir', grandeur: 'longueur', paires: [['m', 'dm'], ['dm', 'cm']], min: 1, max: 99 },
+          { type: 'comparer', grandeur: 'longueur', paires: [['m', 'cm']], min: 1, max: 9 }
+        ] },
+        { exos: [
+          { type: 'mixte', grandeur: 'longueur', paire: ['m', 'cm'], min: 1, max: 9, pas: 10 },
+          { type: 'convertir', grandeur: 'longueur', paires: [['km', 'm']], min: 1, max: 1 },
+          { type: 'choisir-unite', grandeur: 'longueur', unites: ['cm', 'm', 'km'] }
+        ] },
+        { exos: [
+          { type: 'probleme', grandeur: 'longueur', op: 'mul', unite: 'm', min: 2, max: 100, n: [2, 5] },
+          { type: 'probleme', grandeur: 'longueur', op: 'div', unite: 'm', min: 2, max: 100, n: [2, 5] },
+          { type: 'convertir', grandeur: 'longueur', paires: [['dm', 'm']], min: 10, max: 90 }
+        ] },
+        { exos: [
+          { type: 'convertir', grandeur: 'longueur', paires: [['cm', 'm']], min: 100, max: 900 },
+          { type: 'comparer', grandeur: 'longueur', paires: [['m', 'cm']], min: 1, max: 9, deux: true },
+          { type: 'choisir-unite', grandeur: 'longueur', unites: ['cm', 'dm', 'm', 'km'] }
+        ] }
+      ]
+    },
+    'masses-contenances': {
+      actif: true,
+      libelle: 'Masses et contenances',
+      consigne: 'Pèse, compare et mesure avec des litres.',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Masses : g et kg (3 kg = 3 000 g, quelques valeurs au-delà de 1000). Contenances : litre uniquement (cL et dL sont au CE2).',
+      niveaux: [
+        { exos: [
+          { type: 'comparer', grandeur: 'masse', unites: ['kg'], min: 1, max: 50, deux: true },
+          { type: 'comparer', grandeur: 'contenance', unites: ['L'], min: 1, max: 50, deux: true }
+        ] },
+        { exos: [
+          { type: 'choisir-unite', grandeur: 'masse', unites: ['g', 'kg'], nbChoix: 2 },
+          { type: 'probleme', grandeur: 'masse', op: 'add', unite: 'kg', min: 1, max: 50 },
+          { type: 'probleme', grandeur: 'contenance', op: 'add', unite: 'L', min: 1, max: 50 }
+        ] },
+        { exos: [
+          { type: 'probleme', grandeur: 'masse', op: 'add', unite: 'g', min: 10, max: 500 },
+          { type: 'probleme', grandeur: 'masse', op: 'sub', unite: 'g', min: 10, max: 1000 },
+          { type: 'probleme', grandeur: 'contenance', op: 'sub', unite: 'L', min: 1, max: 100 }
+        ] },
+        { exos: [
+          { type: 'convertir', grandeur: 'masse', paires: [['kg', 'g']], min: 1, max: 5 },
+          { type: 'probleme', grandeur: 'masse', op: 'mul', unite: 'kg', min: 2, max: 50, n: [2, 5] },
+          { type: 'probleme', grandeur: 'contenance', op: 'mul', unite: 'L', min: 2, max: 50, n: [2, 5] }
+        ] },
+        { exos: [
+          { type: 'probleme', grandeur: 'masse', op: 'div', unite: 'kg', min: 2, max: 100, n: [2, 5] },
+          { type: 'probleme', grandeur: 'contenance', op: 'div', unite: 'L', min: 2, max: 100, n: [2, 5] },
+          { type: 'convertir', grandeur: 'masse', paires: [['g', 'kg']], min: 1000, max: 5000 }
+        ] },
+        { exos: [
+          { type: 'mixte', grandeur: 'masse', paire: ['kg', 'g'], min: 1, max: 4, pas: 100 },
+          { type: 'convertir', grandeur: 'masse', paires: [['kg', 'g']], min: 1, max: 5 },
+          { type: 'choisir-unite', grandeur: 'masse', unites: ['g', 'kg'], nbChoix: 2 }
+        ] }
+      ]
+    },
+    'durees-monnaie': {
+      actif: true,
+      libelle: 'Durées et monnaie',
+      consigne: 'Calcule des durées et des sommes d’argent.',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Heures entières, 60 min = 1 h, 24 h = 1 jour, 7 jours = 1 semaine, 12 mois = 1 an. Monnaie en euros entiers (centimes seulement en conversion). Heures sur horloge : voir le jeu Horloge.',
+      niveaux: [
+        { exos: [
+          { type: 'duree-ecart', mode: 'heures', maxH: 5 },
+          { type: 'monnaie-somme', unite: '€', valeurs: [1, 2, 5, 10], nbMax: 2, nbTypes: 2 }
+        ] },
+        { exos: [
+          { type: 'duree-ecart', mode: 'heure-future', maxH: 5 },
+          { type: 'monnaie-rendu', paye: [5, 10], prixMax: 9 }
+        ] },
+        { exos: [
+          { type: 'convertir', grandeur: 'duree', paires: [['h', 'min']], min: 1, max: 1 },
+          { type: 'convertir', grandeur: 'duree', paires: [['semaine', 'jour']], min: 1, max: 4 },
+          { type: 'convertir', grandeur: 'duree', paires: [['jour', 'h']], min: 1, max: 3 },
+          { type: 'convertir', grandeur: 'calendrier', paires: [['an', 'mois']], min: 1, max: 3 }
+        ] },
+        { exos: [
+          { type: 'monnaie-somme', unite: '€', valeurs: [1, 2, 5, 10, 20], nbMax: 3, nbTypes: 3 },
+          { type: 'probleme', grandeur: 'duree', op: 'add', unite: 'h', min: 1, max: 6 }
+        ] },
+        { exos: [
+          { type: 'monnaie-rendu', paye: [10, 20], prixMax: 19 },
+          { type: 'probleme', grandeur: 'monnaie', op: 'sub', unite: '€', min: 5, max: 100 },
+          { type: 'probleme', grandeur: 'duree', op: 'sub', unite: 'h', min: 1, max: 8 }
+        ] },
+        { exos: [
+          { type: 'convertir', grandeur: 'monnaie', paires: [['€', 'cts']], min: 1, max: 9 },
+          { type: 'probleme', grandeur: 'monnaie', op: 'mul', unite: '€', min: 2, max: 50, n: [2, 5] },
+          { type: 'monnaie-rendu', paye: [20, 50], prixMax: 49 }
+        ] }
+      ]
+    },
+    'perimetres-aires': {
+      actif: false,
+      libelle: 'Périmètres et aires',
+      notes: 'Périmètres : CE2. Aires : CM1.'
+    },
+    'proportionnalite-pourcentages': {
+      actif: false,
+      libelle: 'Proportionnalité',
+      notes: 'Initiation en CM1, pourcentages en CM2.'
+    },
+    'volumes-vitesses-echelles': {
+      actif: false,
+      libelle: 'Volumes, vitesses, échelles',
+      notes: 'CM2 uniquement.'
+    }
+  },
+  // END grandeurs
   jeux: {
     morpion: true,
     puissance4: true,

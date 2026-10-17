@@ -60,6 +60,9 @@ class MoteurGeometrie {
   /* ---------- Mascotte (flamme bleue) ---------- */
 
   static getMascotteSVG(etat) {
+    // Repli SVG : les états PNG (heureuse, emerveillee, coeur, pleure) retombent sur contente / triste
+    if (etat === "heureuse" || etat === "emerveillee" || etat === "coeur") etat = "contente";
+    else if (etat === "pleure") etat = "triste";
     const bouche = etat === "triste"
       ? '<path d="M44 70 Q50 63 56 70" stroke="#2B2D5B" stroke-width="3" fill="none" stroke-linecap="round"/>'
       : (etat === "contente"
@@ -406,13 +409,13 @@ class MoteurGeometrie {
       const felicitations = ["Bien joué !", "Bravo !", "Super !", "Génial !", "Exact !"];
       this.messageRetour("✅ " + felicitations[(this.score + this.tentatives) % felicitations.length], "geo-ok");
       this.elCadre.classList.add("succes");
-      this.mascotteEtat("contente");
+      this.mascotteEtat("heureuse");
     } else {
       this.consecutifs = 0;
       this.erreursConsecutives++;
       this.messageRetour(`Pas grave ! C'était : ${this.currentReponse}`, "geo-ko");
       this.elCadre.classList.add("erreur");
-      this.mascotteEtat("triste");
+      this.mascotteEtat("pleure");
     }
 
     this.clearTimer();
@@ -457,7 +460,7 @@ class MoteurGeometrie {
       rangee += `<span class="geo-etoile-fin" style="animation-delay:${(0.2 + i * 0.25).toFixed(2)}s">${typeof GeoIcones !== "undefined" ? GeoIcones.etoile(i < etoiles) : (i < etoiles ? "★" : "☆")}</span>`;
     }
     this.elForme.innerHTML = `<div class="geo-etoiles-fin" role="img" aria-label="${etoiles} étoile${etoiles > 1 ? "s" : ""} sur 3">${rangee}</div>`;
-    this.mascotteEtat(reussi || this.score >= 5 ? "contente" : "neutre");
+    this.mascotteEtat(reussi ? "emerveillee" : (this.score >= 5 ? "heureuse" : "neutre"));
 
     let msg;
     if (this.score >= 9) msg = "Tu es un vrai magicien !";

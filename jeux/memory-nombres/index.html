@@ -239,7 +239,7 @@
           majInfos();
           if (r.action === 'paire') {
             r.cartes.forEach(majCarte);
-            JeuxNiveau.mascotte('contente');
+            JeuxNiveau.mascotte('heureuse');
             var cp = niveau === 'cp';
             var points = function (c) { return c.points ? c.points + ' points' : lisible(c.texte); };
             var ta = points(partie.cartes[r.cartes[0]]), tb = points(partie.cartes[r.cartes[1]]);

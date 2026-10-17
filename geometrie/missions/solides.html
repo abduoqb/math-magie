@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Les solides - Mathémagie</title>
+    <link rel="icon" type="image/png" href="../../images/logo_transparant.png" />
+    <link rel="stylesheet" href="../../style/commun.css" />
+    <link rel="stylesheet" href="../../style/geometrie.css" />
+    <script src="../../js/profils.js"></script>
+    <script src="../../js/composants/header.js" defer></script>
+    <script src="../js/programme_geo.js" defer></script>
+    <script src="../js/icones_geo.js" defer></script>
+    <script src="../js/moteur_geometrie.js" defer></script>
+    <script src="../js/banque_geo.js" defer></script>
+    <script src="../js/solides.js" defer></script>
+  </head>
+  <body class="geo-page">
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../../');</script>
+    <app-header base-path="../../"></app-header>
+    <main class="geo-main">
+      <h1 class="titre">Les solides</h1>
+      <section class="presentation">
+        <div class="cadre">
+          <div id="forme-conteneur"></div>
+          <div id="instructions"></div>
+          <div id="zone-reponse"></div>
+          <p id="geo-stats" class="geo-stats">Question <span id="geo-stat">0 / 10</span></p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

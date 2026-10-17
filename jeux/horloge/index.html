@@ -350,7 +350,7 @@
         var premier = etat.essais === 0;
         if (premier) { etat.score++; etat.serie++; etat.resultats.push('bon'); }
         else { etat.serie = 0; etat.resultats.push('rate'); }
-        J.mascotte('contente');
+        J.mascotte('heureuse');
         var msg = premier ? pick(niveau === 'cp' ? ['Bravo !', 'Super !', 'Magique !'] : ['Bravo !', 'Bien joué !', 'Magique !', 'Excellent !']) : 'Bien ! Tu as trouvé.';
         if (premier && etat.serie >= 3) msg += ' ' + etat.serie + ' d’affilée !';
         if (m.type === 'regler') msg += ' ' + m.texteCible + '.';
@@ -407,7 +407,7 @@
         $('h-fin-defi').textContent = md; $('h-fin-defi').hidden = !md;
         var img = $('h-fin-mascotte');
         img.style.display = '';
-        img.src = '../../images/mascotte-' + (gagnee ? 'contente' : 'neutre') + '.svg';
+        img.src = '../../images/mascotte-' + (gagnee ? 'emerveillee.svg' : 'neutre.svg');
         montrer('ecran-fin');
         $('h-rejouer').focus();
       }

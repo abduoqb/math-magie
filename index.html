@@ -39,6 +39,20 @@
           </a>
         </article>
 
+        <article class="carte-activite carte-nombres" id="carte-nombres">
+          <a href="nombres/index.html" class="lien-carte">
+            <span class="icone-univers" aria-hidden="true">🔢</span>
+            <div class="image-conteneur">
+              <img src="images/univers-nombres.svg" alt="" onerror="this.style.visibility='hidden'" />
+            </div>
+            <div class="contenu-carte">
+              <h3>Nombres</h3>
+              <p>Jongle avec les nombres !</p>
+              <span class="bouton-action">Jouer</span>
+            </div>
+          </a>
+        </article>
+
         <article class="carte-activite carte-geometrie" id="carte-geometrie">
           <a href="geometrie/index.html" class="lien-carte">
             <span class="icone-univers" aria-hidden="true">📐</span>
@@ -48,6 +62,20 @@
             <div class="contenu-carte">
               <h3>Formes</h3>
               <p>Découvre les formes !</p>
+              <span class="bouton-action">Jouer</span>
+            </div>
+          </a>
+        </article>
+
+        <article class="carte-activite carte-grandeurs" id="carte-grandeurs">
+          <a href="grandeurs/index.html" class="lien-carte">
+            <span class="icone-univers" aria-hidden="true">📏</span>
+            <div class="image-conteneur">
+              <img src="images/univers-grandeurs.svg" alt="" onerror="this.style.visibility='hidden'" />
+            </div>
+            <div class="contenu-carte">
+              <h3>Mesures</h3>
+              <p>Mesure, compare, convertis !</p>
               <span class="bouton-action">Jouer</span>
             </div>
           </a>
@@ -84,6 +112,8 @@
         const texte = document.getElementById('texte-bienvenue');
         if (prenom) {
           titre.innerHTML = 'Bonjour ' + esc(prenom) + ' ! ✨';
+          const mascotteAccueil = document.getElementById('mascotte-accueil');
+          if (mascotteAccueil) mascotteAccueil.src = 'images/mascotte-coeur.svg';
           if (!estCP) texte.textContent = "Prêt pour l'aventure ? Choisis ton univers !";
         }
 
@@ -93,7 +123,9 @@
           : Object.values(obj).some((m) => m === true || (m && m.actif !== false));
         const sections = {
           'carte-calcul': programme ? actifs(programme.calcul) : null,
+          'carte-nombres': programme ? actifs(programme.nombres) : null,
           'carte-geometrie': programme ? actifs(programme.geometrie) : null,
+          'carte-grandeurs': programme ? actifs(programme.grandeurs) : null,
           'carte-jeux': programme ? actifs(programme.jeux) : null
         };
         for (const [id, actif] of Object.entries(sections)) {

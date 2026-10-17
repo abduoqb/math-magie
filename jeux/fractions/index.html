@@ -365,7 +365,7 @@
           phase = 2;
           boutons.forEach((b) => { b.disabled = true; });
           partsEls.forEach((p, i) => { activerPart(p, i, {}); });
-          JeuxNiveau.mascotte('contente');
+          JeuxNiveau.mascotte('heureuse');
           retourEl.className = 'fractions-retour ok';
           retourEl.textContent = '';
           retourEl.appendChild(el('span', 'titre-retour', 'Oui, ce n’est pas équitable !'));
@@ -391,7 +391,7 @@
           termine = true;
           const premier = essai === 0;
           if (premier) { justes++; combo++; meilleurCombo = Math.max(meilleurCombo, combo); } else combo = 0;
-          JeuxNiveau.mascotte('contente');
+          JeuxNiveau.mascotte('heureuse');
           majScore();
           afficherRetour('ok', premier ? alea(['Bravo !', 'Super !', 'Magique !', 'Excellent !']) + (combo >= 3 ? ' Série de ' + combo + ' !' : '') : 'Bien vu, à la deuxième chance !', q.explication);
           montrerSolution(true);
@@ -435,7 +435,7 @@
           }
           zoneManche.hidden = true; zoneFin.hidden = false; barreHaut.hidden = true;
           zoneFin.textContent = '';
-          JeuxNiveau.mascotte(gagnee ? 'contente' : 'triste');
+          JeuxNiveau.mascotte(gagnee ? 'emerveillee' : 'pleure');
           consigne.textContent = gagnee ? 'Bravo, quel chef pizzaïolo !' : 'Bien essayé ! Tu y es presque.';
           const nbEt = PM.etoiles(justes);
           const et = el('p', 'fractions-etoiles', '★'.repeat(nbEt) + '☆'.repeat(3 - nbEt));

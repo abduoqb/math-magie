@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nombres — Mathémagie</title>
+    <link rel="icon" type="image/svg+xml" href="../images/mascotte-neutre.svg" />
+    <link rel="stylesheet" href="../style/commun.css" />
+    <link rel="stylesheet" href="../style/nombres.css" />
+    <script src="../js/profils.js"></script>
+    <script src="js/generateur_nombres.js"></script>
+    <script src="js/liste_nombres.js" defer></script>
+    <script src="../js/composants/header.js" defer></script>
+  </head>
+  <body class="nb-body nb-body-liste">
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../');</script>
+    <app-header base-path="../"></app-header>
+    <main class="nb-page">
+      <section class="nb-liste-entete">
+        <img class="nb-liste-img" src="../images/univers-nombres.svg" alt="" />
+        <div>
+          <h1 class="titre">Nombres</h1>
+          <p id="sous-titre">Choisis une mission !</p>
+        </div>
+      </section>
+      <section class="nb-themes" id="themes" aria-label="Les missions sur les nombres"></section>
+    </main>
+  </body>
+</html>

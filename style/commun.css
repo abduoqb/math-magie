@@ -21,6 +21,8 @@
   --calcul: #8B5CF6;      --calcul-clair: #EDE4FF;
   --geometrie: #14B8A6;   --geometrie-clair: #D5F5F0;
   --jeux: #F97316;        --jeux-clair: #FFE6D2;
+  --grandeurs: #EC4899;   --grandeurs-clair: #FCE1F0;
+  --nombres: #2563EB;     --nombres-clair: #DCE8FF;
   --trophees: #FACC15;    --trophees-clair: #FFF5C2;
   --accueil: #3B82F6;     --accueil-clair: #DBEAFE;
 
@@ -155,6 +157,8 @@ textarea:focus-visible, [tabindex]:focus-visible, summary:focus-visible {
 .u-calcul { --u: var(--calcul); --u-clair: var(--calcul-clair); }
 .u-geometrie { --u: var(--geometrie); --u-clair: var(--geometrie-clair); }
 .u-jeux { --u: var(--jeux); --u-clair: var(--jeux-clair); }
+.u-nombres { --u: var(--nombres); --u-clair: var(--nombres-clair); }
+.u-grandeurs { --u: var(--grandeurs); --u-clair: var(--grandeurs-clair); }
 .u-trophees { --u: var(--trophees); --u-clair: var(--trophees-clair); }
 
 /* ==========================================================
@@ -213,6 +217,8 @@ header h1 a {
 .choix-navigation > li.u-calcul { --u: var(--calcul); --u-clair: var(--calcul-clair); }
 .choix-navigation > li.u-geometrie { --u: var(--geometrie); --u-clair: var(--geometrie-clair); }
 .choix-navigation > li.u-jeux { --u: var(--jeux); --u-clair: var(--jeux-clair); }
+.choix-navigation > li.u-grandeurs { --u: var(--grandeurs); --u-clair: var(--grandeurs-clair); }
+.choix-navigation > li.u-nombres { --u: var(--nombres); --u-clair: var(--nombres-clair); }
 .choix-navigation > li.u-trophees { --u: var(--trophees); --u-clair: var(--trophees-clair); }
 
 .choix-navigation > li > a {
@@ -305,6 +311,8 @@ header h1 a {
 .nav-dropdown-menu li.u-calcul { --u: var(--calcul); --u-clair: var(--calcul-clair); }
 .nav-dropdown-menu li.u-geometrie { --u: var(--geometrie); --u-clair: var(--geometrie-clair); }
 .nav-dropdown-menu li.u-jeux { --u: var(--jeux); --u-clair: var(--jeux-clair); }
+.nav-dropdown-menu li.u-grandeurs { --u: var(--grandeurs); --u-clair: var(--grandeurs-clair); }
+.nav-dropdown-menu li.u-nombres { --u: var(--nombres); --u-clair: var(--nombres-clair); }
 .nav-dropdown-menu li:hover { background: var(--u-clair); }
 .nav-dropdown-menu li.selected { background: var(--u-clair); }
 .nav-dropdown-menu li a {
@@ -451,4 +459,39 @@ main {
   .logo-mascotte { width: 40px; height: 40px; }
   .barre-navigation { padding: 6px 8px; }
   .choix-navigation > li > a { font-size: .72rem; }
+}
+
+/* --- Fenêtre « Mon personnage » (changer de prénom / de personnage) --- */
+.editeur-fond {
+  position: fixed; inset: 0; z-index: 5000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(43, 45, 91, 0.55);
+  overflow-y: auto;
+}
+.editeur-carte {
+  background: var(--carte); border: var(--contour); border-radius: var(--rayon-grand);
+  box-shadow: var(--ombre-pleine); padding: 24px; width: 100%; max-width: 520px;
+  max-height: 100%; overflow-y: auto;
+}
+.editeur-carte h2 { font-family: 'Lexend', sans-serif; font-weight: 800; color: var(--encre); margin: 0 0 12px; font-size: 1.6rem; }
+.editeur-label { display: block; font-weight: 800; color: var(--encre); margin: 14px 0 6px; font-size: 1.1rem; }
+.editeur-prenom {
+  width: 100%; box-sizing: border-box; font: inherit; font-size: 1.5rem; font-weight: 700;
+  padding: 10px 14px; border: var(--contour); border-radius: var(--rayon); color: var(--encre); background: #fff;
+}
+.editeur-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px; }
+.editeur-choix {
+  min-height: 72px; font-size: 2.4rem; background: #fff; cursor: pointer;
+  border: var(--contour); border-radius: var(--rayon); box-shadow: 0 4px 0 var(--encre);
+  transition: transform 0.12s, box-shadow 0.12s, background 0.15s;
+}
+.editeur-choix:hover { transform: translateY(-2px); }
+.editeur-choix.choisi { background: var(--trophees-clair); box-shadow: 0 6px 0 var(--encre); transform: translateY(-3px); outline: 3px solid var(--action); outline-offset: 2px; }
+.editeur-aide { margin: 12px 0 0; color: var(--texte); font-size: 1rem; }
+.editeur-aide a { color: var(--calcul-fonce); font-weight: 800; }
+.editeur-erreur { min-height: 1.4em; margin: 8px 0 0; color: #B91C1C; font-weight: 800; }
+.editeur-actions { display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; margin-top: 10px; }
+@media (max-width: 480px) {
+  .editeur-carte { padding: 18px; }
+  .editeur-actions > * { flex: 1 1 100%; }
 }

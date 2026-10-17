@@ -101,8 +101,188 @@
       "geometrie-droites": { actif: false, libelle: "Les droites", contenu: {}, source: SRC_PROGRAMME, notes: "Paralleles/perpendiculaires: CE1-CE2." },
       "geometrie-triangles": { actif: false, libelle: "Les triangles", contenu: {}, source: SRC_PROGRAMME, notes: "Isocele/equilateral/rectangle: CE1-CE2." },
       "geometrie-quadrilateres": { actif: false, libelle: "Les quadrilatères", contenu: {}, source: SRC_PROGRAMME, notes: "Losange, trapeze, parallelogramme: CE1 et plus." },
-      "geometrie-patrons": { actif: false, libelle: "Les patrons", contenu: {}, source: SRC_PROGRAMME, notes: "Patron du cube: CE1." }
+      "geometrie-patrons": { actif: false, libelle: "Les patrons", contenu: {}, source: SRC_PROGRAMME, notes: "Patron du cube: CE1." },
+      "geometrie-espace": {
+        actif: true,
+        libelle: "Repérage dans l'espace",
+        source: SRC_PROGRAMME,
+        contenu: { themes: ["position", "dessus-dessous"], niveauMax: 2 },
+        notes: "Vocabulaire de position (gauche, droite, entre, au-dessus, en dessous). Quadrillage a coordonnees : hors CP."
+      },
+      "geometrie-instruments": {
+        actif: true,
+        libelle: "La règle",
+        source: SRC_PROGRAMME,
+        contenu: { themes: ["regle-trait", "regle-lecture"], instruments: ["règle"], niveauMax: 2 },
+        notes: "Usage de la regle : tracer un trait droit, mesurer un segment en cm entiers (<= 10 cm). Equerre, compas, rapporteur : plus tard."
+      }
     },
+  nombres: {
+    // Module Nombres : ids prefixes 'nombres-'. Paliers lus par nombres/js/generateur_nombres.js.
+    // Nombres 0 à 100. Les paliers sont une proposition de conception (non officielle).
+    'nombres-valeur': {
+      actif: true,
+      libelle: 'Dizaines et unités',
+      consigne: 'Trouve les chiffres et leur valeur.',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Nombres 0 à 100 : chiffre des dizaines/unités, valeur d\'un chiffre.',
+      niveaux: [
+        { min: 10, max: 20, types: ['chiffre'] },
+        { min: 10, max: 50, types: ['chiffre'] },
+        { min: 10, max: 99, types: ['chiffre'] },
+        { min: 10, max: 99, types: ['chiffre', 'valeur'] },
+        { min: 10, max: 99, types: ['valeur', 'combien'] },
+        { min: 10, max: 99, types: ['chiffre', 'valeur', 'combien'] }
+      ]
+    },
+    'nombres-decomposer': {
+      actif: true,
+      libelle: 'Décomposer',
+      consigne: 'Décompose en dizaines et unités.',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Décomposition 47 = 4 dizaines + 7 unités = 40 + 7.',
+      niveaux: [
+        { min: 10, max: 20, types: ['rangs'] },
+        { min: 10, max: 60, types: ['rangs'] },
+        { min: 10, max: 99, types: ['rangs'] },
+        { min: 10, max: 99, types: ['somme'] },
+        { min: 10, max: 99, types: ['rangs', 'somme', 'retrouver'] },
+        { min: 20, max: 99, types: ['rangs', 'somme', 'retrouver'] }
+      ]
+    },
+    'nombres-comparer': {
+      actif: true,
+      libelle: 'Comparer',
+      consigne: 'Compare les nombres.',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Comparer avec <, = et > ; plus grand / plus petit ; nombres jusqu\'à 100.',
+      niveaux: [
+        { min: 0, max: 10, types: ['plusgrand'] },
+        { min: 0, max: 20, types: ['symbole'] },
+        { min: 0, max: 50, types: ['symbole', 'plusgrand', 'pluspetit'] },
+        { min: 0, max: 100, types: ['symbole', 'plusgrand', 'pluspetit'] },
+        { min: 0, max: 100, types: ['symbole', 'plusgrand', 'pluspetit'], proche: true },
+        { min: 0, max: 100, types: ['symbole'], proche: true }
+      ]
+    },
+    'nombres-ranger': {
+      actif: true,
+      libelle: 'Ranger',
+      consigne: 'Range les nombres dans l\'ordre.',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Ranger dans l\'ordre croissant et décroissant, de 0 à 100.',
+      niveaux: [
+        { min: 0, max: 20, nb: 3, sens: ['croissant'] },
+        { min: 0, max: 20, nb: 3, sens: ['croissant', 'decroissant'] },
+        { min: 0, max: 50, nb: 4, sens: ['croissant', 'decroissant'] },
+        { min: 0, max: 100, nb: 4, sens: ['croissant', 'decroissant'] },
+        { min: 0, max: 100, nb: 5, sens: ['croissant', 'decroissant'] },
+        { min: 0, max: 100, nb: 5, sens: ['croissant', 'decroissant'], proche: true }
+      ]
+    },
+    'nombres-encadrer': {
+      actif: false,
+      libelle: 'Encadrer',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Pas dans la liste retenue pour le CP (encadrement : CE1).',
+      niveaux: []
+    },
+    'nombres-droite': {
+      actif: false,
+      libelle: 'Droite graduée',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Droite graduée : à partir du CE2 dans ce module.',
+      niveaux: []
+    },
+    'nombres-moitie': {
+      actif: true,
+      libelle: 'La moitié',
+      consigne: 'Trouve la moitié.',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Notion de moitié : partager en 2 parts égales (nombres pairs jusqu\'à 100).',
+      niveaux: [
+        { max: 10, types: ['moitie'] },
+        { max: 20, types: ['moitie'] },
+        { max: 20, types: ['moitie', 'partage'] },
+        { max: 50, types: ['moitie', 'partage', 'estmoitie'] },
+        { max: 100, types: ['moitie', 'partage', 'estmoitie'] },
+        { max: 100, types: ['moitie', 'partage', 'estmoitie'] }
+      ]
+    },
+    'nombres-fractions': {
+      actif: false,
+      libelle: 'Les fractions',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Fractions simples : CM1.',
+      niveaux: []
+    },
+    'nombres-decimaux': {
+      actif: false,
+      libelle: 'Les nombres décimaux',
+      source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+      notes: 'Décimaux : CM1.',
+      niveaux: []
+    }
+  },
+    // BEGIN grandeurs (module grandeurs/ ; généré, voir grandeurs/js/generateur_grandeurs.js pour le format des exos)
+    grandeurs: {
+      longueurs: {
+        actif: true,
+        libelle: 'Longueurs',
+        consigne: 'Mesure et compare des longueurs.',
+        source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
+        notes: 'Unités du CP : m et cm, 1 m = 100 cm, nombres <= 100. Pas de conversion en tableau, pas de virgule.',
+        niveaux: [
+          { exos: [
+            { type: 'comparer', grandeur: 'longueur', unites: ['cm'], min: 1, max: 20 }
+          ] },
+          { exos: [
+            { type: 'comparer', grandeur: 'longueur', unites: ['cm'], min: 1, max: 100, deux: true },
+            { type: 'choisir-unite', grandeur: 'longueur', unites: ['cm', 'm'], nbChoix: 2 }
+          ] },
+          { exos: [
+            { type: 'probleme', grandeur: 'longueur', op: 'add', unite: 'cm', min: 1, max: 10 },
+            { type: 'probleme', grandeur: 'longueur', op: 'sub', unite: 'cm', min: 1, max: 20 }
+          ] },
+          { exos: [
+            { type: 'probleme', grandeur: 'longueur', op: 'add', unite: 'cm', min: 1, max: 50 },
+            { type: 'probleme', grandeur: 'longueur', op: 'sub', unite: 'cm', min: 1, max: 100 },
+            { type: 'probleme', grandeur: 'longueur', op: 'add', unite: 'm', min: 1, max: 50 }
+          ] },
+          { exos: [
+            { type: 'comparer', grandeur: 'longueur', unites: ['m'], min: 1, max: 100, deux: true },
+            { type: 'choisir-unite', grandeur: 'longueur', unites: ['cm', 'm'], nbChoix: 2 },
+            { type: 'convertir', grandeur: 'longueur', paires: [['m', 'cm']], min: 1, max: 1 }
+          ] }
+        ]
+      },
+      'masses-contenances': {
+        actif: false,
+        libelle: 'Masses et contenances',
+        notes: 'Pas dans cette version pour le CP (la monnaie et l\'heure sont couvertes par les jeux Horloge et Marché).'
+      },
+      'durees-monnaie': {
+        actif: false,
+        libelle: 'Durées et monnaie',
+        notes: 'Heures justes et monnaie : déjà couverts par les jeux Horloge et Marché, volontairement non dupliqués.'
+      },
+      'perimetres-aires': {
+        actif: false,
+        libelle: 'Périmètres et aires',
+        notes: 'Périmètres : CE2. Aires : CM1.'
+      },
+      'proportionnalite-pourcentages': {
+        actif: false,
+        libelle: 'Proportionnalité',
+        notes: 'Initiation en CM1, pourcentages en CM2.'
+      },
+      'volumes-vitesses-echelles': {
+        actif: false,
+        libelle: 'Volumes, vitesses, échelles',
+        notes: 'CM2 uniquement.'
+      }
+    },
+    // END grandeurs
     jeux: {
       morpion: true,
       puissance4: true,

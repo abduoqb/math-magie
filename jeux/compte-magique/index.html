@@ -285,7 +285,7 @@
           if (!CM.resoluble(etat)) {
             dire(cp ? 'Hmm… Touche ↩ Annuler.' : 'Hmm, avec ces cartes on ne peut plus y arriver. Touche « Annuler » !', 'triste');
           } else {
-            dire(r.texte + (cp ? ' ✔' : '. Continue !'), 'contente');
+            dire(r.texte + (cp ? ' ✔' : '. Continue !'), 'heureuse');
           }
           afficher();
           const nouv = elCartes.querySelector('.compte-magique-nouvelle');
@@ -315,7 +315,7 @@
           }
           indicesRestants--; indicesManche++;
           selection = null; operation = null; aide = ind;
-          dire('Essaie : ' + ind.a + ' ' + CM.SYMBOLES[ind.op] + ' ' + ind.b + ' 💡', 'contente');
+          dire('Essaie : ' + ind.a + ' ' + CM.SYMBOLES[ind.op] + ' ' + ind.b + ' 💡', 'heureuse');
           afficher();
         });
         btnPasser.addEventListener('click', () => { if (!fini) finManche(false); });
@@ -326,7 +326,7 @@
           resultats.push({ reussie: reussie, indices: indicesManche });
           if (reussie) {
             const n = CM.etoilesManche(true, indicesManche);
-            dire('Bravo ! Le ' + JeuxNiveau.fmt(etat.cible) + ' est apparu ! ' + '⭐'.repeat(n), 'contente', 'fin-ok');
+            dire('Bravo ! Le ' + JeuxNiveau.fmt(etat.cible) + ' est apparu ! ' + '⭐'.repeat(n), 'emerveillee', 'fin-ok');
           } else {
             const sol = CM.resoudre(CM.valeurs(etat), etat.cible, etat.cfg) || manche.solution;
             dire('Pas grave ! Une solution : ' + sol.map(CM.ecrirePas).join(' ; '), 'neutre', 'fin-nul');

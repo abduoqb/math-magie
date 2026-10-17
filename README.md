@@ -21,7 +21,9 @@ Ouvrir les fichiers directement (`file://`) marche pour la plupart des pages, ma
 | `connexion.html` | Choix du profil, pavé de code, création en 6 étapes, espace parent, écran de synchro. |
 | `trophees.html` | Liste des trophées, filtrée sur `programme.calcul / geometrie / jeux`. |
 | `calculs_mentaux/` | Moteur de calcul (`js/moteur_calcul.js`) + générateur pur (`js/generateur_calcul.js`) + une page par opération. |
-| `geometrie/` | Moteur (`js/moteur_geometrie.js`), lecture du programme (`js/programme_geo.js`), une page par mission. |
+| `geometrie/` | Moteur (`js/moteur_geometrie.js`), lecture du programme (`js/programme_geo.js`), une page par mission. Missions à thèmes (`espace`, `solides`, `cercle`, `instruments`, `rapporteur`) : banques de questions via `js/banque_geo.js`. |
+| `grandeurs/` | Module « Mesures » : générateurs purs (`js/generateur_grandeurs.js`), moteur (`js/moteur_grandeurs.js`), une page par mission, `index.html` de choix, test Node `test-grandeurs.js`. CSS dans `style/grandeurs.css`. |
+| `nombres/` | Module « Nombres » (les nombres eux-mêmes, hors opérations) : générateur pur (`js/generateur_nombres.js`), moteur DOM générique (`js/moteur_nombres.js`), une page par thème, `index.html` de choix, test Node `test-nombres.js`. CSS dans `style/nombres.css`. |
 | `jeux/` | 4 classiques (Morpion, Puissance 4, Pendu, Trouver le chiffre) et 8 « jeux magiques » solo qui adaptent leur contenu à chaque classe (un dossier par jeu : page, générateur pur, CSS, test Node). Helpers partagés, catalogue et défi du jour dans `jeux/commun.js`. |
 | `programmes/` | Un fichier par classe (`cp.js` … `cm2.js`). C'est la seule source de vérité pour ce que chaque classe voit. |
 | `js/profils.js` | Chargeur : il injecte les scripts dans le bon ordre. Toutes les pages le incluent. |
@@ -89,7 +91,7 @@ window.PROGRAMMES.cp = {
 
 1. Vérifier que la mission existe dans `programmes/<classe>.js` pour toutes les classes concernées (même id).
 2. Pour du calcul : le moteur lit `programme.calcul[op].niveaux[palier - 1]`. Ne pas ajouter de logique par classe dans `moteur_calcul.js`, la mettre dans le programme.
-3. Pour la géométrie : la mission doit lire `GeoProgramme` (`programme_geo.js`) et filtrer ses pools sur `contenu`. Une question hors `contenu` est un bug.
+3. Pour la géométrie : la mission doit lire `GeoProgramme` (`programme_geo.js`) et filtrer ses pools sur `contenu`. Une question hors `contenu` est un bug. Missions à banque : `contenu.themes` (+ `solides`, `instruments`, `vocab`) ; un thème absent n'est jamais tiré. Une mission absente du programme d'une classe n'apparaît pas dans la liste.
 4. Pour les jeux : respecter `programme.jeux[id]` et utiliser `JeuxNiveau` (`jeux/commun.js`) pour les plages et les mots.
 5. Les pages de mission ne doivent jamais charger `programmes/*.js` directement : c'est fait par `js/profils.js`.
 
@@ -121,12 +123,41 @@ Les 8 jeux solo (`eclair`, `compte-magique`, `suites-magiques`, `ranger`, `memor
 - Trophées : un par jeu (5, 10, 20 parties), plus des personnages à débloquer (jeux essayés, série de défis).
 - Ajouter un jeu : créer `jeux/<id>/`, l'ajouter au catalogue **et** à `JEUX_MAGIQUES` (`js/profils-core.js`), puis mettre `'<id>': true` dans la section `jeux` de chaque `programmes/<classe>.js`.
 
+## Géométrie par classe (ajouts)
+
+- **CP** : repérage (gauche/droite, dessus/dessous), la règle (trait droit, lecture en cm).
+- **CE1** : angle droit à l'équerre (Oui/Non), solides (roule, nature des faces), cercle (centre, rayon, compas), repérage sur quadrillage et déplacements, patron du cube (Oui/Non), symétrie sur quadrillage, instruments.
+- **CE2** : cercle (diamètre), solides décrits par énigmes, coordonnées, instruments, symétrie sur quadrillage.
+- **CM1** : prisme, corde et définition du cercle, instruments ; droites et triangles particuliers déjà actifs.
+- **CM2** : rapporteur (lecture, estimation, tracé, angles complémentaires), symétrie à axe vertical, horizontal ou diagonal. À re-valider : `docs/programmes/cm2.md` dit le rapporteur hors programme CM2.
+
+## Grandeurs et mesures
+
+Univers « Mesures » (accueil, carte rose) : longueurs, masses et contenances, durées et monnaie, périmètres et aires, proportionnalité et pourcentages, volumes, vitesses et échelles. Même mécanique que le calcul (palier, série de 5, 5 essais, pavé, voix au CP).
+
+- **Programme** : `programme.grandeurs.<mission>` = `{ actif, libelle, consigne, source, notes, niveaux: [{ exos: [...] }] }`. Les 6 missions existent dans chaque classe ; `actif: false` = carte grisée « Pas encore au programme » et page qui redirige. Un palier est une liste d'« exos » tirés au hasard (`poids` facultatif).
+- **Exo** : `{ type, grandeur, ... }`. Types : `convertir` (`paires`, `min`, `max`, `decimal`, `dv`, `pas`), `mixte`, `comparer`, `choisir-unite`, `probleme` (`op`, `unite`, `dec`, `n`), `monnaie-somme`, `monnaie-rendu`, `duree-ecart`, `perimetre`, `aire`, `volume`, `proportionnalite`, `pourcentage`, `echelle`, `vitesse`. Le format exact est dans l'en-tête de `generateur_grandeurs.js`. Ne pas écrire de logique par classe dans le générateur ou le moteur : tout est dans le bloc `// BEGIN grandeurs … // END grandeurs` de `programmes/<classe>.js`.
+- **Contenu** : CP longueurs (cm, m) ; CE1 + masses (g, kg), litres, durées simples, euros ; CE2 + dm, mm, t, cL, dL, mL, secondes, centimes, périmètres ; CM1 + décimaux, aires (cm², m²), proportionnalité ; CM2 + conversions d'aires, périmètre du cercle, aire du triangle rectangle, pourcentages, volumes, vitesses, échelles. Monnaie et heures justes du CP restent aux jeux Marché et Horloge.
+- **Progression** : clé `grandeurs-<mission>` dans la progression du profil (`{ niveau }`), comme le calcul. Trophées filtrés sur `programme.grandeurs`, avatar « Alchimiste des Mesures » (toutes les missions actives au palier 2+).
+- **Test** : `node grandeurs/test-grandeurs.js` (80 400 questions : bornes, réponses recalculées, aucune unité, figure, mode ou taille de nombre hors classe, missions inactives sans paliers). Les validations pédagogiques restent à faire : voir les champs `notes` marqués À VALIDER.
+
+## Nombres
+
+Travail sur les nombres eux-mêmes : valeur des chiffres, décomposer, comparer, ranger, encadrer, droite graduée, moitié, fractions, décimaux. Neuf thèmes, six paliers chacun, contenu fixé par `programme.nombres['nombres-<thème>']` (`actif`, `libelle`, `consigne`, `source`, `notes`, `niveaux[]`). `actif: false` = carte grisée « Pas encore au programme » et page qui redirige.
+
+- **Par classe** : CP 0-100 (dizaines/unités, décomposer, comparer, ranger, moitié) ; CE1 jusqu'à 1 000 (+ encadrer) ; CE2 jusqu'à 10 000 (+ droite graduée simple) ; CM1 jusqu'aux millions, fractions 1/2, 1/3, 1/4 et décimales, décimaux (dixièmes, centièmes) ; CM2 jusqu'aux milliards, fractions équivalentes, décimaux jusqu'aux millièmes, droite graduée en fractions et décimaux.
+- **Paliers** : un palier est un objet de paramètres (`min`, `max`, `types`, `dec`, `nb`, `proche`, `e`, `pas`, `den`, `dens`, `intmax`…) ; le format est lu dans `generateur_nombres.js`. Les paliers sont une proposition de conception, pas un texte officiel.
+- **Questions** : QCM, saisie (pavé numérique, virgule acceptée), ranger en touchant les nombres dans l'ordre, droite graduée interactive (toucher la graduation), figures de fractions. Le générateur est pur (`rng` injectable) et renvoie `{ type, enonce, expression?, choix?, reponse, aide, meta }` ; `{?}` marque le trou à remplir.
+- **Progression** : clé `nombres-<thème>` (`{ niveau }`), même règle que le calcul (5 bonnes d'affilée = palier suivant, 2 erreurs = palier précédent). Trophées filtrés sur `programme.nombres`, avatar « Hibou des Nombres » (toutes les missions actives au palier 2+).
+- **Test** : `node nombres/test-nombres.js` (≈ 1,1 million de vérifications : bornes, réponses recalculées indépendamment, choix distincts, aucun nombre ni décimal/fraction hors classe, missions inactives).
+- **À valider** : le million au CM1 (paliers jusqu'à 9 999 999 alors que les notes du programme citent 999 999), fractions simples au CM1 seulement, encadrer absent au CP, droite graduée à partir du CE2.
+
 ## Tests
 
 Les tests des jeux magiques sont dans le dépôt (`jeux/*/test-*.js`, Node sans dépendance). Pour le reste, ce qui a été vérifié par scripts hors dépôt :
 
 - génération : 10 paliers × 4 opérations × 5 classes, 300 tirages chacun, bornes et résultats contrôlés ;
-- géométrie : 85 combinaisons mission × palier × classe, 200 questions chacune, réponse toujours présente dans les choix ;
+- géométrie : `node geometrie/test-geometrie.js` (dans le dépôt) vérifie, pour chaque mission active de chaque classe, 300 questions par palier (réponse dans les choix, SVG bien formé, rien hors `contenu`, pas de rapporteur avant le CM2), la cohérence programmes ↔ pages ↔ icônes ↔ `MISSIONS_GEOMETRIE`, et le patron du cube (64 orientations / 11 patrons) ;
 - auth : hachage identique à `crypto.createHash`, blocage, migration v1→v2, mode parent ;
 - synchro : fusion (cas explicites + 3000 tirages aléatoires) et scénarios sur un faux client Supabase.
 

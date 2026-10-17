@@ -383,7 +383,7 @@
             onclick: () => { etat.niveauClasse = n; aller(info.aCode ? finir : etapeCode); }
           }, el('span', { class: 'classe-sigle' }, Niveaux.getLibelle(n))));
           ecran('ecran-creation', consigne,
-            entete(info.avatar, 'Bon retour, ' + nom + ' !', 'Dis-nous dans quelle classe tu es'),
+            entete(info.avatar, 'Bon retour, ' + nom + ' !', 'Dis-nous dans quelle classe tu es', 'mascotte-coeur'),
             el('div', { class: 'grille-classes' }, boutons),
             el('div', { class: 'pied' }, btnRetour(() => aller(ecranProfils))));
           parler(consigne);

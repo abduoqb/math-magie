@@ -50,6 +50,8 @@
             padding: 6px 22px; margin: 38px 0 6px;
         }
         .trophees-section-titre.geometrie { --u-clair: var(--geometrie-clair, #D5F5F0); }
+        .trophees-section-titre.nombres { --u-clair: var(--nombres-clair, #DCE8FF); }
+        .trophees-section-titre.grandeurs { --u-clair: var(--grandeurs-clair, #FCE1F0); }
         .trophees-section-titre.jeux { --u-clair: var(--jeux-clair, #FFE6D2); }
         .trophees-section-titre.speciaux { --u-clair: var(--trophees-clair, #FFF5C2); }
 
@@ -64,6 +66,8 @@
             transition: transform 0.15s, box-shadow 0.15s; cursor: default;
         }
         .trophee-carte.geometrie { --u-clair: var(--geometrie-clair, #D5F5F0); }
+        .trophee-carte.nombres { --u-clair: var(--nombres-clair, #DCE8FF); }
+        .trophee-carte.grandeurs { --u-clair: var(--grandeurs-clair, #FCE1F0); }
         .trophee-carte.jeux { --u-clair: var(--jeux-clair, #FFE6D2); }
         .trophee-carte.debloque { background: var(--u-clair); }
         .trophee-carte:hover { transform: translateY(-4px); box-shadow: 0 10px 0 var(--encre, #2B2D5B); }
@@ -197,7 +201,55 @@
                 { id: 'geometrie-quadrilateres', nom: 'Forteresse des Quadrilatères', action: 'Observe les quadrilatères',
                   icones: { 1: '🧱', 2: '🏰', 3: '🏯' } },
                 { id: 'geometrie-patrons', nom: 'Carte des Solides', action: 'Déplie des solides',
-                  icones: { 1: '📦', 2: '🗺️', 3: '🌍' } }
+                  icones: { 1: '📦', 2: '🗺️', 3: '🌍' } },
+                { id: 'geometrie-espace', nom: "Boussole de l'Espace", action: "Repère-toi dans l'espace",
+                  icones: { 1: '🧭', 2: '📍', 3: '🗺️' } },
+                { id: 'geometrie-solides', nom: 'Atelier des Solides', action: 'Décris des solides',
+                  icones: { 1: '🧊', 2: '🎲', 3: '🏺' } },
+                { id: 'geometrie-cercle', nom: 'Cercle du Compas', action: 'Trace et décris des cercles',
+                  icones: { 1: '⚪', 2: '🎯', 3: '🌀' } },
+                { id: 'geometrie-instruments', nom: 'Malle des Instruments', action: 'Choisis le bon instrument',
+                  icones: { 1: '📏', 2: '📐', 3: '🧰' } },
+                { id: 'geometrie-rapporteur', nom: 'Rapporteur Enchanté', action: 'Mesure des angles',
+                  icones: { 1: '🔭', 2: '⏱️', 3: '🌠' } }
+            ];
+
+            // Nombres : un trophée par mission (id = clé de programme.nombres), débloqué dès le palier 2
+            const missionsNombres = [
+                { id: 'nombres-valeur', nom: 'Tour des Chiffres', action: 'Trouve la valeur des chiffres',
+                  icones: { 1: '🔢', 2: '🗼', 5: '🏰' } },
+                { id: 'nombres-decomposer', nom: 'Atelier des Décompositions', action: 'Décompose des nombres',
+                  icones: { 1: '🧩', 2: '🔧', 5: '⚙️' } },
+                { id: 'nombres-comparer', nom: 'Balance Magique', action: 'Compare des nombres',
+                  icones: { 1: '⚖️', 2: '🪙', 5: '👑' } },
+                { id: 'nombres-ranger', nom: 'Échelle des Nombres', action: 'Range des nombres',
+                  icones: { 1: '🪜', 2: '📶', 5: '🚀' } },
+                { id: 'nombres-encadrer', nom: 'Pont des Encadrements', action: 'Encadre des nombres',
+                  icones: { 1: '🌉', 2: '↔️', 5: '🏞️' } },
+                { id: 'nombres-droite', nom: 'Règle Enchantée', action: 'Lis la droite graduée',
+                  icones: { 1: '📏', 2: '🧭', 5: '🗺️' } },
+                { id: 'nombres-moitie', nom: 'Gâteau des Moitiés', action: 'Trouve des moitiés',
+                  icones: { 1: '🍰', 2: '🎂', 5: '🧁' } },
+                { id: 'nombres-fractions', nom: 'Pizza des Fractions', action: 'Joue avec les fractions',
+                  icones: { 1: '🍕', 2: '🥧', 5: '🎡' } },
+                { id: 'nombres-decimaux', nom: 'Cristal des Décimaux', action: 'Joue avec les virgules',
+                  icones: { 1: '💠', 2: '💎', 5: '🔮' } }
+            ];
+
+            // Mesures (module grandeurs/) : id de progression = 'grandeurs-' + clé du programme
+            const missionsGrandeurs = [
+                { id: 'grandeurs-longueurs', nom: 'Mètre Magique', action: 'Mesure des longueurs',
+                  icones: { 1: '📏', 2: '📐', 4: '🧵', 6: '🛰️' } },
+                { id: 'grandeurs-masses-contenances', nom: 'Bascule des Poids', action: 'Pèse et verse',
+                  icones: { 1: '⚖️', 2: '🧪', 4: '⚗️', 6: '🏺' } },
+                { id: 'grandeurs-durees-monnaie', nom: 'Sablier d’Or', action: 'Calcule des durées et des euros',
+                  icones: { 1: '⏳', 2: '⏰', 4: '🪙', 6: '💰' } },
+                { id: 'grandeurs-perimetres-aires', nom: 'Jardin des Surfaces', action: 'Mesure le tour et la surface',
+                  icones: { 1: '🟦', 2: '🌱', 4: '🌻', 6: '🏡' } },
+                { id: 'grandeurs-proportionnalite-pourcentages', nom: 'Marché des Proportions', action: 'Cherche des prix et des parts',
+                  icones: { 1: '🛒', 2: '🍰', 4: '🧁', 6: '🎪' } },
+                { id: 'grandeurs-volumes-vitesses-echelles', nom: 'Cube du Voyageur', action: 'Volumes, vitesses et échelles',
+                  icones: { 1: '🧊', 2: '🚗', 4: '🗺️', 6: '🚀' } }
             ];
 
             const statsGlobales = gestionnaireProfils.getStatsProgression();
@@ -254,9 +306,11 @@
                 return missions.filter(m => { const k = cle(m); return k !== null && estActif(section[k]); });
             }
             const missionsCalculNiv = programme ? filtrer(missionsCalcul, programme.calcul, '') : missionsCalcul;
+            const missionsNombresNiv = programme ? filtrer(missionsNombres, programme.nombres, '') : missionsNombres;
             const missionsGeoNiv = programme ? filtrer(missionsGeometrie, programme.geometrie, 'geometrie-') : missionsGeometrie;
+            const missionsGrandeursNiv = programme ? filtrer(missionsGrandeurs, programme.grandeurs, 'grandeurs-') : missionsGrandeurs;
             const missionsJeuxNiv = programme ? filtrer(missionsJeux, programme.jeux, '') : missionsJeux;
-            const toutesLesMissions = [...missionsCalculNiv, ...missionsGeoNiv, ...missionsJeuxNiv];
+            const toutesLesMissions = [...missionsCalculNiv, ...missionsNombresNiv, ...missionsGeoNiv, ...missionsGrandeursNiv, ...missionsJeuxNiv];
 
             // Paliers par catégorie : géométrie (max 3) et calculs (max 10)
             const paliersCalcul = [
@@ -267,6 +321,17 @@
             ];
             const paliersGeometrie = [
                 { seuil: 3, badge: '🥇', classe: 'or' },
+                { seuil: 2, badge: '🥉', classe: 'bronze' }
+            ];
+            const paliersNombres = [
+                { seuil: 6, badge: '🥇', classe: 'or' },
+                { seuil: 4, badge: '🥈', classe: 'argent' },
+                { seuil: 2, badge: '🥉', classe: 'bronze' }
+            ];
+            // Mesures : 5 à 8 paliers selon la mission (pas 10 comme le calcul)
+            const paliersGrandeurs = [
+                { seuil: 6, badge: '🥇', classe: 'or' },
+                { seuil: 4, badge: '🥈', classe: 'argent' },
                 { seuil: 2, badge: '🥉', classe: 'bronze' }
             ];
             const paliersJeux = [
@@ -345,7 +410,9 @@
             }
 
             if (missionsCalculNiv.length) creerSection('➕ Calcul', missionsCalculNiv, paliersCalcul, 'calcul');
+            if (missionsNombresNiv.length) creerSection('🔢 Nombres', missionsNombresNiv, paliersNombres, 'nombres');
             if (missionsGeoNiv.length) creerSection('📐 Géométrie', missionsGeoNiv, paliersGeometrie, 'geometrie');
+            if (missionsGrandeursNiv.length) creerSection('📏 Mesures', missionsGrandeursNiv, paliersGrandeurs, 'grandeurs');
             if (missionsJeuxNiv.length) creerSection('🎲 Jeux', missionsJeuxNiv, paliersJeux, 'jeux');
 
             // Résumé de progression avec avatar

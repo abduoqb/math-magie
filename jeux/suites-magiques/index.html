@@ -243,7 +243,7 @@
           etat.erreurs = 0;
           if (etat.h < s.trous.length) {
             if (!revele) dire(BRAVO[etat.i % BRAVO.length] + ' Et l’autre ?');
-            JeuxNiveau.mascotte(revele ? 'neutre' : 'contente');
+            JeuxNiveau.mascotte(revele ? 'neutre' : 'heureuse');
             dessinerRail();
             dessinerReponse(true);
             return;
@@ -259,7 +259,7 @@
           if (!revele) {
             dire(ok ? BRAVO[etat.i % BRAVO.length] + (etat.serie >= 3 ? ' ' + etat.serie + ' d’affilée !' : '') : 'Tu as trouvé ! Bien joué !', ok ? 'fin-ok' : '');
           }
-          JeuxNiveau.mascotte(ok ? 'contente' : 'neutre');
+          JeuxNiveau.mascotte(ok ? 'heureuse' : 'neutre');
           el.regle.textContent = '🪄 ' + s.regle;
           el.regle.hidden = false;
           voixCourante = s.regle;
@@ -316,7 +316,7 @@
           var msg = etat.score >= 9 ? 'Quel talent de magicien !' : etat.score >= 7 ? 'Très joli travail !' : gagnee ? 'Bien joué, tu as gagné !' : 'Courage, on réessaie ? Tu vas y arriver !';
           dire(msg, gagnee ? 'fin-ok' : 'fin-nul');
           voixCourante = msg;
-          JeuxNiveau.mascotte(gagnee ? 'contente' : 'neutre');
+          JeuxNiveau.mascotte(gagnee ? 'emerveillee' : 'neutre');
           var md = JeuxNiveau.messageDefi(retour);
           el.defi.hidden = !md;
           el.defi.textContent = md;

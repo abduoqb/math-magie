@@ -283,7 +283,7 @@
             partieTerminee = true;
             document.querySelector('.cadre').classList.add('succes');
             dire(`Bravo ! Tu as trouvé : ${motActuel}`, 'fin-ok');
-            JeuxNiveau.mascotte('contente');
+            JeuxNiveau.mascotte('heureuse');
             sauvegarder(true);
           } else {
             dire('Bien vu !');
@@ -299,7 +299,7 @@
             partieTerminee = true;
             revelerMot();
             dire(`Pas de chance ! Le mot était : ${motActuel}. On réessaie ?`, 'fin-ko');
-            JeuxNiveau.mascotte('triste');
+            JeuxNiveau.mascotte('pleure');
             document.querySelector('.cadre').classList.add('erreur');
             sauvegarder(false);
           }

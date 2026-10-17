@@ -339,7 +339,7 @@
     return '🔥 Défi du jour réussi ! Série : ' + retour.defi.serie + ' jour' + (retour.defi.serie > 1 ? 's' : '');
   }
 
-  /* ---------- Mascotte (neutre / contente / triste) ---------- */
+  /* ---------- Mascotte (SVG) ---------- */
   function mascotte(etat) {
     if (typeof document === 'undefined') return;
     var el = document.querySelector('.jeu-mascotte');

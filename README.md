@@ -39,6 +39,9 @@ Ouvrir les fichiers directement (`file://`) marche pour la plupart des pages, ma
 | `supabase/migrations/` | Schéma de la synchro (tables, RLS, triggers), trace des migrations appliquées. |
 | `docs/` | `REFONTE-SPEC.md`, `DA-BRIEF.md`, `SYNC-SPEC.md`, et les recherches dans `docs/programmes/`. Lire la spec avant de toucher au modèle de données. |
 
+<img width="16000" height="5856" alt="diagram" src="https://github.com/user-attachments/assets/9d70acd6-c1d0-40c9-afe8-7639eb7a64e8" />
+
+
 ## Données et persistance
 
 Tout est stocké dans `localStorage`, **un stockage par famille** : `mathemagie-profils:<uid>` pour un compte famille connecté, `mathemagie-profils` pour un appareil sans compte. La clé `mathemagie-famille-active` indique lequel est affiché. Chaque stockage a `version: 2`. Forme simplifiée :

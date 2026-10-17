@@ -298,7 +298,7 @@
             montrerBonus('+' + plus + ' s');
           }
           dire(texte);
-          JeuxNiveau.mascotte('contente');
+          JeuxNiveau.mascotte('heureuse');
           flash('ok');
           palier = Eclair.palierPour(niveau, score);
           majHud();
@@ -364,7 +364,7 @@
           $('fin-defi').textContent = JeuxNiveau.messageDefi(retour);
 
           montrer('fin');
-          JeuxNiveau.mascotte(etoiles >= 1 ? 'contente' : 'neutre');
+          JeuxNiveau.mascotte(etoiles >= 1 ? 'emerveillee' : 'neutre');
           dire(etoiles >= 3 ? 'Incroyable !' : etoiles >= 1 ? 'Bravo, le temps est écoulé !' : 'Le temps est écoulé. Tu feras mieux !');
           $('btn-rejouer').focus();
         }

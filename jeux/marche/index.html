@@ -340,7 +340,7 @@
         majPoints();
         if (manche.boutons) manche.boutons.forEach(function (b) { b.disabled = true; });
         if (manche.annuler) { manche.annuler.disabled = true; manche.tout.disabled = true; manche.valider.disabled = true; }
-        JeuxNiveau.mascotte(juste ? 'contente' : 'triste');
+        JeuxNiveau.mascotte(juste ? 'heureuse' : 'triste');
         var debut = juste
           ? (premier ? (partie.serie >= 3 ? 'Série de ' + partie.serie + ' ! Bravo !' : 'Bravo !') : 'Bien, tu as trouvé !')
           : 'Pas cette fois.';
@@ -379,7 +379,7 @@
         var pd = $('fin-defi');
         pd.textContent = md;
         pd.hidden = !md;
-        JeuxNiveau.mascotte(gagnee ? 'contente' : 'neutre');
+        JeuxNiveau.mascotte(gagnee ? 'emerveillee' : 'neutre');
         $('btn-rejouer').focus();
       }
       $('btn-rejouer').addEventListener('click', function () { demarrer(partie.diff); });

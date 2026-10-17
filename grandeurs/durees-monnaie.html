@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Durées et monnaie - Mathémagie</title>
+    <link rel="icon" type="image/svg+xml" href="../images/mascotte-neutre.svg" />
+    <script src="../js/profils.js"></script>
+    <script src="js/generateur_grandeurs.js" defer></script>
+    <script src="js/moteur_grandeurs.js" defer></script>
+    <script src="../js/composants/header.js" defer></script>
+    <link rel="stylesheet" href="../style/commun.css" />
+    <link rel="stylesheet" href="../style/calculs.css" />
+    <link rel="stylesheet" href="../style/grandeurs.css" />
+  </head>
+  <body class="calc-body gr-body gr-mission-durees-monnaie">
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../');</script>
+    <app-header base-path="../"></app-header>
+    <main class="calc-page">
+      <div class="calc-entete">
+        <a class="calc-retour" href="index.html">&larr; Missions</a>
+        <h1 class="titre calc-titre">
+          <span class="gr-titre-emoji" aria-hidden="true">⏰</span>
+          <span id="titre-texte">Durées et monnaie</span>
+        </h1>
+        <p class="consigne-mission" id="consigne"></p>
+      </div>
+
+      <section class="presentation calc-carte">
+        <div class="cadre calc-cadre" id="zone-jeu">
+          <div class="calc-haut">
+            <div class="calc-palier" id="palier" role="img" aria-label="Palier"></div>
+            <label class="calc-select-palier">Palier
+              <select id="selectNiveau" aria-label="Choisir le palier"></select>
+            </label>
+          </div>
+
+          <div class="calc-corps">
+            <div class="calc-principal">
+              <div class="calc-enonce-ligne">
+                <img id="mascotte" class="calc-mascotte" src="../images/mascotte-neutre.svg" alt="" />
+                <div id="calcul" aria-live="polite"></div>
+              </div>
+              <div class="gr-figure" id="figure" hidden></div>
+              <div class="gr-choix" id="choix" role="group" aria-label="Réponses possibles" hidden></div>
+              <div class="gr-saisie" id="bloc-saisie">
+                <input type="text" inputmode="decimal" id="saisieReponse" autocomplete="off" aria-label="Ta réponse" />
+                <span class="gr-unite" id="unite" hidden></span>
+              </div>
+              <div id="instructions" role="status"></div>
+              <button type="button" id="valider" class="calc-btn-principal">Valider ✓</button>
+            </div>
+            <div class="calc-pave" id="pave" hidden></div>
+          </div>
+
+          <div class="calc-bas">
+            <div class="calc-serie" id="serie" role="img" aria-label="Série de bonnes réponses"></div>
+            <div class="calc-score"><span class="calc-score-ico" aria-hidden="true">★</span> <span id="score">0</span> pts</div>
+            <div class="calc-essais" id="essais" role="img" aria-label="Essais"></div>
+            <button type="button" id="bascule-pave" class="calc-bascule" aria-pressed="false">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="currentColor"><circle cx="5" cy="5" r="2.4"/><circle cx="12" cy="5" r="2.4"/><circle cx="19" cy="5" r="2.4"/><circle cx="5" cy="12" r="2.4"/><circle cx="12" cy="12" r="2.4"/><circle cx="19" cy="12" r="2.4"/><circle cx="5" cy="19" r="2.4"/><circle cx="12" cy="19" r="2.4"/><circle cx="19" cy="19" r="2.4"/></g></svg>
+              <span>Pavé</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="calc-fin" id="zone-fin" hidden></div>
+      </section>
+    </main>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        new MoteurGrandeurs({ mission: 'durees-monnaie' });
+      });
+    </script>
+  </body>
+</html>

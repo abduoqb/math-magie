@@ -110,7 +110,7 @@
           dire(perduIA
             ? `L'IA a gagné ! On rejoue ?`
             : `<span class="pion ${tourX ? 'x' : 'o'}">${gagnant}</span> a gagné ! Bravo !`, perduIA ? 'fin-ko' : 'fin-ok');
-          JeuxNiveau.mascotte(perduIA ? 'triste' : 'contente');
+          JeuxNiveau.mascotte(perduIA ? 'pleure' : 'emerveillee');
           cadre.classList.add('succes');
           if (tourX) scores.x++; else scores.o++;
           majScores();

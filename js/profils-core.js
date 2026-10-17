@@ -32,6 +32,8 @@ class GestionnaireProfils {
     { emoji: '🐉', nom: 'Dragon Ancien', condition: 'Cumuler 20 niveaux au total', test: (p) => p._totalNiveaux >= 20 },
     { emoji: '⚡', nom: 'Éclair Foudroyant', condition: 'Compléter toutes les missions de calcul (niv 2+)', test: (p) => p._calculsComplets },
     { emoji: '🦄', nom: 'Licorne Céleste', condition: 'Compléter toutes les missions de géométrie (niv 2+)', test: (p) => p._geometrieComplete },
+    { emoji: '🦉', nom: 'Hibou des Nombres', condition: 'Compléter toutes les missions de nombres (niv 2+)', test: (p) => p._nombresComplets },
+    { emoji: '🧪', nom: 'Alchimiste des Mesures', condition: 'Compléter toutes les missions de mesures (niv 2+)', test: (p) => p._grandeursCompletes },
     { emoji: '🌟', nom: 'Étoile Suprême', condition: 'Toutes les missions au niveau 2+', test: (p) => p._toutesCompletes },
     { emoji: '🎭', nom: 'Maître des Masques', condition: 'Toutes les missions au niveau 3+', test: (p) => p._toutesMaitrisees },
     { emoji: '🎮', nom: 'Joueur Vétéran', condition: 'Jouer à au moins 10 mini-jeux', test: (p) => p._jeuxJoues >= 10 },
@@ -69,9 +71,18 @@ class GestionnaireProfils {
   static MISSIONS_GEOMETRIE = [
     'geometrie-formes', 'geometrie-proprietes', 'geometrie-angles',
     'geometrie-symetrie', 'geometrie-vraifaux', 'geometrie-droites',
-    'geometrie-triangles', 'geometrie-quadrilateres', 'geometrie-patrons'
+    'geometrie-triangles', 'geometrie-quadrilateres', 'geometrie-patrons',
+    'geometrie-espace', 'geometrie-solides', 'geometrie-cercle', 'geometrie-instruments', 'geometrie-rapporteur'
   ];
   static TOUTES_MISSIONS = [...GestionnaireProfils.MISSIONS_CALCUL, ...GestionnaireProfils.MISSIONS_GEOMETRIE];
+
+  /** Module « Nombres » (programme.nombres) : progression dans `nombres-<thème>`. */
+  /** Missions « Grandeurs & mesures » : id de progression = 'grandeurs-' + clé dans programme.grandeurs. */
+  static MISSIONS_GRANDEURS = ['longueurs', 'masses-contenances', 'durees-monnaie', 'perimetres-aires', 'proportionnalite-pourcentages', 'volumes-vitesses-echelles'].map(m => 'grandeurs-' + m);
+  static MISSIONS_NOMBRES = [
+    'nombres-valeur', 'nombres-decomposer', 'nombres-comparer', 'nombres-ranger', 'nombres-encadrer',
+    'nombres-droite', 'nombres-moitie', 'nombres-fractions', 'nombres-decimaux'
+  ];
 
   static VERSION = 2;
 
@@ -571,12 +582,58 @@ class GestionnaireProfils {
     return (p && p._avatar) || '🧙‍♂️';
   }
 
+  /**
+   * Change le personnage du profil actif. Seuls les personnages de base et ceux déjà débloqués
+   * par les trophées sont acceptés. Retourne true si le personnage est (ou reste) celui demandé.
+   */
   setAvatar(avatar) {
     const p = this._profilActif();
-    if (!p) return;
+    if (!p) return false;
+    if (!this.getAvatarsDisponibles().disponibles.includes(avatar)) return false;
+    if (p._avatar === avatar) return true;
     p._avatar = avatar;
     this._toucherProfil(p);
     this.sauvegarder();
+    return true;
+  }
+
+  /**
+   * Renomme le profil actif (sans code parent : l'enfant se renomme lui-même). Le profil garde
+   * son code, sa classe, son personnage et toute sa progression ; l'ancien prénom devient une
+   * pierre tombale pour que la synchro ne le ressuscite pas. Retourne { ok, prenom?, erreur? }.
+   */
+  renommerProfilActif(nouveauPrenom) {
+    const ancienNom = this.donnees.joueurActif;
+    const p = this._profilActif();
+    if (!p) return { ok: false, erreur: 'Aucun profil connecté.' };
+    const saisi = (nouveauPrenom || '').trim();
+    if (saisi === ancienNom) return { ok: true, prenom: ancienNom };
+    let v;
+    if (saisi.toLowerCase() === ancienNom.toLowerCase()) {
+      // Seule la casse change : permis (le prénom « existe » mais c'est le sien).
+      v = saisi.length > 15 ? { erreur: '15 lettres maximum.' } : { prenom: saisi };
+    } else {
+      v = this._validerPrenom(saisi);
+    }
+    if (v.erreur) return { ok: false, erreur: v.erreur };
+
+    if (!this.donnees.supprimes) this.donnees.supprimes = {};
+    const pierreNouveau = this.donnees.supprimes[v.prenom];
+    const majAvant = p._majProfil || 0;
+    // Le profil déplacé doit l'emporter sur une éventuelle ancienne pierre du nouveau prénom.
+    this._toucherProfil(p, pierreNouveau && pierreNouveau.supprimeLe);
+    if (pierreNouveau) delete this.donnees.supprimes[v.prenom];
+
+    // Pierre tombale de l'ancien prénom (plus récente que sa dernière modification)
+    const pierre = { supprimeLe: p._majProfil };
+    if (majAvant) pierre._majProfil = majAvant;
+    this.donnees.supprimes[ancienNom] = pierre;
+    delete this.donnees.profils[ancienNom];
+    this.donnees.profils[v.prenom] = p;
+    this.donnees.joueurActif = v.prenom;
+    Auth.reinitialiserLimite('profil:' + ancienNom);
+    this.sauvegarder();
+    return { ok: true, prenom: v.prenom };
   }
 
   getCouleur(nom) {
@@ -609,6 +666,12 @@ class GestionnaireProfils {
     if (a) return a.actif !== false;
     const g = prog.geometrie && (prog.geometrie[id] || prog.geometrie[court]);
     if (g) return g.actif !== false;
+    const n = prog.nombres && prog.nombres[id];
+    if (n) return n.actif !== false;
+    if (/^grandeurs-/.test(id)) {
+      const gr = prog.grandeurs && prog.grandeurs[id.slice(10)];
+      return !!gr && gr.actif !== false;
+    }
     return true;
   }
 
@@ -620,7 +683,7 @@ class GestionnaireProfils {
     const profil = this._profil(nom || this.donnees.joueurActif);
     if (!profil) {
       return {
-        _totalNiveaux: 0, _niveauMax: 0, _calculsComplets: false, _geometrieComplete: false, _toutesCompletes: false, _toutesMaitrisees: false,
+        _totalNiveaux: 0, _niveauMax: 0, _calculsComplets: false, _geometrieComplete: false, _nombresComplets: false, _grandeursCompletes: false, _toutesCompletes: false, _toutesMaitrisees: false,
         _morpionJouees: 0, _penduGagnees: 0, _chiffreGagnees: 0, _p4Jouees: 0, _jeuxJoues: 0,
         _parJeu: {}, _jeuxMagiquesEssayes: 0, _serieDefiMax: 0, _defisReussis: 0
       };
@@ -649,6 +712,8 @@ class GestionnaireProfils {
     const activesToutes = GestionnaireProfils.TOUTES_MISSIONS;
     const calculsOk = tousAtteints(GestionnaireProfils.MISSIONS_CALCUL, 2);
     const geoOk = tousAtteints(GestionnaireProfils.MISSIONS_GEOMETRIE, 2);
+    const nombresOk = tousAtteints(GestionnaireProfils.MISSIONS_NOMBRES, 2);
+    const grandeursOk = tousAtteints(GestionnaireProfils.MISSIONS_GRANDEURS, 2);
 
     const _morpionJouees = somme('jeu-morpion', 'partiesJouees');
     const _penduGagnees = somme('jeu-pendu', 'partiesGagnees');
@@ -678,6 +743,8 @@ class GestionnaireProfils {
       _niveauMax: max,
       _calculsComplets: calculsOk,
       _geometrieComplete: geoOk,
+      _nombresComplets: nombresOk,
+      _grandeursCompletes: grandeursOk,
       _toutesCompletes: tousAtteints(activesToutes, 2),
       _toutesMaitrisees: tousAtteints(activesToutes, 3),
       _morpionJouees,

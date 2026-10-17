@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Les fractions — Nombres</title>
+    <link rel="icon" type="image/svg+xml" href="../images/mascotte-neutre.svg" />
+    <link rel="stylesheet" href="../style/commun.css" />
+    <link rel="stylesheet" href="../style/nombres.css" />
+    <script src="../js/profils.js"></script>
+    <script src="js/generateur_nombres.js"></script>
+    <script src="js/moteur_nombres.js" defer></script>
+    <script src="../js/composants/header.js" defer></script>
+  </head>
+  <body class="nb-body">
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../');</script>
+    <app-header base-path="../"></app-header>
+    <main class="nb-page">
+      <div class="nb-entete">
+        <a class="nb-retour" href="index.html">&larr; Nombres</a>
+        <h1 class="titre nb-titre">
+          <span class="nb-titre-ico" aria-hidden="true">🍕</span>
+          <span id="titre-texte">Les fractions</span>
+        </h1>
+        <p class="nb-consigne" id="consigne"></p>
+      </div>
+
+      <section class="nb-carte">
+        <div class="nb-cadre" id="zone-jeu">
+          <div class="nb-haut">
+            <div class="nb-palier" id="palier" role="img" aria-label="Palier"></div>
+            <label class="nb-select-palier">Palier
+              <select id="selectNiveau" aria-label="Choisir le palier"></select>
+            </label>
+          </div>
+
+          <div class="nb-question">
+            <img id="mascotte" class="nb-mascotte" src="../images/mascotte-neutre.svg" alt="" />
+            <div class="nb-enonce-bloc" aria-live="polite">
+              <p class="nb-enonce" id="enonce"></p>
+              <p class="nb-expression" id="expression" hidden></p>
+            </div>
+            <span id="voix-slot"></span>
+          </div>
+          <div class="nb-visuel" id="visuel" hidden></div>
+
+          <div class="nb-reponse" id="reponse-zone"></div>
+          <div class="nb-retour-info" id="instructions" role="status"></div>
+          <button type="button" id="suivant" class="nb-btn-principal nb-suivant" hidden>Suivant &rarr;</button>
+
+          <div class="nb-bas">
+            <div class="nb-serie" id="serie" role="img" aria-label="Série de bonnes réponses"></div>
+            <div class="nb-score"><span aria-hidden="true">★</span> <span id="score">0</span> pts</div>
+            <div class="nb-essais" id="essais" role="img" aria-label="Essais"></div>
+          </div>
+        </div>
+
+        <div class="nb-fin" id="zone-fin" hidden></div>
+      </section>
+    </main>
+    <script>document.addEventListener('DOMContentLoaded', function () { new MoteurNombres('nombres-fractions'); });</script>
+  </body>
+</html>

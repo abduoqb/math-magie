@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mesures - Mathémagie</title>
+    <link rel="icon" type="image/svg+xml" href="../images/mascotte-neutre.svg" />
+    <link rel="stylesheet" href="../style/commun.css" />
+    <link rel="stylesheet" href="../style/calculs.css" />
+    <link rel="stylesheet" href="../style/grandeurs.css" />
+    <script src="../js/profils.js"></script>
+    <script src="../js/composants/header.js" defer></script>
+  </head>
+  <body class="calc-body calc-body-liste gr-body">
+    <script>gestionnaireProfils.verifierAccesOuRediriger('../');</script>
+    <app-header base-path="../"></app-header>
+    <main class="calc-page">
+      <section class="calc-liste-entete gr-liste-entete">
+        <span class="gr-liste-emoji" aria-hidden="true">📏</span>
+        <div>
+          <h1 class="titre">Mesures</h1>
+          <p id="sous-titre">Choisis une mission !</p>
+        </div>
+      </section>
+
+      <section class="calc-ops gr-ops" id="choix-grandeurs" aria-live="polite"></section>
+    </main>
+    <script>
+      (function () {
+        // Missions dans l'ordre d'affichage ; libellé, consigne et paliers viennent du programme de la classe.
+        var MISSIONS = [
+          { id: 'longueurs', page: 'longueurs.html', emoji: '📏', titre: 'Longueurs' },
+          { id: 'masses-contenances', page: 'masses-contenances.html', emoji: '⚖️', titre: 'Masses et contenances' },
+          { id: 'durees-monnaie', page: 'durees-monnaie.html', emoji: '⏰', titre: 'Durées et monnaie' },
+          { id: 'perimetres-aires', page: 'perimetres-aires.html', emoji: '🟦', titre: 'Périmètres et aires' },
+          { id: 'proportionnalite-pourcentages', page: 'proportionnalite-pourcentages.html', emoji: '🛒', titre: 'Proportionnalité' },
+          { id: 'volumes-vitesses-echelles', page: 'volumes-vitesses-echelles.html', emoji: '🧊', titre: 'Volumes, vitesses, échelles' }
+        ];
+        var gp = (typeof gestionnaireProfils !== 'undefined') ? gestionnaireProfils : null;
+        var classe = gp && gp.getNiveauClasse ? gp.getNiveauClasse() : null;
+        var prog = (gp && gp.getProgramme && gp.getProgramme()) || (window.PROGRAMMES && (window.PROGRAMMES[classe || 'cm1'] || window.PROGRAMMES.cm1)) || null;
+        var grandeurs = (prog && prog.grandeurs) || {};
+        var estCP = classe === 'cp';
+        if (estCP) {
+          document.body.classList.add('calc-cp');
+          document.getElementById('sous-titre').textContent = 'Choisis !';
+        }
+
+        function el(nom, classe, texte) {
+          var e = document.createElement(nom);
+          if (classe) e.className = classe;
+          if (texte !== undefined) e.textContent = texte;
+          return e;
+        }
+        function etoiles(actives, total) {
+          var h = '';
+          for (var i = 1; i <= total; i++) {
+            h += '<img class="calc-etoile' + (i <= actives ? ' on' : '') + '" src="../images/etoile.svg" alt="" />';
+          }
+          return h;
+        }
+
+        var zone = document.getElementById('choix-grandeurs');
+        MISSIONS.forEach(function (m) {
+          var def = grandeurs[m.id];
+          var actif = !!(def && def.actif !== false && def.niveaux && def.niveaux.length);
+          var carte = el(actif ? 'a' : 'div', 'calc-op gr-op' + (actif ? '' : ' inactive'));
+          var nom = (def && def.libelle) || m.titre;
+          var emoji = el('span', 'gr-op-emoji', m.emoji);
+          emoji.setAttribute('aria-hidden', 'true');
+          carte.appendChild(emoji);
+          carte.appendChild(el('span', 'calc-op-nom', nom));
+          if (actif) {
+            carte.href = m.page;
+            if (!estCP && def.consigne) carte.appendChild(el('span', 'gr-op-info', def.consigne));
+            var palier = 1;
+            try { var pr = gp && gp.getProgression ? gp.getProgression('grandeurs-' + m.id) : null; palier = (pr && pr.niveau) || 1; } catch (e) {}
+            var total = def.niveaux.length;
+            palier = Math.min(total, Math.max(1, palier));
+            var zonePalier = el('span', 'calc-op-palier');
+            zonePalier.setAttribute('role', 'img');
+            zonePalier.setAttribute('aria-label', 'Palier ' + palier + ' sur ' + total);
+            zonePalier.innerHTML = etoiles(palier, total);
+            carte.appendChild(zonePalier);
+            carte.appendChild(el('span', 'calc-op-go', 'Jouer'));
+          } else {
+            carte.setAttribute('aria-disabled', 'true');
+            carte.appendChild(el('span', 'calc-op-go', 'Pas encore au programme'));
+          }
+          zone.appendChild(carte);
+        });
+      })();
+    </script>
+  </body>
+</html>

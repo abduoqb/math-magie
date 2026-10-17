@@ -93,6 +93,21 @@
     };
   }
 
+  // Thèmes de questions autorisés pour les missions à banque de questions (espace, solides,
+  // cercle, instruments, rapporteur). null = pas de restriction (mode sans programme).
+  function themes(id) {
+    if (!mission(id)) return null;
+    var c = contenu(id);
+    return Array.isArray(c.themes) ? c.themes.slice() : null;
+  }
+
+  // Liste libre du contenu (ex. 'vocab', 'instruments', 'solides'). null = pas de restriction.
+  function liste(id, cle) {
+    if (!mission(id)) return null;
+    var c = contenu(id);
+    return Array.isArray(c[cle]) ? c[cle].slice() : null;
+  }
+
   // Axes de symétrie gérés par le moteur parmi ceux autorisés
   function axes(id) {
     if (!mission(id)) return ['vertical'];
@@ -106,6 +121,7 @@
       var s = sansAccent(a);
       if (s.indexOf('vertic') === 0) res.push('vertical');
       else if (s.indexOf('horizon') === 0) res.push('horizontal');
+      else if (s.indexOf('diagonal') === 0) res.push('diagonal');
     });
     return unique(res);
   }
@@ -161,7 +177,7 @@
     ORDRE: ORDRE, NOTIONS: NOTIONS,
     programme: programme, niveauClasse: niveauClasse, indexNiveau: indexNiveau, estCP: estCP,
     mission: mission, actif: actif, contenu: contenu, noms: noms, types: types,
-    questionsProprietes: questionsProprietes, axes: axes, maxNiveau: maxNiveau,
+    questionsProprietes: questionsProprietes, axes: axes, themes: themes, liste: liste, maxNiveau: maxNiveau,
     filtrerPool: filtrerPool, garde: garde, notionAutorisee: notionAutorisee, lire: lire
   };
   root.GeoProgramme = API;

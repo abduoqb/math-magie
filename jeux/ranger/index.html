@@ -324,11 +324,11 @@
           if (parfaite) {
             etat.reussies++; etat.combo++;
             etat.meilleurCombo = Math.max(etat.meilleurCombo, etat.combo);
-            JeuxNiveau.mascotte('contente');
+            JeuxNiveau.mascotte('heureuse');
             dire(etat.combo >= 3 ? '🔥 Série de ' + etat.combo + ' ! Magnifique !' : (etat.combo === 2 ? '✨ Deux de suite, bravo !' : '✨ Parfait, sans erreur !'));
           } else {
             etat.combo = 0;
-            JeuxNiveau.mascotte('contente');
+            JeuxNiveau.mascotte('heureuse');
             dire('Bien joué, tu as trouvé ! La prochaine sera parfaite.');
           }
           majEntete();
@@ -360,7 +360,7 @@
           $('ranger-fin-serie').textContent = etat.meilleurCombo >= 2 ? '🔥 Meilleure série : ' + etat.meilleurCombo + ' manches de suite' : '';
           $('ranger-fin-defi').textContent = JeuxNiveau.messageDefi(retour);
           consigneEl.textContent = res.gagnee ? (res.etoiles === 3 ? 'Parfait ! Tu es un grand ordonnateur !' : 'Bravo, tu as gagné !') : 'Bien essayé ! On refait une partie ?';
-          JeuxNiveau.mascotte(res.gagnee ? 'contente' : 'triste');
+          JeuxNiveau.mascotte(res.gagnee ? 'emerveillee' : 'pleure');
           focaliser($('ranger-rejouer'));
         }
         $('ranger-rejouer').addEventListener('click', function () { demarrer(etat.diff); });

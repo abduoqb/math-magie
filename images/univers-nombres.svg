@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Nombres">
+<g stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="5">
+<g transform="rotate(-14 62 110)"><rect x="22" y="58" width="80" height="104" rx="20" fill="#22C55E"/><text x="62" y="128" text-anchor="middle" font-family="Lexend, 'Century Gothic', Arial, sans-serif" font-weight="800" font-size="60" fill="#FFFFFF" stroke="none">3</text></g>
+<g transform="rotate(12 140 110)"><rect x="100" y="52" width="80" height="104" rx="20" fill="#FACC15"/><text x="140" y="122" text-anchor="middle" font-family="Lexend, 'Century Gothic', Arial, sans-serif" font-weight="800" font-size="60" fill="#2B2D5B" stroke="none">5</text></g>
+<g transform="rotate(-2 100 100)"><rect x="60" y="28" width="82" height="108" rx="20" fill="#2563EB"/><text x="101" y="102" text-anchor="middle" font-family="Lexend, 'Century Gothic', Arial, sans-serif" font-weight="800" font-size="64" fill="#FFFFFF" stroke="none">7</text></g>
+</g>
+<path d="M170 14Q173.6 30.4 190 34Q173.6 37.6 170 54Q166.4 37.6 150 34Q166.4 30.4 170 14Z" fill="#FFF7C2" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="3"/>
+<polygon points="28.0,155.0 31.4,163.3 40.4,164.0 33.6,169.8 35.6,178.5 28.0,173.8 20.4,178.5 22.4,169.8 15.6,164.0 24.6,163.3" fill="#FACC15" stroke="#2B2D5B" stroke-linejoin="round" stroke-linecap="round" stroke-width="3"/>
+</svg>

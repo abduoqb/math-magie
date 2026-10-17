@@ -85,8 +85,8 @@ class MoteurCalcul {
     this.elMascotte.dataset.etat = etat;
     this.elMascotte.classList.remove("rebond", "secoue");
     void this.elMascotte.offsetWidth;
-    if (etat === "contente") this.elMascotte.classList.add("rebond");
-    if (etat === "triste") this.elMascotte.classList.add("secoue");
+    if (etat === "contente" || etat === "heureuse" || etat === "emerveillee" || etat === "coeur") this.elMascotte.classList.add("rebond");
+    if (etat === "triste" || etat === "pleure") this.elMascotte.classList.add("secoue");
   }
 
   construireSelecteur() {
@@ -282,7 +282,7 @@ class MoteurCalcul {
 
     this.elFin.innerHTML = `
       <div class="calc-confettis" aria-hidden="true">${confettis}</div>
-      <img class="calc-mascotte calc-mascotte-fin rebond" src="${MoteurCalcul.img("mascotte-" + (etoiles > 0 ? "contente" : "neutre"))}" alt="" />
+      <img class="calc-mascotte calc-mascotte-fin rebond" src="${MoteurCalcul.img("mascotte-" + (etoiles > 0 ? "emerveillee" : "neutre"))}" alt="" />
       <h2 class="calc-fin-titre">${etoiles > 0 ? "Bravo !" : "Partie terminée"}</h2>
       <div class="calc-grandes-etoiles" role="img" aria-label="${etoiles} étoile${etoiles > 1 ? "s" : ""} sur 3">${grandes}</div>
       <p class="calc-fin-score"><strong>${this.score}</strong> pts</p>
@@ -351,7 +351,7 @@ class MoteurCalcul {
       this.elInstructions.innerHTML = `<span class="calc-pastille">✅</span> Bravo ! <strong>+${pointsGagnes} pts</strong>${combo}`;
       this.elInstructions.className = "texte-succes";
       this.elCadre.classList.add("succes");
-      this.setMascotte("contente");
+      this.setMascotte("heureuse");
 
       // Evolution : 5 bonnes réponses de suite = niveau supérieur (la streak continue)
       if (this.consecutifs >= 5 && this.consecutifs % 5 === 0 && this.niveau < this.nbPaliers) {
@@ -381,7 +381,7 @@ class MoteurCalcul {
       this.elInstructions.innerHTML = `<span class="calc-pastille">❌</span> Presque ! La réponse est <strong class="calc-bonne">${bonne}</strong>`;
       this.elInstructions.className = "texte-erreur";
       this.elCadre.classList.add("erreur");
-      this.setMascotte("triste");
+      this.setMascotte("pleure");
       delai = 2600;
 
       // Régression : 2 erreurs de suite = niveau inférieur (min 1)

@@ -47,7 +47,29 @@
       s('<rect x="22" y="20" width="14" height="14" />', '#FDBA74') +
       s('<rect x="36" y="20" width="14" height="14" />', '#86EFAC') +
       s('<rect x="22" y="34" width="14" height="14" />', '#93C5FD') +
-      s('<rect x="22" y="48" width="14" height="12" />', '#93C5FD')
+      s('<rect x="22" y="48" width="14" height="12" />', '#93C5FD'),
+    'geometrie-espace':
+      s('<rect x="8" y="8" width="48" height="48" rx="4" />', '#E0F2FE') +
+      '<path d="M8 24 H56 M8 40 H56 M24 8 V56 M40 8 V56" stroke="' + E + '" stroke-width="2.2" fill="none"/>' +
+      s('<polygon points="47,31 49.4,36.2 55,36.8 50.8,40.6 52,46 47,43.2 42,46 43.2,40.6 39,36.8 44.6,36.2" />', '#FACC15') +
+      '<circle cx="16" cy="48" r="5" fill="#FB7185" stroke="' + E + '" stroke-width="3"/>',
+    'geometrie-solides':
+      s('<polygon points="10,26 38,26 38,56 10,56" />', '#FDBA74') +
+      s('<polygon points="10,26 22,12 50,12 38,26" />', '#FED7AA') +
+      s('<polygon points="38,26 50,12 50,42 38,56" />', '#FB923C'),
+    'geometrie-cercle':
+      s('<circle cx="32" cy="32" r="24" />', '#BAE6FD') +
+      '<line x1="32" y1="32" x2="56" y2="32" stroke="#F97316" stroke-width="4" stroke-linecap="round"/>' +
+      '<circle cx="32" cy="32" r="4" fill="' + E + '"/>',
+    'geometrie-instruments':
+      s('<rect x="6" y="40" width="52" height="16" rx="3" />', '#FDE68A') +
+      '<path d="M16 40 V47 M26 40 V47 M36 40 V47 M46 40 V47" stroke="' + E + '" stroke-width="2.4" stroke-linecap="round"/>' +
+      s('<polygon points="10,34 10,6 38,34" />', '#A7F3D0'),
+    'geometrie-rapporteur':
+      s('<path d="M6 48 A26 26 0 0 1 58 48 Z" />', '#BAE6FD') +
+      '<path d="M32 48 L50 26" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>' +
+      '<path d="M15 38 L18 40 M22 28 L25 31 M32 24 V28 M42 28 L39 31" stroke="' + E + '" stroke-width="2.2" stroke-linecap="round"/>' +
+      '<circle cx="32" cy="48" r="3.5" fill="' + E + '"/>'
   };
 
   function svg(id, taille) {

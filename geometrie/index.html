@@ -37,7 +37,12 @@
           { id: 'geometrie-droites', page: 'droites.html', titre: 'Droites Magiques' },
           { id: 'geometrie-triangles', page: 'triangles.html', titre: 'Le Secret des Triangles' },
           { id: 'geometrie-quadrilateres', page: 'quadrilateres.html', titre: 'Tapis Volants' },
-          { id: 'geometrie-patrons', page: 'patrons.html', titre: 'Les Patrons Magiques' }
+          { id: 'geometrie-patrons', page: 'patrons.html', titre: 'Les Patrons Magiques' },
+          { id: 'geometrie-espace', page: 'espace.html', titre: "Repérage dans l'espace" },
+          { id: 'geometrie-solides', page: 'solides.html', titre: 'Les Solides' },
+          { id: 'geometrie-cercle', page: 'cercle.html', titre: 'Cercle et Compas' },
+          { id: 'geometrie-instruments', page: 'instruments.html', titre: 'Règle, équerre, compas' },
+          { id: 'geometrie-rapporteur', page: 'rapporteur.html', titre: 'Le Rapporteur' }
         ];
         var CADENAS = '<svg class="geo-cadenas" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="10" width="16" height="11" rx="3" fill="#94A3B8" stroke="#475569" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#475569" stroke-width="2.4" stroke-linecap="round"/></svg>';
         var estCP = GeoProgramme.estCP();
@@ -90,8 +95,12 @@
         }
 
         var liste = document.getElementById('liste-missions');
-        var actives = MISSIONS.filter(function (m) { return GeoProgramme.actif(m.id); });
-        var inactives = MISSIONS.filter(function (m) { return !GeoProgramme.actif(m.id); });
+        // Une mission absente du programme de la classe n'est pas montrée (pas de cadenas inutiles) ;
+        // une mission présente mais inactive reste visible sous « Plus tard ».
+        var prog = GeoProgramme.programme();
+        var connues = MISSIONS.filter(function (m) { return !prog || !prog.geometrie || prog.geometrie[m.id]; });
+        var actives = connues.filter(function (m) { return GeoProgramme.actif(m.id); });
+        var inactives = connues.filter(function (m) { return !GeoProgramme.actif(m.id); });
         actives.forEach(function (m) { liste.appendChild(creerCarte(m, true)); });
         if (inactives.length) {
           if (actives.length) {

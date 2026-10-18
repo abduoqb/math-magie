@@ -689,4 +689,12 @@
     getDerniereSynchro, getMessageErreur, recuperationEnCours, demarrer,
     fusionnerProfils, fusionnerCodeParent
   };
+
+  // Auto-démarrage : si le gestionnaire de profils est déjà là, c'est que sync.js a été chargé
+  // APRÈS profils-core.js (chargement différé depuis js/profils.js) → on démarre tout de suite.
+  // Sur connexion.html, sync.js est chargé AVANT profils-core.js : c'est alors profils-core.js
+  // qui appelle demarrer(). Les deux cas s'excluent, jamais de double démarrage.
+  try {
+    if (global.gestionnaireProfils) demarrer(global.gestionnaireProfils);
+  } catch (e) { /* la synchro ne doit jamais empêcher la page de fonctionner */ }
 })(typeof window !== 'undefined' ? window : globalThis);

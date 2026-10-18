@@ -169,12 +169,20 @@
           if ('speechSynthesis' in window && window.SpeechSynthesisUtterance) {
             btnLecture.hidden = false;
             btnLecture.addEventListener('click', () => {
+              const univers = Array.from(document.querySelectorAll('.carte-activite:not(.indisponible) h3'))
+                .map((h) => h.textContent.trim()).filter(Boolean);
+              const bonjour = prenom ? 'Bonjour ' + prenom + ' !' : 'Bonjour !';
+              const consigne = bonjour + ' Choisis ton univers.';
+              if (window.Voix && typeof window.Voix.question === 'function') {
+                window.Voix.question(consigne, univers);
+                return;
+              }
               const phrases = [titre.textContent, texte.textContent];
               document.querySelectorAll('.carte-activite:not(.indisponible)').forEach((c) => {
-                phrases.push(c.querySelector('h3').textContent + '. ' + c.querySelector('.contenu-carte p').textContent);
+                phrases.push(c.querySelector('h3').textContent);
               });
               window.speechSynthesis.cancel();
-              const u = new SpeechSynthesisUtterance(phrases.join(' '));
+              const u = new SpeechSynthesisUtterance(phrases.join('. '));
               u.lang = 'fr-FR';
               u.rate = 0.85;
               window.speechSynthesis.speak(u);

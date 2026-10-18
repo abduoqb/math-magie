@@ -43,6 +43,23 @@
   --focus: #FFE066;
   --police-titre: 'Lexend', 'Century Gothic', sans-serif;
 
+  /* Palette « verrouillé » (cartes et trophées grisés) */
+  --verrouille: #EEF0F6;
+  --verrouille-ombre: #9AA0C0;
+  --verrouille-icone: #D5D9E8;
+  --verrouille-bord: #6B7199;
+  --verrouille-texte: #3B4160;
+  --verrouille-nom: #4B5170;
+
+  /* Médailles de trophée */
+  --medaille-bronze: #F4B183;
+  --medaille-argent: #D7DEE8;
+  --medaille-or: #FDE047;
+  --medaille-diamant: #A5F3FC;
+
+  /* Vert foncé AA (statut « débloqué ») */
+  --ok-texte: #166534;
+
   /* --- Alias des anciens noms (ne rien casser) --- */
   --bg-color: var(--fond);
   --card-bg: var(--carte);

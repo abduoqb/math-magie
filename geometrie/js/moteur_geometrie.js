@@ -268,7 +268,11 @@ class MoteurGeometrie {
     btn.className = "bouton-voix";
     btn.textContent = "🔊";
     btn.setAttribute("aria-label", "Écouter la consigne");
-    btn.onclick = () => GeoProgramme.lire(this.texteConsigne);
+    btn.onclick = () => {
+      const choix = this.typeInterface === "boutons" ? (this.optionsCourantes || []) : [];
+      if (window.Voix && typeof window.Voix.question === "function") window.Voix.question(this.texteConsigne, choix);
+      else GeoProgramme.lire(this.texteConsigne);
+    };
     this.elInstructions.appendChild(btn);
   }
 
@@ -284,6 +288,7 @@ class MoteurGeometrie {
   }
 
   preparerInterface(options) {
+    this.optionsCourantes = (this.typeInterface === "boutons" && options) ? options.slice() : [];
     this.elZoneReponse.innerHTML = "";
 
     if (this.typeInterface === "boutons" && options) {

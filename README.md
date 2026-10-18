@@ -30,6 +30,7 @@ Ouvrir les fichiers directement (`file://`) marche pour la plupart des pages, ma
 | `js/profils-core.js` | `GestionnaireProfils` : état, persistance, progression, codes, migration. |
 | `js/auth.js` | Hachage des codes, limitation des essais, garde de page. |
 | `js/niveaux.js` | Liste des niveaux, libellés, `getProgramme(niveau)`. |
+| `js/voix.js` | Voix commune (`window.Voix`) : synthèse `fr-FR`, retrait des émojis, traduction des symboles en mots, énumération des choix, lecture fluide. Chargé par `js/profils.js`. |
 | `js/sync.js` | Synchro Supabase et fonction de fusion `fusionnerProfils` (exportée pour les tests). |
 | `js/composants/header.js` | En-tête (web component `<app-header>`), menus, indicateur ☁️. |
 | `js/supabase-config.js` | URL et clé `anon` du projet Supabase. |
@@ -37,6 +38,9 @@ Ouvrir les fichiers directement (`file://`) marche pour la plupart des pages, ma
 | `style/` | `commun.css` (tokens et classes génériques), `exercice-commun.css`, `calculs.css`, `geometrie.css`, `jeux.css`, `connexion.css`, `accueil.css`, `missions-liste.css`. |
 | `images/` | SVG (univers, opérations, mascotte en 4 expressions) et anciens PNG encore référencés par certaines pages. |
 | `supabase/migrations/` | Schéma de la synchro (tables, RLS, triggers), trace des migrations appliquées. |
+| `tools/generer-missions.js` | Générateur des pages de mission (source unique du HTML répété). `node tools/generer-missions.js` écrit les 33 pages, `--check` vérifie qu'elles sont à jour sans rien écrire. Voir « Ajouter ou modifier une mission ». |
+| `tests/lancer-tests.js` | Lanceur de tests : exécute tous les `test-*.js` (`npm test`). |
+| `package.json` | Script `npm test`. Aucune dépendance. |
 | `docs/` | `REFONTE-SPEC.md`, `DA-BRIEF.md`, `SYNC-SPEC.md`, et les recherches dans `docs/programmes/`. Lire la spec avant de toucher au modèle de données. |
 
 <img width="16000" height="5856" alt="diagram" src="https://github.com/user-attachments/assets/9d70acd6-c1d0-40c9-afe8-7639eb7a64e8" />
@@ -92,6 +96,8 @@ window.PROGRAMMES.cp = {
 
 ## Ajouter ou modifier une mission
 
+> Les pages de mission (calculs, nombres, grandeurs, géométrie) sont **générées** par `tools/generer-missions.js` : c'est lui la source de vérité du `<head>`, de l'ordre des `<script>` et du squelette commun. Pour changer une page, modifier le générateur puis `node tools/generer-missions.js` ; `node tools/generer-missions.js --check` dit si les pages du dépôt sont à jour. Une édition manuelle d'une page de mission sera perdue à la prochaine génération.
+
 1. Vérifier que la mission existe dans `programmes/<classe>.js` pour toutes les classes concernées (même id).
 2. Pour du calcul : le moteur lit `programme.calcul[op].niveaux[palier - 1]`. Ne pas ajouter de logique par classe dans `moteur_calcul.js`, la mettre dans le programme.
 3. Pour la géométrie : la mission doit lire `GeoProgramme` (`programme_geo.js`) et filtrer ses pools sur `contenu`. Une question hors `contenu` est un bug. Missions à banque : `contenu.themes` (+ `solides`, `instruments`, `vocab`) ; un thème absent n'est jamais tiré. Une mission absente du programme d'une classe n'apparaît pas dans la liste.
@@ -100,7 +106,7 @@ window.PROGRAMMES.cp = {
 
 ## Synchronisation Supabase
 
-Le client est dans `js/sync.js` (`window.Sync`). Il est **inactif** si `window.SUPABASE_CONFIG` est absent ou si aucune famille n'est connectée. Dans ces cas, le site fonctionne uniquement en local.
+Le client est dans `js/sync.js` (`window.Sync`). Il est **inactif** si `window.SUPABASE_CONFIG` est absent ou si aucune famille n'est connectée. Dans ces cas, le site fonctionne uniquement en local. Le client Supabase (≈ 108 Ko) et `sync.js` sont chargés **en différé**, hors du chemin critique de la page (`js/profils.js`), et uniquement si l'appareil garde la trace d'une famille déjà connectée ; `connexion.html` les charge explicitement.
 
 Fonctionnement :
 
@@ -157,18 +163,27 @@ Travail sur les nombres eux-mêmes : valeur des chiffres, décomposer, comparer,
 
 ## Tests
 
-Les tests des jeux magiques sont dans le dépôt (`jeux/*/test-*.js`, Node sans dépendance). Pour le reste, ce qui a été vérifié par scripts hors dépôt :
+Tous les tests sont dans le dépôt (Node, sans dépendance) et se lancent d'un coup :
 
-- génération : 10 paliers × 4 opérations × 5 classes, 300 tirages chacun, bornes et résultats contrôlés ;
-- géométrie : `node geometrie/test-geometrie.js` (dans le dépôt) vérifie, pour chaque mission active de chaque classe, 300 questions par palier (réponse dans les choix, SVG bien formé, rien hors `contenu`, pas de rapporteur avant le CM2), la cohérence programmes ↔ pages ↔ icônes ↔ `MISSIONS_GEOMETRIE`, et le patron du cube (64 orientations / 11 patrons) ;
-- auth : hachage identique à `crypto.createHash`, blocage, migration v1→v2, mode parent ;
-- synchro : fusion (cas explicites + 3000 tirages aléatoires) et scénarios sur un faux client Supabase.
+```bash
+npm test            # ou : node tests/lancer-tests.js
+```
 
-Les scripts sont restés hors dépôt. Les rajouter (par exemple dans `tests/`, en `node --test`) serait la prochaine étape logique.
+Le lanceur (`tests/lancer-tests.js`) exécute tous les fichiers `test-*.js` et échoue si l'un d'eux échoue.
+
+- calcul : `calculs_mentaux/test-calcul.js` — 5 classes × opérations actives × 10 paliers × 200 tirages (bornes résultat/terme, soustractions positives, retenues, divisions exactes, décimaux) ;
+- géométrie : `geometrie/test-geometrie.js` — 300 questions par palier, cohérence programmes ↔ pages ↔ icônes ↔ `MISSIONS_GEOMETRIE`, patron du cube (64 orientations / 11 patrons) ;
+- nombres : `nombres/test-nombres.js` ; grandeurs : `grandeurs/test-grandeurs.js` ; jeux : `jeux/*/test-*.js` ;
+- auth : `js/test-auth.js` — hachage identique à `crypto.createHash`, blocage après 3 essais, déblocage après 30 s ;
+- synchro : `js/test-sync.js` — fusion (cas explicites + 2000 tirages aléatoires), commutativité et idempotence ;
+- voix : `js/test-voix.js` — nettoyage du texte lu (émojis retirés, symboles dits en mots) et énumération des choix.
+
+La CI (`.github/workflows/ci.yml`) lance `npm test` sur chaque `push` et `pull_request`.
 
 ## Conventions
 
-- **Interface en français**, tutoiement, phrases courtes. Au CP : textes courts et bouton 🔊 (`speechSynthesis`, `fr-FR`).
+- **Interface en français**, tutoiement, phrases courtes. Au CP : textes courts et bouton 🔊.
+- **Voix** : toute lecture passe par `window.Voix` (`js/voix.js`) — jamais `speechSynthesis` en direct. Le module retire les émojis (interdit de les lire), dit les symboles en mots (`×` → « fois », `3/4` → « 3 sur 4 »), reste concis et, pour une question à choix, les énumère (« Tes choix : a, b, ou c. ») via `Voix.question(consigne, choix)`.
 - **Couleurs** : tokens sur `:root` dans `style/commun.css` (`--calcul`, `--geometrie`, `--jeux`, `--op-addition`…). Ne pas coder de couleur en dur dans les pages.
 - **Classes** : les nouvelles classes génériques vont dans `commun.css` ou `exercice-commun.css`. Les classes spécifiques à un univers sont préfixées (`calc-*`, `geo-*`, `jeu-*`).
 - **Texte utilisateur** : toujours échappé avant `innerHTML`. Le prénom est saisi par un enfant, il est considéré comme non fiable.
@@ -183,8 +198,7 @@ Les scripts sont restés hors dépôt. Les rajouter (par exemple dans `tests/`, 
 - **Migration des appareils déjà synchronisés** : au premier chargement, l'ancien stockage unique est rattaché à la famille alors connectée. Un appareil déconnecté depuis longtemps, avec les profils d'une ancienne famille, les verra rattachés à la prochaine famille qui s'y connecte (impossible à deviner).
 - **Incohérence de bornes** entre cm1 (par terme) et les autres classes (par résultat) : voir `BORNES_PAR_TERME`.
 - **CE1 divisions** désactivées (`actif: false`), volontairement, en attente de la question du partage dans le moteur.
-- **Ancien code mort** : `choix-mage.html` n'est plus qu'une redirection vers `connexion.html`. Quelques PNG de `images/` ne sont plus utilisés.
-- **Jamais testé** : Safari, Firefox, un vrai appareil tactile, la voix (`speechSynthesis`) à l'oreille.
+- **Jamais testé** : Safari, Firefox, un vrai appareil tactile, la voix (`speechSynthesis`) à l'oreille, et le chargement différé de la synchro en navigateur (à revérifier : connexion → navigation vers une mission → retour de l'indicateur ☁️).
 
 ## Documentation de référence
 

@@ -146,17 +146,27 @@
   }
 
   /* ---------- Voix ---------- */
+  function moduleVoix() { return root.Voix || null; }
+
   function lire(texte) {
+    var t = typeof texte === 'function' ? texte() : texte;
+    var v = moduleVoix();
+    if (v && v.dire) { v.dire(t); return; }
     try {
-      if (!('speechSynthesis' in window)) return;
-      window.speechSynthesis.cancel();
-      var u = new SpeechSynthesisUtterance(texte);
+      if (!('speechSynthesis' in root)) return;
+      root.speechSynthesis.cancel();
+      var u = new root.SpeechSynthesisUtterance(String(t));
       u.lang = 'fr-FR';
       u.rate = 0.9;
-      window.speechSynthesis.speak(u);
+      root.speechSynthesis.speak(u);
     } catch (e) {}
   }
-  function creerBoutonVoix(getTexte) {
+
+  /**
+   * Bouton 🔊 (CP). `getChoix` (optionnel) permet d'énumérer les choix proposés à l'enfant
+   * quand la consigne ne les cite pas déjà.
+   */
+  function creerBoutonVoix(getTexte, getChoix) {
     if (niveau() !== 'cp') return null;
     var b = document.createElement('button');
     b.type = 'button';
@@ -164,7 +174,11 @@
     b.textContent = '🔊';
     b.setAttribute('aria-label', 'Écouter la consigne');
     b.addEventListener('click', function () {
-      lire(typeof getTexte === 'function' ? getTexte() : String(getTexte));
+      var t = typeof getTexte === 'function' ? getTexte() : String(getTexte);
+      var choix = typeof getChoix === 'function' ? getChoix() : (getChoix || []);
+      var v = moduleVoix();
+      if (v && v.question && choix && choix.length) { v.question(t, choix); return; }
+      lire(t);
     });
     return b;
   }

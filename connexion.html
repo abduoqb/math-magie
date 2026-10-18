@@ -15,6 +15,11 @@
 
     <script src="js/niveaux.js"></script>
     <script src="js/auth.js"></script>
+    <!-- Page critique de la synchro : on charge le client Supabase et Sync de façon synchrone
+         et ordonnée, avant profils.js. Le script inline ci-dessous lit window.Sync immédiatement. -->
+    <script src="js/vendor/supabase.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/sync.js"></script>
     <script src="js/profils.js"></script>
     <script>
     (function () {
@@ -54,9 +59,11 @@
         return 'index.html';
       }
 
-      // Voix : lecture des consignes (SpeechSynthesis fr-FR)
+      // Voix : lecture des consignes (module commun window.Voix, repli local)
       function parler(texte) {
-        if (!('speechSynthesis' in window) || !texte) return;
+        if (!texte) return;
+        if (window.Voix && typeof window.Voix.dire === 'function') { window.Voix.dire(texte); return; }
+        if (!('speechSynthesis' in window)) return;
         try {
           window.speechSynthesis.cancel();
           const u = new SpeechSynthesisUtterance(texte);
@@ -118,7 +125,8 @@
         surSync = null;
         if (arreterMinuteur) { clearInterval(arreterMinuteur); arreterMinuteur = null; }
         if (nettoyageClavier) { nettoyageClavier(); nettoyageClavier = null; }
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        if (window.Voix && typeof window.Voix.arreter === 'function') window.Voix.arreter();
+        else if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       }
       function aller(fn) { nettoyer(); fn(); }
 

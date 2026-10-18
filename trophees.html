@@ -12,124 +12,124 @@
     <style>
         .vitrine-titre { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; margin: 24px 0 18px; text-align: center; }
         .vitrine-titre img { width: 110px; height: 110px; }
-        .vitrine-titre h2 { font-size: 2.3rem; color: var(--encre, #2B2D5B); margin: 0; text-transform: none; }
-        .vitrine-titre p { margin: 4px 0 0; font-size: 1.15rem; color: var(--texte, #334155); }
+        .vitrine-titre h2 { font-size: 2.3rem; color: var(--encre); margin: 0; text-transform: none; }
+        .vitrine-titre p { margin: 4px 0 0; font-size: 1.15rem; color: var(--texte); }
 
         /* Résumé du mage */
         .stats-globales {
-            --c: var(--calcul, #8B5CF6);
+            --c: var(--calcul);
             display: grid; grid-template-columns: auto 1fr; gap: 6px 20px; align-items: center;
-            background: color-mix(in srgb, var(--c) 18%, #fff);
-            color: var(--encre, #2B2D5B);
-            border: var(--contour, 3px solid #2B2D5B);
+            background: color-mix(in srgb, var(--c) 18%, var(--carte));
+            color: var(--encre);
+            border: var(--contour);
             border-radius: var(--rayon-grand, 32px);
-            box-shadow: 0 8px 0 var(--encre, #2B2D5B);
+            box-shadow: 0 8px 0 var(--encre);
             padding: 20px 24px; margin-bottom: 14px; text-align: left;
         }
         .stats-avatar {
             grid-row: span 3; display: inline-flex; align-items: center; justify-content: center;
             width: 96px; height: 96px; border-radius: 50%; font-size: 3.4rem;
-            background: var(--c); border: var(--contour, 3px solid #2B2D5B);
+            background: var(--c); border: var(--contour);
             box-shadow: inset 0 -7px 0 rgba(43, 45, 91, 0.18);
         }
-        .stats-globales h3 { color: var(--encre, #2B2D5B); margin: 0; font-size: 1.7rem; overflow-wrap: anywhere; }
-        .stats-titre { font-size: 1.05rem; color: var(--texte, #334155); margin: 0; font-weight: 600; }
+        .stats-globales h3 { color: var(--encre); margin: 0; font-size: 1.7rem; overflow-wrap: anywhere; }
+        .stats-titre { font-size: 1.05rem; color: var(--texte); margin: 0; font-weight: 600; }
         .stats-compte { font-family: 'Lexend', sans-serif; font-weight: 800; font-size: 1.15rem; margin: 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .barre-trophees { flex: 1; min-width: 140px; height: 18px; background: #fff; border: 3px solid var(--encre, #2B2D5B); border-radius: 12px; overflow: hidden; }
-        .barre-trophees span { display: block; height: 100%; background: var(--trophees, #FACC15); }
-        .barre-trophees span.pleine { border-right: 3px solid var(--encre, #2B2D5B); }
+        .barre-trophees { flex: 1; min-width: 140px; height: 18px; background: var(--carte); border: 3px solid var(--encre); border-radius: 12px; overflow: hidden; }
+        .barre-trophees span { display: block; height: 100%; background: var(--trophees); }
+        .barre-trophees span.pleine { border-right: 3px solid var(--encre); }
 
         /* Sections par univers */
         .trophees-section-titre {
-            --u-clair: var(--calcul-clair, #EDE4FF);
+            --u-clair: var(--calcul-clair);
             display: inline-flex; align-items: center; gap: 10px;
             font-family: 'Lexend', sans-serif; font-weight: 800; font-size: 1.5rem;
-            color: var(--encre, #2B2D5B); background: var(--u-clair);
-            border: var(--contour, 3px solid #2B2D5B); border-radius: 999px;
-            box-shadow: 0 4px 0 var(--encre, #2B2D5B);
+            color: var(--encre); background: var(--u-clair);
+            border: var(--contour); border-radius: 999px;
+            box-shadow: 0 4px 0 var(--encre);
             padding: 6px 22px; margin: 38px 0 6px;
         }
-        .trophees-section-titre.geometrie { --u-clair: var(--geometrie-clair, #D5F5F0); }
-        .trophees-section-titre.nombres { --u-clair: var(--nombres-clair, #DCE8FF); }
-        .trophees-section-titre.grandeurs { --u-clair: var(--grandeurs-clair, #FCE1F0); }
-        .trophees-section-titre.jeux { --u-clair: var(--jeux-clair, #FFE6D2); }
-        .trophees-section-titre.speciaux { --u-clair: var(--trophees-clair, #FFF5C2); }
+        .trophees-section-titre.geometrie { --u-clair: var(--geometrie-clair); }
+        .trophees-section-titre.nombres { --u-clair: var(--nombres-clair); }
+        .trophees-section-titre.grandeurs { --u-clair: var(--grandeurs-clair); }
+        .trophees-section-titre.jeux { --u-clair: var(--jeux-clair); }
+        .trophees-section-titre.speciaux { --u-clair: var(--trophees-clair); }
 
         .trophees-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 24px; margin-top: 18px; }
 
         .trophee-carte {
-            --u-clair: var(--calcul-clair, #EDE4FF);
+            --u-clair: var(--calcul-clair);
             position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;
-            background: #fff; padding: 22px 14px 18px; text-align: center;
-            border: var(--contour, 3px solid #2B2D5B); border-radius: var(--rayon-grand, 32px);
-            box-shadow: 0 6px 0 var(--encre, #2B2D5B);
+            background: var(--carte); padding: 22px 14px 18px; text-align: center;
+            border: var(--contour); border-radius: var(--rayon-grand, 32px);
+            box-shadow: 0 6px 0 var(--encre);
             transition: transform 0.15s, box-shadow 0.15s; cursor: default;
         }
-        .trophee-carte.geometrie { --u-clair: var(--geometrie-clair, #D5F5F0); }
-        .trophee-carte.nombres { --u-clair: var(--nombres-clair, #DCE8FF); }
-        .trophee-carte.grandeurs { --u-clair: var(--grandeurs-clair, #FCE1F0); }
-        .trophee-carte.jeux { --u-clair: var(--jeux-clair, #FFE6D2); }
+        .trophee-carte.geometrie { --u-clair: var(--geometrie-clair); }
+        .trophee-carte.nombres { --u-clair: var(--nombres-clair); }
+        .trophee-carte.grandeurs { --u-clair: var(--grandeurs-clair); }
+        .trophee-carte.jeux { --u-clair: var(--jeux-clair); }
         .trophee-carte.debloque { background: var(--u-clair); }
-        .trophee-carte:hover { transform: translateY(-4px); box-shadow: 0 10px 0 var(--encre, #2B2D5B); }
-        .trophee-carte.verrouille { background: #EEF0F6; border-style: dashed; box-shadow: 0 6px 0 #9AA0C0; }
+        .trophee-carte:hover { transform: translateY(-4px); box-shadow: 0 10px 0 var(--encre); }
+        .trophee-carte.verrouille { background: var(--verrouille); border-style: dashed; box-shadow: 0 6px 0 var(--verrouille-ombre); }
 
         .trophee-icone {
             display: flex; align-items: center; justify-content: center;
             width: 108px; height: 108px; border-radius: 50%; font-size: 3.8rem; line-height: 1;
-            background: #fff; border: var(--contour, 3px solid #2B2D5B);
+            background: var(--carte); border: var(--contour);
             box-shadow: inset 0 -7px 0 rgba(43, 45, 91, 0.12);
         }
-        .trophee-carte.debloque .trophee-icone { background: radial-gradient(circle at 35% 30%, #fff, var(--u-clair)); }
+        .trophee-carte.debloque .trophee-icone { background: radial-gradient(circle at 35% 30%, var(--carte), var(--u-clair)); }
         .trophee-carte.debloque:hover .trophee-icone { animation: saut 0.5s ease; }
         @keyframes saut { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-9px) rotate(-5deg); } }
         /* silhouette: l'emoji est noirci */
-        .trophee-carte.verrouille .trophee-icone { background: #D5D9E8; border-color: #6B7199; }
+        .trophee-carte.verrouille .trophee-icone { background: var(--verrouille-icone); border-color: var(--verrouille-bord); }
         .trophee-silhouette { filter: brightness(0) opacity(0.38); }
         .trophee-cadenas {
             position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
-            background: #fff; border: 3px solid #6B7199;
+            background: var(--carte); border: 3px solid var(--verrouille-bord);
         }
 
-        .trophee-nom { font-family: 'Lexend', sans-serif; font-weight: 800; font-size: 1.12rem; color: var(--encre, #2B2D5B); line-height: 1.2; }
-        .trophee-carte.verrouille .trophee-nom { color: #4B5170; }
-        .trophee-condition { font-size: 1rem; font-weight: 600; color: var(--texte, #334155); }
+        .trophee-nom { font-family: 'Lexend', sans-serif; font-weight: 800; font-size: 1.12rem; color: var(--encre); line-height: 1.2; }
+        .trophee-carte.verrouille .trophee-nom { color: var(--verrouille-nom); }
+        .trophee-condition { font-size: 1rem; font-weight: 600; color: var(--texte); }
         .trophee-carte.verrouille .trophee-condition {
-            background: #fff; border: 2px solid #6B7199; border-radius: 14px; padding: 6px 10px; color: #3B4160;
+            background: var(--carte); border: 2px solid var(--verrouille-bord); border-radius: 14px; padding: 6px 10px; color: var(--verrouille-texte);
         }
         .trophee-carte.verrouille .trophee-condition::before { content: "👉 "; }
-        .trophee-progres { font-family: 'Lexend', sans-serif; font-weight: 800; font-size: 0.95rem; color: #3B4160; }
+        .trophee-progres { font-family: 'Lexend', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--verrouille-texte); }
 
         /* Médailles colorées */
         .medaille {
             display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px;
-            border: 3px solid var(--encre, #2B2D5B); border-radius: 999px;
-            font-family: 'Lexend', sans-serif; font-weight: 800; font-size: 1rem; color: var(--encre, #2B2D5B);
-            box-shadow: 0 3px 0 var(--encre, #2B2D5B);
+            border: 3px solid var(--encre); border-radius: 999px;
+            font-family: 'Lexend', sans-serif; font-weight: 800; font-size: 1rem; color: var(--encre);
+            box-shadow: 0 3px 0 var(--encre);
         }
-        .medaille.bronze { background: #F4B183; }
-        .medaille.argent { background: #D7DEE8; }
-        .medaille.or { background: #FDE047; }
-        .medaille.diamant { background: #A5F3FC; }
+        .medaille.bronze { background: var(--medaille-bronze); }
+        .medaille.argent { background: var(--medaille-argent); }
+        .medaille.or { background: var(--medaille-or); }
+        .medaille.diamant { background: var(--medaille-diamant); }
 
         /* Personnages spéciaux */
         .avatars-deblocables-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 20px; margin-top: 18px; }
         .avatar-deb-carte {
             display: flex; flex-direction: column; align-items: center; gap: 4px;
-            background: #fff; padding: 16px 12px; text-align: center;
-            border: var(--contour, 3px solid #2B2D5B); border-radius: var(--rayon, 22px);
-            box-shadow: 0 5px 0 var(--encre, #2B2D5B);
+            background: var(--carte); padding: 16px 12px; text-align: center;
+            border: var(--contour); border-radius: var(--rayon, 22px);
+            box-shadow: 0 5px 0 var(--encre);
         }
-        .avatar-deb-carte.debloque { background: var(--ok-clair, #DCFCE7); }
-        .avatar-deb-carte.verrouille { background: #EEF0F6; border-style: dashed; box-shadow: 0 5px 0 #9AA0C0; }
+        .avatar-deb-carte.debloque { background: var(--ok-clair); }
+        .avatar-deb-carte.verrouille { background: var(--verrouille); border-style: dashed; box-shadow: 0 5px 0 var(--verrouille-ombre); }
         .avatar-deb-icone { font-size: 3rem; display: block; }
         .avatar-deb-carte.verrouille .avatar-deb-icone { filter: brightness(0) opacity(0.38); }
-        .avatar-deb-nom { font-family: 'Lexend', sans-serif; font-weight: 800; font-size: 1rem; color: var(--encre, #2B2D5B); }
-        .avatar-deb-condition { font-size: 0.95rem; color: var(--texte, #334155); }
-        .avatar-deb-statut { font-size: 0.95rem; font-weight: 800; margin-top: 4px; color: #3B4160; }
-        .avatar-deb-carte.debloque .avatar-deb-statut { color: #166534; }
+        .avatar-deb-nom { font-family: 'Lexend', sans-serif; font-weight: 800; font-size: 1rem; color: var(--encre); }
+        .avatar-deb-condition { font-size: 0.95rem; color: var(--texte); }
+        .avatar-deb-statut { font-size: 0.95rem; font-weight: 800; margin-top: 4px; color: var(--verrouille-texte); }
+        .avatar-deb-carte.debloque .avatar-deb-statut { color: var(--ok-texte); }
 
-        :is(a, button):focus-visible { outline: 5px solid var(--jeux, #F97316); outline-offset: 3px; }
+        :is(a, button):focus-visible { outline: 5px solid var(--jeux); outline-offset: 3px; }
 
         @media (max-width: 520px) {
             .vitrine-titre h2 { font-size: 1.8rem; }

@@ -426,8 +426,10 @@ class MoteurCalcul {
   }
 
   lire() {
+    const texte = `${this.defOperation.consigne || ""} ${this.currentVoix}`.trim();
+    if (window.Voix && typeof window.Voix.dire === "function") { window.Voix.dire(texte); return; }
     if (!("speechSynthesis" in window)) return;
-    const u = new SpeechSynthesisUtterance(`${this.defOperation.consigne || ""} ${this.currentVoix}`.trim());
+    const u = new SpeechSynthesisUtterance(texte);
     u.lang = "fr-FR";
     u.rate = 0.85;
     window.speechSynthesis.cancel();

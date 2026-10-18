@@ -1,0 +1,9 @@
+{
+  "name": "mathemagie",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tests node du site Mathémagie (site statique HTML/CSS/JS vanilla, sans build).",
+  "scripts": {
+    "test": "node tests/lancer-tests.js"
+  }
+}

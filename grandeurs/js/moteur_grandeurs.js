@@ -476,8 +476,11 @@ class MoteurGrandeurs {
   }
 
   lire() {
-    if (!("speechSynthesis" in window) || !this.q) return;
-    const u = new SpeechSynthesisUtterance(this.q.voix || this.q.texte);
+    if (!this.q) return;
+    const texte = this.q.voix || this.q.texte || "";
+    if (window.Voix && typeof window.Voix.dire === "function") { window.Voix.dire(texte); return; }
+    if (!("speechSynthesis" in window)) return;
+    const u = new SpeechSynthesisUtterance(texte);
     u.lang = "fr-FR";
     u.rate = 0.85;
     window.speechSynthesis.cancel();

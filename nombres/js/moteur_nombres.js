@@ -138,9 +138,23 @@ class MoteurNombres {
     }
   }
 
+  /** Libellés lisibles des réponses proposées, pour les énoncer à voix haute. */
+  choixVocal() {
+    const q = this.q;
+    if (!q) return [];
+    const mots = { "<": "plus petit que", "=": "égal à", ">": "plus grand que" };
+    if (q.type === "qcm") return q.choix.map((c) => mots[c] || MoteurNombres.texteBrut(c));
+    if (q.type === "ordre") return q.items.map((i) => i.label);
+    return [];
+  }
+
   lire() {
-    if (!("speechSynthesis" in window) || !this.q) return;
-    const u = new SpeechSynthesisUtterance(MoteurNombres.texteBrut(this.q.voix));
+    if (!this.q) return;
+    const texte = MoteurNombres.texteBrut(this.q.voix);
+    const choix = this.choixVocal();
+    if (window.Voix && typeof window.Voix.question === "function") { window.Voix.question(texte, choix); return; }
+    if (!("speechSynthesis" in window)) return;
+    const u = new SpeechSynthesisUtterance(texte);
     u.lang = "fr-FR";
     u.rate = 0.85;
     window.speechSynthesis.cancel();

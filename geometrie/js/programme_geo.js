@@ -160,10 +160,11 @@
   };
   function notionAutorisee(n) { return (NOTIONS[n] === undefined ? 99 : NOTIONS[n]) <= indexNiveau(); }
 
-  // Synthèse vocale (CP)
+  // Synthèse vocale (CP) — déléguée au module commun window.Voix
   function lire(texte) {
     try {
       var w = env();
+      if (w.Voix && typeof w.Voix.dire === 'function') { w.Voix.dire(texte); return; }
       if (!w.speechSynthesis || typeof w.SpeechSynthesisUtterance !== 'function') return;
       w.speechSynthesis.cancel();
       var u = new w.SpeechSynthesisUtterance(String(texte).replace(/<[^>]*>/g, ' '));

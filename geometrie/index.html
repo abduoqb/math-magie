@@ -24,7 +24,7 @@
         </div>
       </section>
 
-      <section class="choix-calculs geo-grille" id="liste-missions" aria-live="polite"></section>
+      <section class="geo-grille" id="liste-missions" aria-live="polite"></section>
     </main>
     <script>
       (function () {
@@ -64,7 +64,7 @@
 
         function creerCarte(m, actif) {
           var carte = document.createElement('article');
-          carte.className = 'carte-mission geo-carte' + (actif ? '' : ' carte-inactive');
+          carte.className = 'geo-carte' + (actif ? '' : ' carte-inactive');
           var lien = document.createElement('a'); // <a> sans href quand inactif
           lien.className = 'geo-carte-lien';
           if (actif) { lien.href = 'missions/' + m.page; }

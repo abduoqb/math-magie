@@ -143,7 +143,6 @@
       return c;
     });
   }
-  function decrireTexte(niveau, f) { return niveau === 'cp' ? motFraction(f.num, f.den) : jeton(f.num, f.den); }
 
   /* ---------- Géométrie : parts du disque et de la barre ---------- */
   function arrondi(x) { return Math.round(x * 100) / 100; }

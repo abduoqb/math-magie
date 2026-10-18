@@ -35,7 +35,7 @@ Ouvrir les fichiers directement (`file://`) marche pour la plupart des pages, ma
 | `js/composants/header.js` | En-tête (web component `<app-header>`), menus, indicateur ☁️. |
 | `js/supabase-config.js` | URL et clé `anon` du projet Supabase. |
 | `js/vendor/supabase.js` | `supabase-js` 2.45.4, versionné. Ne pas le remplacer par un CDN. |
-| `style/` | `commun.css` (tokens et classes génériques), `exercice-commun.css`, `calculs.css`, `geometrie.css`, `jeux.css`, `connexion.css`, `accueil.css`, `missions-liste.css`. |
+| `style/` | `commun.css` (tokens et classes génériques), `accueil.css`, `calculs.css`, `nombres.css`, `grandeurs.css`, `geometrie.css`, `jeux.css`, `connexion.css`. |
 | `images/` | SVG (univers, opérations, mascotte en 4 expressions) et anciens PNG encore référencés par certaines pages. |
 | `supabase/migrations/` | Schéma de la synchro (tables, RLS, triggers), trace des migrations appliquées. |
 | `tools/generer-missions.js` | Générateur des pages de mission (source unique du HTML répété). `node tools/generer-missions.js` écrit les 33 pages, `--check` vérifie qu'elles sont à jour sans rien écrire. Voir « Ajouter ou modifier une mission ». |
@@ -185,7 +185,7 @@ La CI (`.github/workflows/ci.yml`) lance `npm test` sur chaque `push` et `pull_r
 - **Interface en français**, tutoiement, phrases courtes. Au CP : textes courts et bouton 🔊.
 - **Voix** : toute lecture passe par `window.Voix` (`js/voix.js`) — jamais `speechSynthesis` en direct. Le module retire les émojis (interdit de les lire), dit les symboles en mots (`×` → « fois », `3/4` → « 3 sur 4 »), reste concis et, pour une question à choix, les énumère (« Tes choix : a, b, ou c. ») via `Voix.question(consigne, choix)`.
 - **Couleurs** : tokens sur `:root` dans `style/commun.css` (`--calcul`, `--geometrie`, `--jeux`, `--op-addition`…). Ne pas coder de couleur en dur dans les pages.
-- **Classes** : les nouvelles classes génériques vont dans `commun.css` ou `exercice-commun.css`. Les classes spécifiques à un univers sont préfixées (`calc-*`, `geo-*`, `jeu-*`).
+- **Classes** : les nouvelles classes génériques vont dans `commun.css`. Les classes spécifiques à un univers sont préfixées (`calc-*`, `geo-*`, `jeu-*`).
 - **Texte utilisateur** : toujours échappé avant `innerHTML`. Le prénom est saisi par un enfant, il est considéré comme non fiable.
 - **Accessibilité** : cibles tactiles ≥ 48 px (56 px et plus pour les actions principales), focus visible, `prefers-reduced-motion` respecté.
 - **Pas de clé `service_role`** dans le dépôt. La clé `anon` dans `supabase-config.js` est publique par conception.

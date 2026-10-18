@@ -39,7 +39,6 @@ body.niveau-cp .horloge-svg { width: min(100%, 340px); }
 .horloge-aig-h .horloge-remplissage { stroke: var(--action, #FF8A1F); stroke-width: 8; stroke-linecap: round; }
 .horloge-aig-m .horloge-contour { stroke-width: 10; }
 .horloge-aig-m .horloge-remplissage { stroke: var(--accueil, #3B82F6); stroke-width: 5.5; stroke-linecap: round; }
-.horloge-axe { fill: var(--encre); }
 .horloge-axe-centre { fill: var(--trophees, #FACC15); stroke: var(--encre); stroke-width: 3; }
 .horloge-legende { margin: 2px 0 0; font-family: var(--police-titre, sans-serif); font-weight: 700; font-size: .95rem; color: var(--encre); }
 .horloge-legende b { display: inline-block; padding: 1px 10px; border-radius: 999px; border: 2.5px solid var(--encre); color: var(--encre); }

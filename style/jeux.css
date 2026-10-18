@@ -145,7 +145,7 @@ body.jeu-index, body.jeu-page {
 .jeu-mascotte[data-etat="contente"] { animation: jeu-saut .7s cubic-bezier(.34, 1.56, .64, 1) 2; }
 .jeu-mascotte[data-etat="heureuse"], .jeu-mascotte[data-etat="emerveillee"], .jeu-mascotte[data-etat="coeur"] { animation: jeu-saut .7s cubic-bezier(.34, 1.56, .64, 1) 2; }
 .jeu-mascotte[data-etat="triste"], .jeu-mascotte[data-etat="pleure"] { animation: none; transform: rotate(-6deg) translateY(2px); }
-.tour-info, .jeu-bulle {
+.tour-info {
   position: relative; flex: 1; min-width: 0; min-height: 64px; margin: 0; padding: 10px 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   background: var(--jc); border: 3px solid var(--e); border-radius: 22px; color: var(--e);
   font-family: var(--pol); font-weight: 800; font-size: clamp(1.15rem, 3.2vw, 1.55rem); line-height: 1.2; text-align: left; overflow-wrap: anywhere;

@@ -241,31 +241,12 @@
     if (s) { try { s.cancel(); } catch (e) { /* ignore */ } }
   }
 
-  /** Récupère les libellés lisibles des choix présents dans un conteneur DOM. */
-  var SELECTEURS_CHOIX = '[data-voix], .nb-choix-btn, .bouton-option[data-valeur], .geo-choix button';
-  function choixVisibles(racine) {
-    var r = racine || (typeof document !== 'undefined' ? document : null);
-    if (!r || !r.querySelectorAll) return [];
-    var vus = {};
-    var out = [];
-    Array.prototype.forEach.call(r.querySelectorAll(SELECTEURS_CHOIX), function (el) {
-      if (el.hidden || el.getAttribute('aria-hidden') === 'true') return;
-      var t = (el.getAttribute('data-voix') || el.getAttribute('aria-label') || el.textContent || '').trim();
-      t = t.replace(/^Réponse\s*:\s*/i, '');
-      var cle = t.toLowerCase();
-      if (!t || vus[cle]) return;
-      vus[cle] = 1;
-      out.push(t);
-    });
-    return out;
-  }
-
   var API = {
     disponible: disponible,
     nettoyer: nettoyer, symboles: symboles, enumerer: enumerer,
     questionTexte: questionTexte, dejaCite: dejaCite,
     dire: dire, lire: dire, question: question, arreter: arreter,
-    choixVisibles: choixVisibles, choisirVoix: choisirVoix
+    choisirVoix: choisirVoix
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = API;

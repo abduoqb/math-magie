@@ -300,7 +300,7 @@
     NIVEAUX: NIVEAUX, MODES: MODES, PARAMS: PARAMS, LIBELLES: LIBELLES,
     generer: generer, suivante: suivante, reponseJuste: reponseJuste, params: params,
     palierPour: palierPour, etoiles: etoiles, bonusSerie: bonusSerie, libelle: libelle,
-    formaterReponse: formaterReponse, formaterNombre: nb
+    formaterReponse: formaterReponse
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   else root.Eclair = API;

@@ -172,7 +172,6 @@
   }
 
   /* ---------- Manche « comparer » ---------- */
-  var CAP = { ce1: [100, 1000, 1000], ce2: [1000, 10000, 10000] };
 
   /** Autre écriture de x sous forme de calcul (somme, différence ou produit) ; null si impossible. */
   function alternative(x, rng, tables, cap, interdit) {

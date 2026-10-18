@@ -26,9 +26,9 @@
 
       <div id="jeux-magiques"></div>
 
-      <h3 class="jeu-rubrique-titre" id="titre-classiques">🎲 Les grands classiques</h3>
-      <section class="choix-calculs jeu-grille">
-        <article class="carte-mission jeu-carte" data-jeu="morpion">
+      <h3 class="jeu-rubrique-titre">🎲 Les grands classiques</h3>
+      <section class="jeu-grille">
+        <article class="jeu-carte" data-jeu="morpion">
           <a class="jeu-carte-lien" href="morpion/index.html">
             <div class="jeu-carte-image"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><g stroke="#2B2D5B" stroke-width="5" stroke-linecap="round"><line x1="44" y1="14" x2="44" y2="106"/><line x1="76" y1="14" x2="76" y2="106"/><line x1="14" y1="44" x2="106" y2="44"/><line x1="14" y1="76" x2="106" y2="76"/></g>
 <g stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="18" y1="18" x2="36" y2="36"/><line x1="36" y1="18" x2="18" y2="36"/><line x1="84" y1="84" x2="102" y2="102"/><line x1="102" y1="84" x2="84" y2="102"/><line x1="51" y1="51" x2="69" y2="69"/><line x1="69" y1="51" x2="51" y2="69"/></g>
@@ -40,7 +40,7 @@
             <span class="btn-lancer jeu-cta">Jouer</span>
           </a>
         </article>
-        <article class="carte-mission jeu-carte" data-jeu="puissance4">
+        <article class="jeu-carte" data-jeu="puissance4">
           <a class="jeu-carte-lien" href="puissance4/index.html">
             <div class="jeu-carte-image"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><rect x="8" y="14" width="104" height="92" rx="14" fill="#2563EB" stroke="#2B2D5B" stroke-width="5"/>
 <g stroke="#2B2D5B" stroke-width="3.5">
@@ -54,7 +54,7 @@
             <span class="btn-lancer jeu-cta">Jouer</span>
           </a>
         </article>
-        <article class="carte-mission jeu-carte" data-jeu="pendu">
+        <article class="jeu-carte" data-jeu="pendu">
           <a class="jeu-carte-lien" href="pendu/index.html">
             <div class="jeu-carte-image"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><g stroke="#B45309" stroke-width="7" stroke-linecap="round" fill="none"><line x1="16" y1="68" x2="62" y2="68"/><line x1="30" y1="68" x2="30" y2="8"/><line x1="30" y1="8" x2="62" y2="8"/><line x1="62" y1="8" x2="62" y2="18"/></g>
 <circle cx="62" cy="28" r="9" fill="#FDE68A" stroke="#2B2D5B" stroke-width="4"/>
@@ -68,7 +68,7 @@
             <span class="btn-lancer jeu-cta">Jouer</span>
           </a>
         </article>
-        <article class="carte-mission jeu-carte" data-jeu="trouver-le-chiffre">
+        <article class="jeu-carte" data-jeu="trouver-le-chiffre">
           <a class="jeu-carte-lien" href="trouver-le-chiffre/index.html">
             <div class="jeu-carte-image"><svg viewBox="0 0 120 120" aria-hidden="true" focusable="false"><rect x="30" y="34" width="60" height="52" rx="14" fill="#FDE68A" stroke="#2B2D5B" stroke-width="5"/>
 <text x="60" y="76" font-family="Lexend,sans-serif" font-weight="800" font-size="46" fill="#2B2D5B" text-anchor="middle">?</text>
@@ -98,11 +98,11 @@
           titre.className = 'jeu-rubrique-titre';
           titre.textContent = cat.titre;
           var grille = document.createElement('section');
-          grille.className = 'choix-calculs jeu-grille';
+          grille.className = 'jeu-grille';
           grille.setAttribute('aria-label', cat.titre);
           jeux.forEach(function (j) {
             var carte = document.createElement('article');
-            carte.className = 'carte-mission jeu-carte';
+            carte.className = 'jeu-carte';
             carte.dataset.jeu = j.id;
             var lien = document.createElement('a');
             lien.className = 'jeu-carte-lien';

@@ -266,10 +266,6 @@
     { id: 'logique', titre: '🧩 Logique et mémoire' },
     { id: 'mesures', titre: '📏 Heure, monnaie, parts' }
   ];
-  function jeuCatalogue(id) {
-    for (var i = 0; i < CATALOGUE.length; i++) if (CATALOGUE[i].id === id) return CATALOGUE[i];
-    return null;
-  }
 
   /* ---------- Enregistrement des parties et défi du jour ---------- */
   function dateLocale(d) {
@@ -376,7 +372,7 @@
     genererCalcul: genererCalcul, reponseJuste: reponseJuste,
     lire: lire, creerBoutonVoix: creerBoutonVoix, mascotte: mascotte,
     defi: defi, creerBasculeDefi: creerBasculeDefi, demanderCalcul: demanderCalcul,
-    CATALOGUE: CATALOGUE, CATEGORIES: CATEGORIES, jeuCatalogue: jeuCatalogue,
+    CATALOGUE: CATALOGUE, CATEGORIES: CATEGORIES,
     dateLocale: dateLocale, defiDuJour: defiDuJour, etatDefi: etatDefi, enregistrerPartie: enregistrerPartie, messageDefi: messageDefi
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;

@@ -128,7 +128,7 @@ textarea:focus-visible, [tabindex]:focus-visible, summary:focus-visible {
 }
 
 /* --- Briques « sticker » réutilisables --- */
-.carte, .sticker {
+.carte {
   background: var(--carte);
   border: var(--contour);
   border-radius: var(--rayon-grand);
@@ -380,7 +380,6 @@ header h1 a {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.mage-titre { font-size: .65rem; opacity: .7; }
 
 .nav-profil .badge-classe,
 .nav-dropdown-toggle .badge-classe {

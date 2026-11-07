@@ -123,8 +123,8 @@ window.PROGRAMMES.ce1 = {
       actif: true,
       libelle: 'Symétrie',
       source: 'https://www.education.gouv.fr/sites/default/files/ensel135_annexe4.pdf',
-      notes: 'Reconnaitre un axe de symetrie (pliage, calque) au programme CE1. Limiter aux formes simples du moteur (niveaux 1-2 : 3 a 6 points, erreurs visibles) ; pas de niveau 3 (formes complexes, erreurs subtiles).',
-      contenu: { niveauMoteurMax: 2, nbPoints: [3, 6], quadrillage: true }
+      notes: 'Reconnaitre un axe de symetrie (pliage, calque) au programme CE1. Trois niveaux sur quadrillage : 3 a 6 points, puis une erreur limitee a une case sur un seul sommet au niveau 3.',
+      contenu: { niveauMoteurMax: 3, nbPoints: [3, 6], quadrillage: true }
     },
     'geometrie-vraifaux': {
       actif: true,

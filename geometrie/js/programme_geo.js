@@ -132,8 +132,7 @@
     var m = 3;
     if (typeof c.niveauMax === 'number') m = Math.min(m, c.niveauMax);
     if (typeof c.niveauMoteurMax === 'number') m = Math.min(m, c.niveauMoteurMax);
-    var nbp = c.nbPointsMax || (Array.isArray(c.nbPoints) ? c.nbPoints[1] : null);
-    if (id.indexOf('symetrie') >= 0 && nbp) m = Math.min(m, nbp <= 4 ? 1 : (nbp <= 6 ? 2 : 3));
+    // Le nombre de sommets limite les figures, pas la difficulté des erreurs à repérer.
     return Math.max(1, m);
   }
 

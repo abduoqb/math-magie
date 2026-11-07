@@ -12,9 +12,12 @@ const choisir = ctx.choisirCoupIA;
 const gagne = ctx.verifierGagnantEtat;
 
 assert.equal(choisir([2, 2, 0, 1, 1, 0, 0, 0, 1], () => 0), 2, 'Saisit une victoire immédiate');
+const occasion = [2, 2, 0, 1, 1, 0, 0, 0, 1];
+const hasardVictoire = [0.5, 0.99];
+assert.notEqual(choisir(occasion, () => hasardVictoire.shift()), 2, 'Ne saisit pas systématiquement une victoire');
 const menace = [1, 1, 0, 0, 2, 0, 0, 0, 0];
-assert.equal(choisir(menace, () => 0.8), 2, 'Bloque quand elle cherche à défendre');
-const valeurs = [0.1, 0.9];
+assert.equal(choisir(menace, () => 0.1), 2, 'Bloque quand elle cherche à défendre');
+const valeurs = [0.5, 0.9];
 const erreur = choisir(menace, () => valeurs.shift());
 assert.notEqual(erreur, 2, 'Peut laisser une ouverture à l’enfant');
 const suite = menace.slice(); suite[erreur] = 2; suite[2] = 1;

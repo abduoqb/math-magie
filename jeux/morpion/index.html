@@ -150,8 +150,8 @@
         return null;
       }
 
-      // Une IA accessible : elle saisit ses victoires, mais ne prévoit pas les
-      // coups suivants et oublie parfois de bloquer pour laisser une chance à l'enfant.
+      // Une IA débutante : elle joue surtout au hasard, sans anticiper.
+      // Elle ne cherche à gagner ou à bloquer que dans 15 % de ses décisions.
       function choisirCoupIA(etat, hasard = Math.random) {
         const libres = etat.reduce((acc, v, i) => { if (v === 0) acc.push(i); return acc; }, []);
         if (!libres.length || verifierGagnantEtat(etat, 1) || verifierGagnantEtat(etat, 2)) return null;
@@ -161,11 +161,11 @@
           essai[i] = joueur;
           return verifierGagnantEtat(essai, joueur);
         });
-        const victoire = coupGagnant(2);
-        if (victoire !== undefined) return victoire;
-
-        // Dans 40 % des cas, jouer librement au lieu de chercher à défendre.
-        if (hasard() >= 0.4) {
+        // Même une victoire immédiate peut lui échapper : pas de priorité
+        // systématique qui punirait chaque erreur de l'enfant.
+        if (hasard() < 0.15) {
+          const victoire = coupGagnant(2);
+          if (victoire !== undefined) return victoire;
           const blocage = coupGagnant(1);
           if (blocage !== undefined) return blocage;
         }

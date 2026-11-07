@@ -12,7 +12,7 @@ const configSymetrie = {
 
     // Niv1 : formes simples (3-4 points), erreurs grossières
     // Niv2 : formes moyennes (5-6 points), erreurs modérées
-    // Niv3 : formes complexes (7-9 points), erreurs subtiles
+    // Niv3 : jusqu’à 7-9 points selon la classe, erreurs subtiles
     let nbPoints, erreurAmplitude;
     if (niveau === 1) {
       nbPoints = Math.floor(Math.random() * 2) + 3; // 3-4 points
@@ -59,7 +59,8 @@ const configSymetrie = {
         pointsDroite = pointsDroite.map((p) => ({ ...p, y: p.y + dec }));
       } else {
         pointsDroite[indexErreur].x += (pointsDroite[indexErreur].x >= 60 ? -10 : 10);
-        if (niveau >= 2) pointsDroite[indexErreur].y += dy;
+        // Au niveau 3, une seule coordonnée diffère : une case à repérer.
+        if (niveau === 2) pointsDroite[indexErreur].y += dy;
       }
     } else if (!estSymetrique) {
       const indexErreur = Math.floor(Math.random() * pointsDroite.length);

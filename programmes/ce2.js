@@ -131,7 +131,7 @@ window.PROGRAMMES = window.PROGRAMMES || {};
         libelle: 'Symétrie axiale',
         source: SRC_BO,
         notes: 'Reconnaître une figure symétrique par rapport à un axe : au programme CE2.',
-        contenu: { axe: 'vertical', quadrillage: true, niveauMoteurMax: 2 }
+        contenu: { axe: 'vertical', quadrillage: true, niveauMoteurMax: 3 }
       },
       'geometrie-vraifaux': {
         actif: true,

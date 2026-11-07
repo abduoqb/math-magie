@@ -39,6 +39,37 @@ CLASSES.forEach((c) => charger('programmes/' + c + '.js'));
   .forEach((f) => charger('geometrie/js/' + f + '.js'));
 const evalCtx = (code) => vm.runInContext(code, ctx);
 
+// Le troisième palier reste accessible avec les limites de sommets de chaque classe.
+['ce1', 'ce2', 'cm1', 'cm2'].forEach((classe) => {
+  ctx.__classe = classe;
+  ok(ctx.GeoProgramme.maxNiveau('geometrie-symetrie') === 3, classe + ' : symétrie niveau 3 accessible');
+  const config = evalCtx('configSymetrie');
+  const contenu = ctx.GeoProgramme.contenu('geometrie-symetrie');
+  const reponses = new Set();
+  for (let i = 0; i < TIRAGES; i++) {
+    const q = config.genererQuestion(3);
+    reponses.add(q.reponse);
+    const chemin = q.svg.match(/<path d="([^"]+)"/)[1];
+    const points = Array.from(chemin.matchAll(/[ML] ([\d.e+-]+),([\d.e+-]+)/g), (m) => [Number(m[1]), Number(m[2])]);
+    const n = q.nbPoints;
+    let ecarts = 0;
+    for (let j = 1; j <= n; j++) {
+      const gauche = points[j], droite = points[points.length - j];
+      if (Math.abs(gauche[0] + droite[0] - 100) > 1e-8) ecarts++;
+      if (Math.abs(gauche[1] - droite[1]) > 1e-8) ecarts++;
+    }
+    ok((ecarts === 0) === (q.reponse === 'Oui'), classe + ' : réponse conforme à la figure');
+    ok(ctx.GeoProgramme.axes('geometrie-symetrie').includes(q.axe), classe + ' : axe autorisé');
+    const plafond = contenu.nbPointsMax || (contenu.nbPoints && contenu.nbPoints[1]) || 9;
+    ok(n <= plafond, classe + ' : plafond de sommets respecté');
+    if (contenu.quadrillage) {
+      ok(points.every((p) => p.every((v) => v % 10 === 0)), classe + ' : sommets sur le quadrillage');
+      ok(q.reponse === 'Oui' || ecarts === 1, classe + ' : niveau 3, une seule coordonnée erronée');
+    }
+  }
+  ok(reponses.size === 2, classe + ' : figures symétriques et non symétriques');
+});
+
 const indexHtml = lire('geometrie/index.html');
 const profilsCore = lire('js/profils-core.js');
 const pageDe = {};

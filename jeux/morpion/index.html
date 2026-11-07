@@ -46,7 +46,8 @@
     </main>
     <script>
       const plateau = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-      let tourX = true;
+      let premierJoueurX = true;
+      let tourX = premierJoueurX;
       let partieTerminee = false;
       let scores = { x: 0, o: 0, nul: 0 };
       let modeIA = false;
@@ -73,7 +74,7 @@
         document.getElementById('btn-ia').classList.toggle('actif', ia);
         scores = { x: 0, o: 0, nul: 0 };
         majScores();
-        reinitialiser();
+        reinitialiser(false);
       }
 
       function creerGrille() {
@@ -131,8 +132,11 @@
         tourX = !tourX;
         dire(`Tour de <span class="symbole ${tourX ? 'x' : 'o'}">${tourX ? 'X' : 'O'}</span>`);
 
-        // Tour de l'IA
-        if (modeIA && !tourX) {
+        programmerTourIA();
+      }
+
+      function programmerTourIA() {
+        if (modeIA && !tourX && !partieTerminee) {
           dire('<span class="ia-reflexion">L\'IA réfléchit…</span>');
           timerIA = setTimeout(() => {
             timerIA = null;
@@ -176,16 +180,18 @@
         return combosGagnantes.some(combo => combo.every(i => etat[i] === joueur));
       }
 
-      function reinitialiser() {
+      function reinitialiser(alterner = true) {
         clearTimeout(timerIA);
         timerIA = null;
         plateau.fill(0);
-        tourX = true;
+        if (alterner) premierJoueurX = !premierJoueurX;
+        tourX = premierJoueurX;
         partieTerminee = false;
         cadre.classList.remove('succes', 'erreur');
-        dire('Tour de <span class="symbole x">X</span>');
+        dire(`Tour de <span class="symbole ${tourX ? 'x' : 'o'}">${tourX ? 'X' : 'O'}</span>`);
         JeuxNiveau.mascotte('neutre');
         creerGrille();
+        programmerTourIA();
       }
 
       function majScores() {

@@ -46,7 +46,8 @@
     </main>
     <script>
       const plateau = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-      let tourX = true;
+      let premierJoueurX = true;
+      let tourX = premierJoueurX;
       let partieTerminee = false;
       let scores = { x: 0, o: 0, nul: 0 };
       let modeIA = false;
@@ -73,7 +74,7 @@
         document.getElementById('btn-ia').classList.toggle('actif', ia);
         scores = { x: 0, o: 0, nul: 0 };
         majScores();
-        reinitialiser();
+        reinitialiser(false);
       }
 
       function creerGrille() {
@@ -131,8 +132,11 @@
         tourX = !tourX;
         dire(`Tour de <span class="symbole ${tourX ? 'x' : 'o'}">${tourX ? 'X' : 'O'}</span>`);
 
-        // Tour de l'IA
-        if (modeIA && !tourX) {
+        programmerTourIA();
+      }
+
+      function programmerTourIA() {
+        if (modeIA && !tourX && !partieTerminee) {
           dire('<span class="ia-reflexion">L\'IA réfléchit…</span>');
           timerIA = setTimeout(() => {
             timerIA = null;
@@ -150,8 +154,8 @@
         return null;
       }
 
-      // Une IA accessible : elle saisit ses victoires, mais ne prévoit pas les
-      // coups suivants et oublie parfois de bloquer pour laisser une chance à l'enfant.
+      // Une IA débutante : elle joue surtout au hasard, sans anticiper.
+      // Elle ne cherche à gagner ou à bloquer que dans 15 % de ses décisions.
       function choisirCoupIA(etat, hasard = Math.random) {
         const libres = etat.reduce((acc, v, i) => { if (v === 0) acc.push(i); return acc; }, []);
         if (!libres.length || verifierGagnantEtat(etat, 1) || verifierGagnantEtat(etat, 2)) return null;
@@ -161,11 +165,11 @@
           essai[i] = joueur;
           return verifierGagnantEtat(essai, joueur);
         });
-        const victoire = coupGagnant(2);
-        if (victoire !== undefined) return victoire;
-
-        // Dans 40 % des cas, jouer librement au lieu de chercher à défendre.
-        if (hasard() >= 0.4) {
+        // Même une victoire immédiate peut lui échapper : pas de priorité
+        // systématique qui punirait chaque erreur de l'enfant.
+        if (hasard() < 0.15) {
+          const victoire = coupGagnant(2);
+          if (victoire !== undefined) return victoire;
           const blocage = coupGagnant(1);
           if (blocage !== undefined) return blocage;
         }
@@ -176,16 +180,18 @@
         return combosGagnantes.some(combo => combo.every(i => etat[i] === joueur));
       }
 
-      function reinitialiser() {
+      function reinitialiser(alterner = true) {
         clearTimeout(timerIA);
         timerIA = null;
         plateau.fill(0);
-        tourX = true;
+        if (alterner) premierJoueurX = !premierJoueurX;
+        tourX = premierJoueurX;
         partieTerminee = false;
         cadre.classList.remove('succes', 'erreur');
-        dire('Tour de <span class="symbole x">X</span>');
+        dire(`Tour de <span class="symbole ${tourX ? 'x' : 'o'}">${tourX ? 'X' : 'O'}</span>`);
         JeuxNiveau.mascotte('neutre');
         creerGrille();
+        programmerTourIA();
       }
 
       function majScores() {

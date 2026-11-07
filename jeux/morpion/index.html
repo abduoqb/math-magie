@@ -50,6 +50,7 @@
       let partieTerminee = false;
       let scores = { x: 0, o: 0, nul: 0 };
       let modeIA = false;
+      let timerIA = null;
 
       const grilleEl = document.getElementById('grille');
       const tourInfoEl = document.getElementById('tour-info');
@@ -133,9 +134,11 @@
         // Tour de l'IA
         if (modeIA && !tourX) {
           dire('<span class="ia-reflexion">L\'IA réfléchit…</span>');
-          setTimeout(() => {
-            const coupIA = minimax(plateau, 2, true).index;
-            jouer(coupIA);
+          timerIA = setTimeout(() => {
+            timerIA = null;
+            if (!modeIA || tourX || partieTerminee) return;
+            const coupIA = choisirCoupIA(plateau);
+            if (coupIA !== null) jouer(coupIA);
           }, 400);
         }
       }
@@ -147,27 +150,26 @@
         return null;
       }
 
-      // --- MINIMAX ---
-      function minimax(etat, joueurIA, estMax, profondeur = 0) {
-        // Vérifier fin de partie avec prise en compte de la profondeur pour des victoires rapides
-        if (verifierGagnantEtat(etat, joueurIA)) return { score: 10 - profondeur };
-        if (verifierGagnantEtat(etat, joueurIA === 1 ? 2 : 1)) return { score: profondeur - 10 };
-        const casesLibres = etat.reduce((acc, v, i) => { if (v === 0) acc.push(i); return acc; }, []);
-        if (casesLibres.length === 0) return { score: 0 };
+      // Une IA accessible : elle saisit ses victoires, mais ne prévoit pas les
+      // coups suivants et oublie parfois de bloquer pour laisser une chance à l'enfant.
+      function choisirCoupIA(etat, hasard = Math.random) {
+        const libres = etat.reduce((acc, v, i) => { if (v === 0) acc.push(i); return acc; }, []);
+        if (!libres.length || verifierGagnantEtat(etat, 1) || verifierGagnantEtat(etat, 2)) return null;
 
-        const coups = [];
-        for (const i of casesLibres) {
-          const nouvelEtat = [...etat];
-          nouvelEtat[i] = estMax ? joueurIA : (joueurIA === 1 ? 2 : 1);
-          const resultat = minimax(nouvelEtat, joueurIA, !estMax, profondeur + 1);
-          coups.push({ index: i, score: resultat.score });
-        }
+        const coupGagnant = (joueur) => libres.find((i) => {
+          const essai = [...etat];
+          essai[i] = joueur;
+          return verifierGagnantEtat(essai, joueur);
+        });
+        const victoire = coupGagnant(2);
+        if (victoire !== undefined) return victoire;
 
-        if (estMax) {
-          return coups.reduce((a, b) => a.score > b.score ? a : b);
-        } else {
-          return coups.reduce((a, b) => a.score < b.score ? a : b);
+        // Dans 40 % des cas, jouer librement au lieu de chercher à défendre.
+        if (hasard() >= 0.4) {
+          const blocage = coupGagnant(1);
+          if (blocage !== undefined) return blocage;
         }
+        return libres[Math.floor(hasard() * libres.length)];
       }
 
       function verifierGagnantEtat(etat, joueur) {
@@ -175,6 +177,8 @@
       }
 
       function reinitialiser() {
+        clearTimeout(timerIA);
+        timerIA = null;
         plateau.fill(0);
         tourX = true;
         partieTerminee = false;

@@ -665,7 +665,8 @@ class GestionnaireProfils {
     const a = prog.calcul && prog.calcul[id];
     if (a) return a.actif !== false;
     const g = prog.geometrie && (prog.geometrie[id] || prog.geometrie[court]);
-    if (g) return g.actif !== false;
+    // Une mission absente du programme est inaccessible, donc jamais requise pour un trophée.
+    if (id.indexOf('geometrie-') === 0) return !!g && g.actif !== false;
     const n = prog.nombres && prog.nombres[id];
     if (n) return n.actif !== false;
     if (/^grandeurs-/.test(id)) {

@@ -214,7 +214,10 @@
         const noms = gp.getListeProfils();
         const syncDispo = !!(Sync && Sync.estConfigure());
         const connecte = syncDispo && Sync.estConnecte();
-        const consigne = noms.length ? 'Qui joue ? Touche ton prénom.' : 'Bienvenue ! Touche le bouton pour créer ton mage.';
+        const titre = noms.length ? 'Qui joue ?' : 'Bienvenue dans Mathémagie !';
+        const aide = noms.length ? 'Touche ton prénom' : 'Tu peux jouer sur cet appareil sans adresse e-mail.';
+        const consigne = noms.length ? titre + ' ' + aide : titre + ' Crée ton profil pour jouer.' +
+          (syncDispo && !connecte ? ' Si tu as déjà joué ailleurs, un parent peut retrouver ton profil avec le compte famille.' : '');
         const cartes = noms.map((nom, i) => {
           const info = gp.getInfoProfil(nom);
           return el('button', {
@@ -227,20 +230,25 @@
             el('span', { class: 'badge-classe' }, info.niveauClasse ? Niveaux.getLibelle(info.niveauClasse) : '?')
           );
         });
-        cartes.push(el('button', {
-          type: 'button', class: 'carte-profil carte-nouveau', 'aria-label': 'Créer un nouveau mage',
+        if (noms.length) cartes.push(el('button', {
+          type: 'button', class: 'carte-profil carte-nouveau',
           onclick: () => aller(() => ecranCreation())
-        }, el('span', { class: 'avatar-grand', 'aria-hidden': 'true' }, '➕'), el('span', { class: 'prenom' }, 'Nouveau')));
+        }, el('span', { class: 'avatar-grand', 'aria-hidden': 'true' }, '➕'), el('span', { class: 'prenom' }, 'Ajouter un enfant')));
 
         ecran('ecran-profils', consigne,
-          entete('🔮', 'Qui joue ?', 'Touche ton prénom', 'mascotte-neutre'),
+          entete('🔮', titre, aide, 'mascotte-neutre'),
           typeof message === 'string' ? el('p', { class: 'message-pave ok', role: 'status' }, message) : null,
-          el('div', { class: 'grille-profils' }, cartes),
+          noms.length ? el('div', { class: 'grille-profils' }, cartes) :
+            el('button', { type: 'button', class: 'btn btn-principal', onclick: () => aller(() => ecranCreation()) }, 'Créer mon profil pour jouer'),
+          !noms.length && syncDispo && !connecte ? el('div', { class: 'recuperation-profil' },
+            el('p', null, 'Déjà joué sur un autre appareil ?'),
+            el('button', { type: 'button', class: 'btn btn-secondaire', onclick: () => aller(() => ecranParentSync(false)) }, 'Retrouver mon profil'),
+            el('p', { class: 'sync-note' }, 'Avec le compte famille d’un parent.')) : null,
           connecte ? el('p', { class: 'sync-note' }, '☁️ Famille connectée : ' + (Sync.getEmail() || '')) : null,
           el('div', { class: 'pied' },
-            syncDispo
+            syncDispo && (connecte || noms.length > 0)
               ? el('button', { type: 'button', class: 'btn btn-secondaire btn-parent', onclick: () => aller(() => ecranParentSync(false)) },
-                connecte ? '☁️ Sauvegarde en ligne' : '☁️ Sauvegarder ma progression')
+                '☁️ Compte famille')
               : null,
             el('button', { type: 'button', class: 'btn btn-discret btn-parent', onclick: () => aller(ecranParentAcces) }, '🔒 Espace parent'))
         );
@@ -289,10 +297,10 @@
       const etatCreation = {};
 
       function ecranCreation(etape) {
+        if (!etape) { Object.keys(etatCreation).forEach(k => delete etatCreation[k]); }
         etape = etape || 1;
-        if (etape === 1) { Object.keys(etatCreation).forEach(k => delete etatCreation[k]); }
-        const total = 6;
-        const iconesEtapes = ['✏️', '🎒', '🧙', '🎨', '🔑', '✅'];
+        const iconesEtapes = ['✏️', '🎒', '🔑', '✅'];
+        const total = iconesEtapes.length;
         const progression = () => el('div', { class: 'etapes', role: 'img', 'aria-label': 'Étape ' + etape + ' sur ' + total,
           style: '--avance:' + Math.round(((etape - 1) / (total - 1)) * 100) + '%' },
           el('span', { class: 'etapes-barre', 'aria-hidden': 'true' }, el('span', { class: 'etapes-remplie' })),
@@ -329,26 +337,9 @@
           }, el('span', { class: 'classe-sigle' }, Niveaux.getLibelle(n))));
           ecran('ecran-creation', consigne, progression(), entete('🎒', 'Ta classe'),
             el('div', { class: 'grille-classes' }, boutons), el('div', { class: 'pied' }, retour()));
-        } else if (etape === 3) { // avatar
-          const consigne = 'Choisis ton personnage magique.';
-          const boutons = GestionnaireProfils.AVATARS_BASE.map(a => el('button', {
-            type: 'button', class: 'choix-avatar' + (etatCreation.avatar === a ? ' choisi' : ''), 'aria-label': 'Personnage ' + a,
-            onclick: () => { etatCreation.avatar = a; aller(() => ecranCreation(4)); }
-          }, a));
-          ecran('ecran-creation', consigne, progression(), entete('🧙‍♂️', 'Ton personnage'),
-            el('div', { class: 'grille-avatars' }, boutons), el('div', { class: 'pied' }, retour()));
-        } else if (etape === 4) { // couleur
-          const consigne = 'Choisis ta couleur préférée.';
-          const boutons = GestionnaireProfils.COULEURS.map(c => el('button', {
-            type: 'button', class: 'choix-couleur' + (etatCreation.couleur === c.valeur ? ' choisi' : ''),
-            style: 'background:' + c.valeur, 'aria-label': c.nom,
-            onclick: () => { etatCreation.couleur = c.valeur; aller(() => ecranCreation(5)); }
-          }, etatCreation.couleur === c.valeur ? '✓' : ''));
-          ecran('ecran-creation', consigne, progression(), entete('🎨', 'Ta couleur'),
-            el('div', { class: 'grille-couleurs' }, boutons), el('div', { class: 'pied' }, retour()));
-        } else if (etape === 5) { // code
+        } else if (etape === 3) { // code
           const consigne = 'Choisis un code secret à quatre chiffres. Retiens-le bien !';
-          const pave = creerPave(code => { etatCreation.code = code; aller(() => ecranCreation(6)); });
+          const pave = creerPave(code => { etatCreation.code = code; aller(() => ecranCreation(4)); });
           ecran('ecran-creation', consigne, progression(), entete('🔑', 'Ton code secret', '4 chiffres, que toi seul connais'),
             pave.racine, el('div', { class: 'pied' }, retour()));
           parler(consigne);
@@ -362,7 +353,7 @@
             }
             pave.desactiver(true);
             const r = await gp.creerProfil({
-              prenom: etatCreation.prenom, avatar: etatCreation.avatar, couleur: etatCreation.couleur,
+              prenom: etatCreation.prenom,
               niveauClasse: etatCreation.niveauClasse, code
             });
             if (!r.ok) { pave.desactiver(false); pave.message(r.erreur, 'erreur'); return; }
@@ -375,7 +366,7 @@
             pave.racine, el('div', { class: 'pied' }, retour()));
           parler(consigne);
         }
-        if (etape < 5) parler(etape === 1 ? 'Comment t\'appelles-tu ?' : etape === 2 ? 'Dans quelle classe es-tu ?' : etape === 3 ? 'Choisis ton personnage.' : 'Choisis ta couleur.');
+        if (etape < 3) parler(etape === 1 ? 'Comment t’appelles-tu ?' : 'Dans quelle classe es-tu ?');
       }
 
       // ---------- Profil migré : choisir sa classe et son code ----------
@@ -598,9 +589,9 @@
       function ecranParentSync(depuisParent, message) {
         const etat = { mode: 'connexion', occupe: false, message: message || '', type: message ? 'ok' : 'info' };
         const zone = el('div', { class: 'zone-sync' });
-        const consigne = 'Synchroniser entre appareils. Retrouvez la progression de vos enfants sur tous vos appareils.';
+        const consigne = 'Compte famille. Retrouvez les profils et la progression de vos enfants sur vos appareils.';
         ecran('ecran-parent', consigne,
-          entete('☁️', 'Synchroniser', 'Retrouvez la progression de vos enfants sur tous vos appareils.'),
+          entete('☁️', 'Compte famille', 'Retrouvez les profils et la progression de vos enfants sur vos appareils.'),
           zone,
           el('div', { class: 'pied' }, btnRetour(() => aller(() => (depuisParent ? ecranParentPanneau() : ecranProfils())))));
 
@@ -633,7 +624,7 @@
         function familleConnectee(r) {
           codeParentSession = null; // le code parent est propre à chaque famille
           etat.occupe = false;
-          if (!gp.getListeProfils().length) { aller(() => ecranCreation()); return; }
+          if (!gp.getListeProfils().length) { aller(() => ecranProfils('Famille connectée.')); return; }
           const n = (r && r.adoptes) || 0;
           const rattaches = n ? n + (n > 1 ? ' profils de cet appareil ont rejoint' : ' profil de cet appareil a rejoint') + ' la famille. ' : '';
           aller(() => ecranProfils('Famille connectée. ' + rattaches + 'Qui joue ?'));
@@ -654,7 +645,7 @@
               type: 'button', class: 'btn-mini' + ((m === 'inscription') === inscription ? ' choisi' : ''),
               'aria-pressed': ((m === 'inscription') === inscription) ? 'true' : 'false',
               onclick: () => { etat.mode = m; dire(''); rendre(); }
-            }, m === 'connexion' ? 'J\'ai un compte' : 'Créer un compte'))));
+            }, m === 'connexion' ? 'Se connecter' : 'Créer un compte famille'))));
 
           const e = champ('sync-email', 'Adresse e-mail du parent', 'email', 'email');
           const champs = [e.noeuds];
@@ -795,7 +786,7 @@
         const suite = () => {
           if (fini) return;
           fini = true;
-          if (gp.getListeProfils().length) aller(ecranProfils); else aller(() => ecranCreation());
+          aller(ecranProfils);
         };
         Promise.race([Sync.synchroniser(), new Promise(r => setTimeout(r, 6000))]).then(suite, suite);
       }
@@ -818,8 +809,6 @@
         ecranChargementFamille();
       } else {
         ecranProfils();
-        // Premier lancement : aucun profil → directement la création
-        if (!gp.getListeProfils().length) aller(() => ecranCreation());
       }
     })();
     </script>

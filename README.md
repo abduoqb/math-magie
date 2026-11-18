@@ -18,7 +18,7 @@ Ouvrir les fichiers directement (`file://`) marche pour la plupart des pages, ma
 | Dossier / fichier | Rôle |
 |---|---|
 | `index.html` | Accueil. Affiche les univers accessibles pour la classe du profil actif. |
-| `connexion.html` | Choix du profil, pavé de code, création en 6 étapes, espace parent, écran de synchro. |
+| `connexion.html` | Choix du profil, pavé de code, création en 4 étapes, espace parent, écran de synchro. |
 | `trophees.html` | Liste des trophées, filtrée sur `programme.calcul / geometrie / jeux`. |
 | `calculs_mentaux/` | Moteur de calcul (`js/moteur_calcul.js`) + générateur pur (`js/generateur_calcul.js`) + une page par opération. |
 | `geometrie/` | Moteur (`js/moteur_geometrie.js`), lecture du programme (`js/programme_geo.js`), une page par mission. Missions à thèmes (`espace`, `solides`, `cercle`, `instruments`, `rapporteur`) : banques de questions via `js/banque_geo.js`. |

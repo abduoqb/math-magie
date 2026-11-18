@@ -206,6 +206,10 @@ function ouvrirEditeurProfil() {
         ${disponibles.map((a) => `<button type="button" class="editeur-choix" role="radio" data-avatar="${esc(a)}" aria-label="Personnage ${esc(a)}">${esc(a)}</button>`).join('')}
       </div>
       ${verrouilles.length ? `<p class="editeur-aide">🔒 ${verrouilles.length} personnage${verrouilles.length > 1 ? 's' : ''} à débloquer avec les <a href="${esc(document.querySelector('app-header')?.getAttribute('base-path') || '')}trophees.html">trophées</a> !</p>` : '<p class="editeur-aide">🌟 Tu as débloqué tous les personnages !</p>'}
+      <label class="editeur-label" for="editeur-couleur">Ma couleur</label>
+      <select class="editeur-prenom" id="editeur-couleur">
+        ${GestionnaireProfils.COULEURS.map(c => `<option value="${esc(c.valeur)}"${c.valeur === gp.getCouleur() ? ' selected' : ''}>${esc(c.nom)}</option>`).join('')}
+      </select>
       <p class="editeur-erreur" id="editeur-erreur" role="alert"></p>
       <div class="editeur-actions">
         <button type="button" class="btn-secondaire" id="editeur-annuler">Annuler</button>
@@ -241,6 +245,8 @@ function ouvrirEditeurProfil() {
       const r = gp.renommerProfilActif(nom);
       if (!r.ok) { erreur.textContent = r.erreur; return; }
     }
+    const couleur = fond.querySelector('#editeur-couleur').value;
+    if (couleur !== gp.getCouleur()) gp.setCouleur(couleur);
     fermer();
     window.location.reload(); // rafraîchit l'en-tête et la page avec le nouveau prénom / personnage
   };
